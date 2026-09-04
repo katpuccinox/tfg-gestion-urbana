@@ -228,6 +228,37 @@ def update_user(user_id: int, request: UpdateUserRequest) -> dict[str, Any]:
     return {"id": user[0], "name": user[1], "email": user[2], "municipio_id": user[3], "role": user[4], "activo": user[5]}
 
 
+def delete_user(user_id: int, requesting_admin_id: int) -> dict[str, Any]:
+    """Borra una cuenta del espacio de datos. No se puede borrar la propia cuenta desde
+    aquí (evita que un admin se quede fuera por error) ni la última cuenta admin_estatal
+    (el espacio de datos siempre necesita al menos un administrador)."""
+    if user_id == requesting_admin_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No puedes borrar tu propia cuenta")
+
+    connection = get_connection()
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT role FROM users WHERE id = %s", (user_id,))
+                row = cursor.fetchone()
+                if not row:
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+                if row[0] == ROLE_ADMIN:
+                    cursor.execute("SELECT count(*) FROM users WHERE role = %s", (ROLE_ADMIN,))
+                    if cursor.fetchone()[0] <= 1:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="No se puede borrar el último administrador del espacio de datos",
+                        )
+
+                cursor.execute("DELETE FROM politicas_aceptaciones WHERE user_id = %s", (user_id,))
+                cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+    finally:
+        connection.close()
+    return {"id": user_id, "deleted": True}
+
+
 def resolve_upload_municipio(user: dict[str, Any], requested_municipio_id: str | None) -> str:
     """Evita que un editor/lector suba datos a nombre de otro municipio: para roles
     con ámbito municipal, el municipio de la subida es siempre el suyo propio,

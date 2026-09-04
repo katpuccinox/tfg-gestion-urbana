@@ -113,14 +113,11 @@ export default function App() {
   const [openQuestion, setOpenQuestion] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadStep, setUploadStep] = useState("select");
-  const [uploadForm, setUploadForm] = useState({ dataset: "", anio: new Date().getFullYear(), periodo: "Anual", descripcion: "" });
+  const [uploadForm, setUploadForm] = useState({ dataset: "", anio: new Date().getFullYear(), periodo: "Anual", descripcion: "", visibilidad: "compartido" });
   const [uploadResult, setUploadResult] = useState(null);
   const [dragActive, setDragActive] = useState(false);
-  const [authMode, setAuthMode] = useState("login");
-  const [authForm, setAuthForm] = useState({ name: "", email: "", password: "", municipio_id: "" });
-  const [adminForm, setAdminForm] = useState({ email: "admin@plataforma.local", password: "" });
+  const [authForm, setAuthForm] = useState({ email: "", password: "" });
   const [authError, setAuthError] = useState("");
-  const [authSuccess, setAuthSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [layer4Summary, setLayer4Summary] = useState({
     is_valid: true,
@@ -131,8 +128,10 @@ export default function App() {
   const [adminUsuarios, setAdminUsuarios] = useState([]);
   const [adminIngestas, setAdminIngestas] = useState([]);
   const [adminCatalogo, setAdminCatalogo] = useState([]);
+  const [adminCatalogoHistorial, setAdminCatalogoHistorial] = useState([]);
   const [adminAceptaciones, setAdminAceptaciones] = useState([]);
   const [adminPolicyForm, setAdminPolicyForm] = useState({ version: "", titulo: "", contenido: "" });
+  const [newUserForm, setNewUserForm] = useState({ name: "", email: "", password: "", municipio_id: "", role: "editor_municipio" });
   const [adminStatus, setAdminStatus] = useState("");
   const [policyModal, setPolicyModal] = useState({ open: false, version: "", titulo: "", contenido: "" });
   const canUpload = user?.role === "admin_estatal" || user?.role === "editor_municipio";
@@ -283,6 +282,8 @@ export default function App() {
         setAdminUsuarios(usuarios.usuarios || []);
         const catalogo = await adminFetch("/admin/catalogo");
         setAdminCatalogo(catalogo.catalogo || []);
+        const historial = await adminFetch("/admin/catalogo/historial");
+        setAdminCatalogoHistorial(historial.historial || []);
       }
       const ingestas = await adminFetch("/admin/ingestas?limit=100");
       setAdminIngestas(ingestas.entregas || []);
@@ -300,6 +301,34 @@ export default function App() {
       await loadAdminPanel();
     } catch (error) {
       setAdminStatus(error.message || "No se pudo actualizar el usuario.");
+    }
+  }
+
+  async function handleCreateUsuario(event) {
+    event.preventDefault();
+    if (!newUserForm.name.trim() || !newUserForm.email.trim() || !newUserForm.password || !newUserForm.municipio_id.trim()) return;
+    try {
+      await adminFetch("/admin/usuarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...newUserForm, municipio_id: newUserForm.municipio_id.trim().toUpperCase() }),
+      });
+      setAdminStatus(`Usuario ${newUserForm.email} creado.`);
+      setNewUserForm({ name: "", email: "", password: "", municipio_id: "", role: "editor_municipio" });
+      await loadAdminPanel();
+    } catch (error) {
+      setAdminStatus(error.message || "No se pudo crear el usuario.");
+    }
+  }
+
+  async function handleDeleteUsuario(userId, email) {
+    if (!window.confirm(`¿Borrar la cuenta ${email}? Esta acción no se puede deshacer.`)) return;
+    try {
+      await adminFetch(`/admin/usuarios/${userId}`, { method: "DELETE" });
+      setAdminStatus(`Usuario ${email} borrado.`);
+      await loadAdminPanel();
+    } catch (error) {
+      setAdminStatus(error.message || "No se pudo borrar el usuario.");
     }
   }
 
@@ -369,18 +398,11 @@ export default function App() {
   async function handleAuthSubmit(event) {
     event.preventDefault();
     setAuthError("");
-    setAuthSuccess("");
     setSubmitting(true);
 
     try {
-      if (authMode === "register") {
-        await registerMunicipio();
-        return;
-      }
-
       const email = authForm.email.trim();
       const password = authForm.password;
-      const municipio = authForm.municipio_id.trim();
 
       if (!email || !password) {
         throw new Error("Email y contraseña son obligatorios.");
@@ -395,7 +417,7 @@ export default function App() {
       if (!response.ok) {
         throw new Error(data.detail || "Credenciales no válidas.");
       }
-      const authenticatedUser = data.user || { id: data.id, name: data.name, email: data.email, municipio_id: data.municipio_id || municipio };
+      const authenticatedUser = data.user || { id: data.id, name: data.name, email: data.email, municipio_id: data.municipio_id };
       const newToken = data.token;
 
       localStorage.setItem("municipal_token", newToken);
@@ -404,7 +426,7 @@ export default function App() {
 
       setToken(newToken);
       setUser(authenticatedUser);
-      setAuthForm({ name: "", email: email, password: "", municipio_id: authenticatedUser.municipio_id || "MALAGA" });
+      setAuthForm({ email: "", password: "" });
       setAuthError("");
       setStatus("Sesión iniciada correctamente.", false);
     } catch (error) {
@@ -414,58 +436,13 @@ export default function App() {
     }
   }
 
-  async function registerMunicipio() {
-    const adminEmail = adminForm.email.trim();
-    const adminPassword = adminForm.password;
-    const name = authForm.name.trim();
-    const email = authForm.email.trim();
-    const password = authForm.password;
-    const municipio = authForm.municipio_id.trim();
-
-    if (!adminEmail || !adminPassword) {
-      throw new Error("Introduce las credenciales de un administrador de la plataforma.");
-    }
-    if (!name || !email || !password || !municipio) {
-      throw new Error("Completa nombre, email, contraseña e ID de ayuntamiento.");
-    }
-
-    const loginResponse = await fetch("/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: adminEmail, password: adminPassword }),
-    });
-    const loginData = await loginResponse.json().catch(() => ({}));
-    if (!loginResponse.ok) {
-      throw new Error(loginData.detail || "Credenciales de administrador no válidas.");
-    }
-    if (loginData.user?.role !== "admin_estatal") {
-      throw new Error("Esta cuenta no tiene permisos de administrador.");
-    }
-
-    const registerResponse = await fetch("/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${loginData.token}` },
-      body: JSON.stringify({ name, email, password, municipio_id: municipio }),
-    });
-    const registerData = await registerResponse.json().catch(() => ({}));
-    if (!registerResponse.ok) {
-      throw new Error(registerData.detail || "No se pudo crear la cuenta municipal.");
-    }
-
-    setAuthSuccess(`Cuenta creada para ${email}. Ya puede iniciar sesión.`);
-    setAuthMode("login");
-    setAuthForm({ name: "", email, password: "", municipio_id: municipio });
-    setAdminForm((current) => ({ ...current, password: "" }));
-  }
-
   function handleLogout() {
     localStorage.removeItem("municipal_token");
     localStorage.removeItem("municipal_user");
     sessionStorage.removeItem("municipal_token");
     setToken("");
     setUser(null);
-    setAuthMode("login");
-    setAuthForm({ name: "", email: "", password: "", municipio_id: "" });
+    setAuthForm({ email: "", password: "" });
     setAuthError("");
     setStatus("Comprobando backend...", false);
     setRows([]);
@@ -522,7 +499,7 @@ export default function App() {
 
   function resetUpload() {
     setSelectedFile(null);
-    setUploadForm({ dataset: "", anio: new Date().getFullYear(), periodo: "Anual", descripcion: "" });
+    setUploadForm({ dataset: "", anio: new Date().getFullYear(), periodo: "Anual", descripcion: "", visibilidad: "compartido" });
     setUploadResult(null);
     setDragActive(false);
     setUploadStep("select");
@@ -539,7 +516,7 @@ export default function App() {
 
     const target = DATASET_OPTIONS.find((option) => option.value === uploadForm.dataset) || DATASET_OPTIONS[0];
     const separator = target.url.includes("?") ? "&" : "?";
-    const targetUrl = `${target.url}${separator}municipio_id=${encodeURIComponent(user?.municipio_id || "")}&anio=${encodeURIComponent(uploadForm.anio)}&period=${encodeURIComponent(uploadForm.periodo)}`;
+    const targetUrl = `${target.url}${separator}municipio_id=${encodeURIComponent(user?.municipio_id || "")}&anio=${encodeURIComponent(uploadForm.anio)}&period=${encodeURIComponent(uploadForm.periodo)}&visibilidad=${encodeURIComponent(uploadForm.visibilidad)}`;
     const formData = new FormData();
     formData.append("file", selectedFile);
 
@@ -754,63 +731,10 @@ export default function App() {
         </div>
 
         <div className="auth-panel">
-          <div className="auth-tabs">
-            <button
-              type="button"
-              className={authMode === "login" ? "selected" : ""}
-              onClick={() => setAuthMode("login")}
-            >
-              Iniciar sesión
-            </button>
-            <button
-              type="button"
-              className={authMode === "register" ? "selected" : ""}
-              onClick={() => setAuthMode("register")}
-            >
-              Registro
-            </button>
-          </div>
-
-          <h2>{authMode === "login" ? "Bienvenido" : "Crear acceso"}</h2>
-          <p className="auth-subtitle">
-            {authMode === "login"
-              ? "Accede con tu correo y contraseña para ver tu municipio."
-              : "Da de alta un nuevo ayuntamiento. Requiere credenciales de administrador de la plataforma."}
-          </p>
+          <h2>Bienvenido</h2>
+          <p className="auth-subtitle">Accede con tu correo y contraseña para ver tu municipio.</p>
 
           <form onSubmit={handleAuthSubmit}>
-            {authMode === "register" && (
-              <>
-                <label>
-                  Email de administrador
-                  <input
-                    type="email"
-                    value={adminForm.email}
-                    onChange={(event) => setAdminForm((current) => ({ ...current, email: event.target.value }))}
-                    placeholder="admin@plataforma.local"
-                  />
-                </label>
-                <label>
-                  Contraseña de administrador
-                  <input
-                    type="password"
-                    value={adminForm.password}
-                    onChange={(event) => setAdminForm((current) => ({ ...current, password: event.target.value }))}
-                    placeholder="••••••••"
-                  />
-                </label>
-                <label>
-                  Nombre del ayuntamiento
-                  <input
-                    type="text"
-                    value={authForm.name}
-                    onChange={(event) => setAuthForm((current) => ({ ...current, name: event.target.value }))}
-                    placeholder="Ej. Ayuntamiento de Málaga"
-                  />
-                </label>
-              </>
-            )}
-
             <label>
               Email
               <input
@@ -831,25 +755,16 @@ export default function App() {
               />
             </label>
 
-            <label>
-              ID de ayuntamiento
-              <input
-                type="text"
-                value={authForm.municipio_id}
-                onChange={(event) => setAuthForm((current) => ({ ...current, municipio_id: event.target.value }))}
-                placeholder="MALAGA"
-              />
-            </label>
-
             {authError && <p className="auth-error">{authError}</p>}
-            {authSuccess && <p className="auth-success">{authSuccess}</p>}
 
             <button type="submit" className="auth-submit" disabled={submitting}>
               <span>{submitting ? "…" : "→"}</span>
-              {submitting ? "Accediendo..." : authMode === "login" ? "Entrar" : "Crear ayuntamiento"}
+              {submitting ? "Accediendo..." : "Entrar"}
             </button>
           </form>
 
+          <p className="auth-footnote">¿Necesitas una cuenta? Contacta con el administrador del espacio de datos.</p>
+          <p className="auth-footnote"><a href="/catalogo/publico" target="_blank" rel="noreferrer">Consulta el catálogo abierto de datasets</a> sin necesidad de cuenta.</p>
         </div>
       </section>
     );
@@ -999,6 +914,13 @@ export default function App() {
                         <label>
                           <span>Descripción (opcional)</span>
                           <input type="text" value={uploadForm.descripcion} onChange={(event) => setUploadForm((current) => ({ ...current, descripcion: event.target.value }))} placeholder="ej. Datos de tráfico trimestre 1" />
+                        </label>
+                        <label>
+                          <span>Visibilidad</span>
+                          <select value={uploadForm.visibilidad} onChange={(event) => setUploadForm((current) => ({ ...current, visibilidad: event.target.value }))}>
+                            <option value="compartido">Compartido (visible para todo el espacio de datos)</option>
+                            <option value="privado">Privado (solo tu municipio y administración)</option>
+                          </select>
                         </label>
                       </div>
                       <div className="actions-row">
@@ -1281,6 +1203,23 @@ export default function App() {
             {adminSubTab === "usuarios" && isAdmin && (
               <div className="card">
                 <div className="panel-heading"><h2>Usuarios</h2></div>
+
+                <form className="admin-form" onSubmit={handleCreateUsuario}>
+                  <label>Nombre<input value={newUserForm.name} onChange={(event) => setNewUserForm((current) => ({ ...current, name: event.target.value }))} required /></label>
+                  <label>Email<input type="email" value={newUserForm.email} onChange={(event) => setNewUserForm((current) => ({ ...current, email: event.target.value }))} required /></label>
+                  <label>Contraseña<input type="password" value={newUserForm.password} onChange={(event) => setNewUserForm((current) => ({ ...current, password: event.target.value }))} required /></label>
+                  <label>Municipio<input value={newUserForm.municipio_id} onChange={(event) => setNewUserForm((current) => ({ ...current, municipio_id: event.target.value }))} placeholder="MALAGA" required /></label>
+                  <label>
+                    Rol
+                    <select value={newUserForm.role} onChange={(event) => setNewUserForm((current) => ({ ...current, role: event.target.value }))}>
+                      {["admin_estatal", "editor_municipio", "lector_municipio", "consumidor", "auditor"].map((role) => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <button className="btn primary" type="submit">Crear usuario</button>
+                </form>
+
                 <table className="admin-table">
                   <thead>
                     <tr><th>Nombre</th><th>Email</th><th>Municipio</th><th>Rol</th><th>Estado</th><th></th></tr>
@@ -1299,10 +1238,11 @@ export default function App() {
                           </select>
                         </td>
                         <td>{usuario.activo ? "Activo" : "Desactivado"}</td>
-                        <td>
+                        <td className="admin-actions-cell">
                           <button className="btn alt" type="button" onClick={() => handleUpdateUsuario(usuario.id, { activo: !usuario.activo })}>
                             {usuario.activo ? "Desactivar" : "Activar"}
                           </button>
+                          <button className="btn danger" type="button" onClick={() => handleDeleteUsuario(usuario.id, usuario.email)}>Borrar</button>
                         </td>
                       </tr>
                     ))}
@@ -1316,7 +1256,7 @@ export default function App() {
                 <div className="panel-heading"><h2>Supervisión de ingestas</h2></div>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>Recibida</th><th>Municipio</th><th>Dataset</th><th>Periodo</th><th>Estado</th><th>Validación</th><th>Incidencias</th></tr>
+                    <tr><th>Recibida</th><th>Municipio</th><th>Dataset</th><th>Periodo</th><th>Visibilidad</th><th>Estado</th><th>Validación</th><th>Incidencias</th></tr>
                   </thead>
                   <tbody>
                     {adminIngestas.map((entrega) => (
@@ -1325,6 +1265,7 @@ export default function App() {
                         <td>{entrega.municipio_id || entrega.entity}</td>
                         <td>{entrega.dataset}</td>
                         <td>{entrega.period || "—"}</td>
+                        <td>{entrega.visibilidad === "privado" ? "Privado" : "Compartido"}</td>
                         <td>{entrega.status}{entrega.indicador_conflicto ? " · conflicto" : ""}</td>
                         <td>{entrega.resultado_validacion || "—"}</td>
                         <td>{entrega.numero_registros_con_incidencia ?? "—"}</td>
@@ -1359,6 +1300,23 @@ export default function App() {
                             {item.status === "active" ? "Desactivar" : "Activar"}
                           </button>
                         </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <div className="panel-heading mt-16"><h2>Historial de sincronización (gobernanza común)</h2></div>
+                <table className="admin-table">
+                  <thead>
+                    <tr><th>Fecha</th><th>Admin</th><th>Estado</th><th>Datasets</th></tr>
+                  </thead>
+                  <tbody>
+                    {adminCatalogoHistorial.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.sincronizado_en ? new Date(item.sincronizado_en).toLocaleString("es-ES") : "—"}</td>
+                        <td>{item.sincronizado_por ?? "sistema"}</td>
+                        <td>{item.status}</td>
+                        <td>{(item.datasets || []).length} datasets</td>
                       </tr>
                     ))}
                   </tbody>

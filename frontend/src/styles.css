@@ -465,6 +465,11 @@ body {
   color: #23446f;
 }
 
+.btn.danger {
+  background: #fdeceb;
+  color: var(--danger);
+}
+
 .success {
   color: var(--ok);
   font-weight: 700;
@@ -1732,6 +1737,13 @@ td {
   font-weight: 700;
 }
 
+.auth-footnote {
+  margin: 1.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .auth-success {
   margin: 1rem 0 0;
   color: #1b8a3b;
@@ -1826,6 +1838,11 @@ td {
   text-align: left;
   padding: 0.55rem 0.7rem;
   border-bottom: 1px solid var(--line);
+}
+
+.admin-actions-cell {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .admin-table th {

@@ -78,6 +78,52 @@ def set_catalog_status(dataset_id: str, status: str) -> Dict[str, Any]:
     return {"id": row[0], "dimension": row[1], "display_name": row[2], "status": row[3], "updated_at": row[4].isoformat() if row[4] else None}
 
 
+def record_catalog_sync(triggered_by: int | None, datasets: list, status: str) -> None:
+    """Gobernanza común: cada sincronización del catálogo de contratos (las reglas
+    técnicas que todos los miembros del espacio de datos comparten) queda registrada
+    -- quién la lanzó, cuándo y sobre qué datasets -- para que la evolución de esas
+    reglas sea auditable y no un cambio silencioso."""
+    conn = get_postgres_conn()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS contratos_historial (
+            id SERIAL PRIMARY KEY,
+            sincronizado_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            sincronizado_por INTEGER,
+            status TEXT NOT NULL,
+            datasets_json JSONB NOT NULL
+        )
+        """
+    )
+    cur.execute(
+        "INSERT INTO contratos_historial (sincronizado_por, status, datasets_json) VALUES (%s, %s, %s::jsonb)",
+        (triggered_by, status, json.dumps(datasets)),
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def list_catalog_sync_history(limit: int = 100) -> list:
+    conn = get_postgres_conn()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT id, sincronizado_en, sincronizado_por, status, datasets_json FROM contratos_historial ORDER BY sincronizado_en DESC LIMIT %s",
+        (limit,),
+    )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [
+        {
+            "id": row[0], "sincronizado_en": row[1].isoformat() if row[1] else None,
+            "sincronizado_por": row[2], "status": row[3], "datasets": row[4],
+        }
+        for row in rows
+    ]
+
+
 def is_dataset_active(dataset_id: str) -> bool:
     """True si el dataset no aparece en `esquemas` (aún no sincronizado, se
     considera activo por defecto) o si su estado es 'active'."""
@@ -234,16 +280,18 @@ class ContractsManager:
             tables.append(contract_id)
         return {"enabled": True, "status": "synchronized", "domains": sorted(domains), "tables": tables}
 
-    def synchronize(self) -> Dict[str, Any]:
+    def synchronize(self, triggered_by: int | None = None) -> Dict[str, Any]:
         postgres_result = self.save_contracts_to_postgres()
         try:
             metadata_result = self.provision_to_openmetadata()
         except Exception as exc:
             log.warning("OpenMetadata no disponible: %s", exc)
             metadata_result = {"enabled": self.om_enabled, "status": "unavailable", "errors": [str(exc)]}
+        status_value = "synchronized" if metadata_result["status"] != "unavailable" else "partial"
+        record_catalog_sync(triggered_by, postgres_result.get("saved", []), status_value)
         return {
             "is_valid": True,
-            "status": "synchronized" if metadata_result["status"] != "unavailable" else "partial",
+            "status": status_value,
             "postgres": postgres_result,
             "openmetadata": metadata_result,
             "synchronized_at": datetime.now(timezone.utc).isoformat(),

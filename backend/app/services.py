@@ -1858,6 +1858,7 @@ def run_automatic_dimension_pipeline(
     anio: int | None = None,
     fecha_hora_inicio_remision: datetime | None = None,
     numero_intento_carga: int = 1,
+    visibilidad: str = "compartido",
 ) -> Dict[str, Any]:
     """Ejecuta secuencialmente las capas 0 a 4 y detiene el flujo ante bloqueos."""
     contract = DATASET_CONTRACTS.get(dataset)
@@ -1878,6 +1879,7 @@ def run_automatic_dimension_pipeline(
         anio=anio,
         fecha_hora_inicio_remision=fecha_hora_inicio_remision,
         numero_intento_carga=numero_intento_carga,
+        visibilidad=visibilidad,
     )
     if not preservation.get("is_valid") or preservation.get("decision") == "duplicate":
         return {**preservation, "pipeline": []}
@@ -2100,10 +2102,15 @@ def list_ingest_deliveries(
     dataset: str | None = None,
     status_filter: str | None = None,
     limit: int = 200,
+    only_shared: bool = False,
 ) -> list[Dict[str, Any]]:
     """Supervisión de ingestas para el panel de administración: cruza `ingesta_entregas`
     (Capa 0) con `capa2_validaciones` (Capa 2) para dar, por entrega, su estado de
-    recepción y el resultado de validación si ya se calculó."""
+    recepción y el resultado de validación si ya se calculó.
+
+    only_shared=True fuerza visibilidad='compartido': es lo que ve el rol consumidor,
+    que no tiene municipio propio y por tanto solo debe ver lo que cada municipio ha
+    decidido compartir explícitamente (soberanía del dato)."""
     conn = get_db_connection()
     cur = conn.cursor()
     filters = []
@@ -2117,6 +2124,8 @@ def list_ingest_deliveries(
     if status_filter:
         filters.append("e.status = %s")
         params.append(status_filter)
+    if only_shared:
+        filters.append("e.visibilidad = 'compartido'")
     where_clause = f"WHERE {' AND '.join(filters)}" if filters else ""
     params.append(limit)
     cur.execute(
@@ -2124,6 +2133,7 @@ def list_ingest_deliveries(
         SELECT
             e.id, e.entity, e.dimension, e.dataset, e.period, e.municipio_id, e.sender,
             e.status, e.received_at, e.indicador_conflicto, e.decision_sobre_conflicto,
+            e.visibilidad,
             v.resultado_validacion, v.numero_registros_con_error, v.numero_registros_con_incidencia,
             v.numero_registros_validos, v.estado_ciclo_vida_dataset
         FROM ingesta_entregas e
@@ -2142,10 +2152,10 @@ def list_ingest_deliveries(
             "id": row[0], "entity": row[1], "dimension": row[2], "dataset": row[3], "period": row[4],
             "municipio_id": row[5], "sender": row[6], "status": row[7],
             "received_at": row[8].isoformat() if row[8] else None,
-            "indicador_conflicto": row[9], "decision_sobre_conflicto": row[10],
-            "resultado_validacion": row[11], "numero_registros_con_error": row[12],
-            "numero_registros_con_incidencia": row[13], "numero_registros_validos": row[14],
-            "estado_ciclo_vida_dataset": row[15],
+            "indicador_conflicto": row[9], "decision_sobre_conflicto": row[10], "visibilidad": row[11],
+            "resultado_validacion": row[12], "numero_registros_con_error": row[13],
+            "numero_registros_con_incidencia": row[14], "numero_registros_validos": row[15],
+            "estado_ciclo_vida_dataset": row[16],
         }
         for row in rows
     ]
@@ -2299,8 +2309,16 @@ def register_delivery(
     anio: int | None = None,
     fecha_hora_inicio_remision: datetime | None = None,
     numero_intento_carga: int = 1,
+    visibilidad: str = "compartido",
 ) -> Dict[str, Any]:
-    """Registra una entrega y decide si se acepta, duplica, entra en conflicto o reemplaza otra."""
+    """Registra una entrega y decide si se acepta, duplica, entra en conflicto o reemplaza otra.
+
+    visibilidad ("compartido"|"privado"): soberanía del dato -- lo decide quien sube el
+    archivo. "compartido" (por defecto, coherente con el espíritu de datos abiertos de
+    este espacio) hace la entrega visible en los listados cross-municipio (admin/consumidor);
+    "privado" la deja visible solo para su propio municipio y para admin/auditor."""
+    if visibilidad not in ("compartido", "privado"):
+        visibilidad = "compartido"
     period_contains_year = bool(anio and re.search(rf"(?<!\d){anio}(?!\d)", period or ""))
     identity_period = period if not anio or period_contains_year else f"{anio}:{period or '_'}"
     logical_key = build_delivery_key(entity, dimension, dataset, identity_period, schema_version)
@@ -2365,6 +2383,7 @@ def register_delivery(
         cur.execute("ALTER TABLE ingesta_entregas ADD COLUMN IF NOT EXISTS estado_recepcion TEXT")
         cur.execute("ALTER TABLE ingesta_entregas ADD COLUMN IF NOT EXISTS indicador_conflicto BOOLEAN NOT NULL DEFAULT FALSE")
         cur.execute("ALTER TABLE ingesta_entregas ADD COLUMN IF NOT EXISTS decision_sobre_conflicto TEXT")
+        cur.execute("ALTER TABLE ingesta_entregas ADD COLUMN IF NOT EXISTS visibilidad TEXT NOT NULL DEFAULT 'compartido'")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS ingesta_eventos_recepcion (
@@ -2490,12 +2509,12 @@ def register_delivery(
                 fecha_hora_recepcion = %s, canal_entrada = %s,
                 nombre_fichero_original = %s, tamano_fichero = %s,
                 estado_recepcion = 'received', indicador_conflicto = %s,
-                decision_sobre_conflicto = %s
+                decision_sobre_conflicto = %s, visibilidad = %s
             WHERE id = %s
             """,
             (municipio_id or entity, dimension, anio, period, schema_version, sender,
                remittance_started_at, delivery_id, reception_timestamp, entry_channel, filename, len(content_bytes),
-             bool(previous), "replaced" if previous else "accepted", delivery_id),
+             bool(previous), "replaced" if previous else "accepted", visibilidad, delivery_id),
         )
         cur.execute(
             """
@@ -2553,6 +2572,7 @@ def register_dimension_delivery(
     anio: int | None = None,
     fecha_hora_inicio_remision: datetime | None = None,
     numero_intento_carga: int = 1,
+    visibilidad: str = "compartido",
 ) -> Dict[str, Any]:
     """Registra una entrega de una dimensión en Capa 0 sin persistir sus filas."""
     contract = DATASET_CONTRACTS.get(dataset)
@@ -2574,6 +2594,7 @@ def register_dimension_delivery(
         anio=anio,
         fecha_hora_inicio_remision=fecha_hora_inicio_remision,
         numero_intento_carga=numero_intento_carga,
+        visibilidad=visibilidad,
     )
     result["dataset"] = dataset
     result["dimension"] = contract["dimension"]
@@ -2603,6 +2624,7 @@ def preserve_dimension_delivery(
     anio: int | None = None,
     fecha_hora_inicio_remision: datetime | None = None,
     numero_intento_carga: int = 1,
+    visibilidad: str = "compartido",
 ) -> Dict[str, Any]:
     """Ejecuta Capa 0 y preserva el CSV original en staging sin transformarlo."""
     effective_entity = municipio_id or entity
@@ -2622,6 +2644,7 @@ def preserve_dimension_delivery(
         anio=anio,
         fecha_hora_inicio_remision=fecha_hora_inicio_remision,
         numero_intento_carga=numero_intento_carga,
+        visibilidad=visibilidad,
     )
     if not delivery.get("is_valid") or delivery.get("decision") == "duplicate":
         return delivery
@@ -3110,6 +3133,7 @@ def ingest_affectaciones(
     anio: int | None = None,
     fecha_hora_inicio_remision: datetime | None = None,
     numero_intento_carga: int = 1,
+    visibilidad: str = "compartido",
 ) -> Dict[str, Any]:
     """Valida y prepara los registros de afectaciones urbanas para persistencia."""
     if source_filename and content_bytes is not None:
@@ -3127,6 +3151,7 @@ def ingest_affectaciones(
             anio=anio,
             fecha_hora_inicio_remision=fecha_hora_inicio_remision,
             numero_intento_carga=numero_intento_carga,
+            visibilidad=visibilidad,
         )
     delivery_options = None
     if source_filename:

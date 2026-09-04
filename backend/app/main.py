@@ -23,15 +23,18 @@ from app.auth import (
     RegisterRequest,
     UpdateUserRequest,
     ROLE_ADMIN,
+    ROLE_AUDITOR,
     ROLE_CONSUMIDOR,
     authenticate_user,
     create_token,
     get_current_user,
     init_auth_table,
+    delete_user,
     list_users,
     register_user,
     require_admin,
     require_audit_access,
+    require_roles,
     require_write_access,
     resolve_upload_municipio,
     update_user,
@@ -47,7 +50,7 @@ from app.policies import (
     require_policy_accepted,
 )
 from app.contracts import DATASET_CONTRACTS
-from app.contracts_manager import ContractsManager, list_catalog_status, set_catalog_status
+from app.contracts_manager import ContractsManager, list_catalog_status, list_catalog_sync_history, set_catalog_status
 from app.services import (
     list_ingest_deliveries,
     build_afectaciones_layers,
@@ -139,9 +142,19 @@ def admin_listar_usuarios(admin: dict = Depends(require_admin)) -> Dict[str, obj
     return {"usuarios": list_users()}
 
 
+@app.post("/admin/usuarios")
+def admin_crear_usuario(request: RegisterRequest, admin: dict = Depends(require_admin)) -> Dict[str, object]:
+    return {"usuario": register_user(request)}
+
+
 @app.patch("/admin/usuarios/{user_id}")
 def admin_actualizar_usuario(user_id: int, request: UpdateUserRequest, admin: dict = Depends(require_admin)) -> Dict[str, object]:
     return {"usuario": update_user(user_id, request)}
+
+
+@app.delete("/admin/usuarios/{user_id}")
+def admin_borrar_usuario(user_id: int, admin: dict = Depends(require_admin)) -> Dict[str, object]:
+    return delete_user(user_id, admin["id"])
 
 
 @app.get("/admin/ingestas")
@@ -150,9 +163,36 @@ def admin_supervision_ingestas(
     dataset: str | None = None,
     status: str | None = None,
     limit: int = 200,
-    user: dict = Depends(require_audit_access),
+    user: dict = Depends(require_roles(ROLE_ADMIN, ROLE_AUDITOR, ROLE_CONSUMIDOR)),
 ) -> Dict[str, object]:
-    return {"entregas": list_ingest_deliveries(municipio_id=municipio_id, dataset=dataset, status_filter=status, limit=limit)}
+    # Soberanía del dato: consumidor (sin municipio propio) solo ve lo que cada
+    # municipio ha marcado explícitamente como "compartido" al subirlo.
+    only_shared = user["role"] == ROLE_CONSUMIDOR
+    return {"entregas": list_ingest_deliveries(municipio_id=municipio_id, dataset=dataset, status_filter=status, limit=limit, only_shared=only_shared)}
+
+
+@app.get("/catalogo/publico")
+def catalogo_publico() -> Dict[str, object]:
+    """Entorno abierto: catálogo de datasets consultable SIN autenticación, para que
+    cualquier proveedor o consumidor potencial (dentro o fuera del espacio de datos)
+    pueda descubrir qué dimensiones existen y su contrato técnico antes de pedir acceso.
+    No expone datos, solo el esquema (columnas, obligatoriedad, valores permitidos)."""
+    manager = ContractsManager()
+    estados = {item["id"]: item["status"] for item in list_catalog_status()}
+    catalogo = []
+    for dataset_id, contract in manager.contracts.items():
+        if estados.get(dataset_id, "active") != "active":
+            continue
+        payload = manager._contract_payload(dataset_id, contract)
+        catalogo.append({
+            "id": payload["id"],
+            "dimension": payload["dimension"],
+            "display_name": payload["display_name"],
+            "description": payload["description"],
+            "columns": payload["columns"],
+            "required_columns": payload["required_columns"],
+        })
+    return {"count": len(catalogo), "catalogo": catalogo}
 
 
 @app.get("/admin/catalogo")
@@ -250,9 +290,15 @@ def db_check() -> Dict[str, str]:
 def sincronizar_contratos(admin: dict = Depends(require_admin)) -> Dict[str, object]:
     """Persiste los contratos técnicos y los publica en OpenMetadata si está habilitado."""
     try:
-        return ContractsManager().synchronize()
+        return ContractsManager().synchronize(triggered_by=admin["id"])
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"No se pudieron sincronizar los contratos: {exc}")
+
+
+@app.get("/admin/catalogo/historial")
+def admin_historial_catalogo(user: dict = Depends(require_audit_access)) -> Dict[str, object]:
+    """Gobernanza común: historial de cambios en las reglas técnicas compartidas."""
+    return {"historial": list_catalog_sync_history()}
 
 
 @app.post("/ingesta/validar")
@@ -289,6 +335,7 @@ def cargar_afectaciones(
     anio: int | None = None,
     fecha_hora_inicio_remision: datetime | None = None,
     numero_intento_carga: int = 1,
+    visibilidad: str = "compartido",
     current_user: dict = Depends(require_write_access),
     _policy: dict = Depends(require_policy_accepted),
 ) -> Dict[str, object]:
@@ -314,6 +361,7 @@ def cargar_afectaciones(
         anio=anio,
         fecha_hora_inicio_remision=fecha_hora_inicio_remision,
         numero_intento_carga=numero_intento_carga,
+        visibilidad=visibilidad,
     )
     return {
         "filename": file.filename,
@@ -569,6 +617,7 @@ def registrar_movilidad(
     municipio_id: str | None = None,
     anio: int | None = None,
     fecha_hora_inicio_remision: datetime | None = None,
+    visibilidad: str = "compartido",
     current_user: dict = Depends(require_write_access),
     _policy: dict = Depends(require_policy_accepted),
 ) -> Dict[str, object]:
@@ -592,6 +641,7 @@ def registrar_movilidad(
         municipio_id=municipio_id,
         anio=anio,
         fecha_hora_inicio_remision=fecha_hora_inicio_remision,
+        visibilidad=visibilidad,
     )
     return {"filename": file.filename, **result}
 
@@ -610,6 +660,7 @@ def preservar_capa1(
     anio: int | None = None,
     fecha_hora_inicio_remision: datetime | None = None,
     numero_intento_carga: int = 1,
+    visibilidad: str = "compartido",
     current_user: dict = Depends(require_write_access),
     _policy: dict = Depends(require_policy_accepted),
 ) -> Dict[str, object]:
@@ -633,6 +684,7 @@ def preservar_capa1(
         anio=anio,
         fecha_hora_inicio_remision=fecha_hora_inicio_remision,
         numero_intento_carga=numero_intento_carga,
+        visibilidad=visibilidad,
     )
     return {"filename": file.filename, **result}
 
