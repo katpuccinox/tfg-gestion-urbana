@@ -1,0 +1,300 @@
+Documento de memoria de cambios.
+
+2026-07-26
+- Se creó este archivo para ir registrando de forma resumida los avances del proyecto.
+- Se creó la estructura inicial de backend, frontend y Docker.
+- Se ha implementado el backend con FastAPI, una primera ruta de salud, comprobación de conexión a base de datos y un endpoint de validación de CSV.
+- Se ha creado la lógica de validación para detectar archivos vacíos, cabeceras vacías, columnas faltantes, valores obligatorios vacíos y columnas inconsistentes.
+- Se han añadido pruebas automáticas para verificar el comportamiento de la validación.
+- Se ha dejado preparado el camino para el siguiente paso: conectar la subida de archivos con persistencia real en base de datos.
+
+2026-07-27 
+- Se añadieron cabeceras de archivo con nombre, resumen, autor y fecha en los archivos ya creados.
+- Se incorporaron comentarios breves en las partes principales del código para explicar su propósito.
+- Se mantuvo la funcionalidad existente y se verificó con las pruebas automáticas.
+
+2026-08-01
+- Se implementó una primera ruta de ingestión orientada a la dimensión de afectaciones urbanas.
+- El endpoint de validación ahora prepara registros a partir de un CSV con columnas clave de afectaciones.
+- Se añadió una función de parseo de filas para convertir el CSV en registros estructurados.
+- Se añadió una prueba automática para verificar el paso de CSV a registros.
+- Se verificó el comportamiento con pytest y el resultado fue 6 tests pasados.
+
+2026-08-04
+- Se formalizó el contrato de datos de la dimensión en backend/app/contracts.py.
+- Se añadieron reglas de negocio en la validación CSV: formato de fecha y valores permitidos.
+- Se ajustó la ingesta para devolver estado consistente (success/error) en todos los casos.
+- Se evolucionó la UI frontend a formato panel con métricas de estado y carga.
+- Se incorporó un catálogo inicial de preguntas de análisis para la dimensión de afectaciones urbanas en backend/app/analysis_questions.py, definido a partir del problema de negocio del proyecto activo y ampliable con nuevas preguntas operativas.
+- Se añadieron endpoints de integración para AI Studio:
+	- GET /analysis/preguntas
+	- GET /analysis/preguntas?dimension=afectaciones_urbanas
+	- GET /analysis/contexto/afectaciones
+- Se añadió generación de contexto de análisis para Q3 desde datos persistidos.
+- Se ampliaron pruebas automáticas para cubrir contrato, reglas y endpoints de análisis.
+- Verificación final: pytest backend/tests/test_validation.py -> 16 tests pasados.
+- Se migró el frontend desde HTML estático a React + Vite conservando el flujo funcional del MVP.
+- Se creó estructura frontend React (src/App.jsx, src/main.jsx, src/styles.css, package.json, vite.config.js).
+- Se configuró proxy en Vite para consumir backend FastAPI sin cambios en endpoints.
+- Se adaptó backend/app/main.py para servir build React (dist) y assets en modo integrado.
+- Se actualizó frontend/Dockerfile a build multi-stage (Node para compilar + nginx para servir).
+- Validaciones de la migración: npm run build OK y pytest backend/tests/test_validation.py OK (16 passed).
+
+2026-08-06
+- Se definió la arquitectura técnica del proyecto activo para la incorporación gradual de stack de datos: SeaweedFS, NiFi, Trino, OpenMetadata y Airflow, priorizando una solución viable desde cero sin depender de un repositorio ajeno.
+- Se creó la guía técnica en docs/integracion_stack_datos.md con plan por fases, arquitectura objetivo, orden recomendado, variables de entorno y riesgos.
+- Se enlazó dicha guía desde README.md para mantener la documentación operativa centralizada.
+- Validación tras cambios documentales: pytest backend/tests/test_validation.py OK (16 passed) y npm run build OK.
+
+2026-08-10
+- Se añadió una sección breve en docs/integracion_stack_datos.md para describir cómo queda el flujo de datos inicial del MVP y su evolución hacia el stack de datos.
+- El flujo documentado ahora refleja esta secuencia: subida CSV -> validación en backend -> persistencia en PostgreSQL -> copia a staging en SeaweedFS -> NiFi a raw -> consulta en Trino y registro en OpenMetadata.
+- Se mantuvo el objetivo de no romper el MVP actual mientras se incorpora la arquitectura de lago de datos por fases.
+- Se dejó preparado un layout explícito de rutas para el lago local con estructura staging/raw por dataset, facilitando la conexión con NiFi o una etapa automática de movimiento entre carpetas.
+
+2026-08-11
+- Se preparó la integración inicial de NiFi en docker-compose.yml con un servicio local accesible en http://localhost:9090/nifi.
+- Se añadieron variables de entorno preliminares para conectar el backend con el servicio de NiFi.
+- Se documentó que el siguiente paso práctico es crear un flujo simple ListFile -> PutFile hacia raw y dejarlo alineado con el layout del lago por dataset.
+
+2026-08-18
+- Se añadió python-multipart a backend/requirements.txt para permitir que FastAPI arranque con endpoints de subida de archivos.
+- Se corrigió el puerto interno de PostgreSQL del backend en docker-compose.yml: entre contenedores usa 5432; el acceso desde el host continúa en 5433.
+- Se verificó la pila completa: frontend en http://localhost:8080, backend en http://localhost:8000, PostgreSQL operativo y NiFi en https://localhost:8443/nifi.
+- Flujo de datos actual: CSV en staging/afectaciones_urbanas -> ListFile de NiFi -> PutFile -> raw/afectaciones_urbanas.
+
+2026-08-19
+- Se desacopló la ingesta del backend: `publish_upload_to_lake()` deja los archivos en staging y ya no los mueve directamente a raw.
+- Se mantuvo `move_staged_file_to_raw()` como operación explícita de mantenimiento o prueba.
+- Se actualizaron las pruebas del backend: 21 tests pasados.
+- Se validó el flujo completo con `integracion_staging_20260819.csv`: FastAPI respondió con `stage=staging` y NiFi lo publicó posteriormente en raw.
+- Flujo de datos consolidado: CSV -> FastAPI/PostgreSQL + staging -> NiFi (ListFile -> FetchFile -> PutFile) -> raw.
+- Siguiente integración prevista: sustituir progresivamente las carpetas locales compartidas por buckets S3 de SeaweedFS, manteniendo PostgreSQL y NiFi durante la transición.
+
+2026-08-19 (SeaweedFS)
+- Se añadió SeaweedFS al docker-compose principal con master, volume, filer, API S3 e inicializador de buckets.
+- Se creó `infra/seaweedfs/s3.json` con credenciales locales de desarrollo.
+- Se crearon y verificaron los buckets S3 `staging` y `raw`.
+- SeaweedFS S3 queda accesible desde el host en `http://localhost:9100`; el master responde en `http://localhost:9333`.
+- El backend ya recibe variables S3 preparatorias, pero todavía mantiene la escritura local para no romper el flujo validado.
+
+2026-08-19 (S3 conectado)
+- Se añadió `boto3` al backend y se conectó `publish_upload_to_s3()` con la API S3 de SeaweedFS.
+- La subida de un CSV realiza doble escritura temporal: copia local en `data/lake/staging` y objeto S3 en `staging/<dataset>/<archivo>`.
+- Prueba real validada con `s3_prueba_20260819.csv`: SeaweedFS respondió `HTTPStatusCode: 200` mediante `head_object`.
+- NiFi continúa moviendo la copia local a `data/lake/raw`; el siguiente paso será cambiar el flujo NiFi a `ListS3/FetchS3Object/PutS3Object` para procesar también los buckets S3.
+
+2026-08-19 (hoja de ruta)
+- Se guardaron los siete pasos siguientes de integracion:
+	1. Documentar y estabilizar NiFi.
+	2. Añadir verificacion S3 al backend.
+	3. Eliminar la doble escritura local.
+	4. Incorporar Trino.
+	5. Crear consultas analiticas y KPIs.
+	6. Incorporar OpenMetadata.
+	7. Incorporar Airflow.
+- Paso 1 iniciado: el flujo S3 operativo queda definido como `ListS3Object -> FetchS3Object -> PutS3Object -> DeleteS3Object`.
+- Para evitar duplicados, el flujo local `ListFile -> FetchFile -> PutFile` debe mantenerse detenido.
+- Se documentaron endpoint, buckets, prefijo, clave S3 y requisito de Controller Service habilitado en docs/integracion_stack_datos.md.
+
+2026-08-19 (paso 2)
+
+2026-08-30
+- Consolidación del pipeline EDINT Capas 0-5 de extremo a extremo:
+  - Capa 0: Registro de entregas y deduplicación por hash SHA-256 en PostgreSQL (`ingesta_entregas` e `ingesta_eventos_recepcion`).
+  - Capa 1: Preservación inmutable del CSV en SeaweedFS S3 / staging local con generación de identificadores técnicos deterministas por fila (`row_id_tecnico`) y manifiestos de trazabilidad.
+  - Capa 2: Quality gate de admisibilidad completa con validación por contrato de tipos, rangos, coordenadas, catálogos y relaciones inter-campo. Emisión de incidencias en `ingesta_incidencias`.
+  - Capa 3: Normalización canónica de entregas admitidas hacia tablas Iceberg Silver en `lake.curated`.
+  - Capa 4: Materialización de Data Marts en Trino/Iceberg (`lake.analytics`):
+    - Data Marts Individuales: `mart_afectaciones`, `mart_its`, `mart_congestion`, `mart_parking`, `mart_ocupacion_permanente`.
+    - Data Marts Cruzados Multidimensión: `mart_efecto_mariposa` (Parking ↔ Tráfico), `mart_gestion_obras_its` (Afectaciones ↔ ITS ↔ Tráfico), `mart_presion_peatonal_pmr` (Terrazas ↔ Obras ↔ PMR), `mart_logistica_terrazas_trafico` (Terrazas ↔ Carga/Descarga ↔ Tráfico).
+  - Capa 5:
+    - Nuevo catálogo equilibrado de preguntas analíticas unidimensionales (`AQ1`-`AQ6`, `AQ_TRAF`, `AQ_PARK`, `AQ_ITS`) y multidimensión (`EQ1`-`EQ5`) en `backend/app/analysis_questions.py`.
+    - Endpoints de backend en `main.py` para generación de Data Marts (`/iceberg/gold/marts/construir`), inspección BI por CSV individual (`/analysis/bi/resumen-csv/{dataset}`), ejecución de preguntas analíticas con interpretación de Ollama (`/analysis/preguntas/ejecutar/{question_id}`), y simulador urbano multidimensión (`/analysis/simulador-multidimension`).
+    - Generador de datos sintéticos coordinados entre las 6 dimensiones en `scripts/generar_datos_sinteticos_multidimension.py`.
+  - Rediseño del Frontend (`src/App.jsx`): Interfaz estructurada en 3 pestañas principales:
+    1. Inspección de CSV Individual
+    2. Preguntas Analíticas & Síntesis IA (Ollama)
+    3. Cuadro de Mando BI / Superset (consola e iFrame interactivo de Superset sobre Trino)
+- Batería de pruebas de backend ampliada y verificada con 95 tests unitarios e integración pasados en `pytest`.
+- Se añadió `inspect_s3_lake_object()` para consultar la existencia del archivo en los buckets S3 `staging` y `raw`.
+- Se amplió `GET /ingesta/lake/estado` con estado global (`staging`, `raw`, `not_found` o `error`), clave S3, tamaños y existencia local/S3.
+- Validación: 23 tests pasados y prueba real de `prueba_s3_final.csv` detectada en `s3://raw/afectaciones_urbanas/prueba_s3_final.csv` con 93 bytes.
+- La diferencia entre copia local y S3 queda visible y justifica el paso 3: eliminar la doble escritura local cuando el flujo S3 esté consolidado.
+
+2026-08-19 (paso 3)
+- Se eliminó la escritura local por defecto de `publish_upload_to_lake()`.
+- El backend usa ahora SeaweedFS S3 como destino principal; `LAKE_LOCAL_MIRROR=false` queda configurado en Docker Compose.
+- Se conserva `LAKE_LOCAL_MIRROR=true` como modo de compatibilidad temporal para pruebas del flujo local.
+- Validación: 23 tests pasados; `s3_solo_20260819.csv` no creó archivo local, fue publicado en S3 `staging` y NiFi lo trasladó a `s3://raw/afectaciones_urbanas/s3_solo_20260819.csv`.
+- El endpoint `/ingesta/lake/estado` confirmó `status=raw`, `staging.exists=false` y `raw.exists=true`.
+
+2026-08-26 (migración de capas analíticas a Iceberg)
+- Se configuró el catálogo `lake` de Trino con `iceberg.catalog.type=hive_metastore` y Hive Metastore como catálogo técnico.
+- `lake.curated.afectaciones_urbanas` y `lake.analytics.afectaciones_urbanas_resumen` se crean como tablas Iceberg en SeaweedFS.
+- Se mantuvo `hive.raw.afectaciones_urbanas` como tabla de entrada; los Parquet históricos se conservan en sus ubicaciones anteriores.
+- Validación real: `SHOW SCHEMAS FROM lake` funciona, `POST /analysis/layers/afectaciones` devuelve `is_valid=true` y Trino muestra ambas tablas.
+
+2026-08-19 (paso 4 iniciado)
+- Se añadió Trino 435 en `http://localhost:9110`.
+- Se creó `infra/trino/catalog/lake.properties` con catálogo Iceberg REST contra SeaweedFS y credenciales S3.
+- Validación parcial: Trino arranca y `SHOW CATALOGS` devuelve `lake` y `system`.
+- Bloqueo actual: `SHOW SCHEMAS FROM lake` devuelve `Forbidden: Access Denied` desde la API REST de Iceberg de SeaweedFS; queda pendiente resolver su autorización antes de crear tablas o KPIs.
+- Diagnostico del 403: el endpoint directo `GET http://seaweedfs-s3:8181/v1/namespaces` tambien devuelve 403, por lo que el bloqueo está en la autorizacion REST de SeaweedFS y no en el usuario de Trino. Se probaron `iceberg.rest-catalog.security=NONE`, IAM desactivado y clave SSE sin resolverlo; esos cambios experimentales se retiraron.
+- Alternativas para continuar: configurar la autenticacion REST/IAM de SeaweedFS con una clave de firma compatible o añadir un Hive Metastore para que Trino consulte S3 mediante catalogo Hive.
+
+2026-08-19 (arquitectura)
+- Se adopta como arquitectura objetivo: fuentes -> NiFi -> SeaweedFS S3 -> Hive Metastore -> Trino -> Superset.
+- OpenMetadata gobernará Trino, Hive Metastore y SeaweedFS; Elasticsearch y PostgreSQL cubrirán busqueda/estado interno; Prometheus + Grafana cubrirán observabilidad; Airflow orquestará ingestas y metadatos.
+- Se corrige el criterio del paso 4: Hive Metastore será el catálogo técnico principal e Iceberg se utilizará para tablas analíticas.
+- El catálogo Iceberg REST provisional de SeaweedFS se mantiene solo como experimento bloqueado por 403; no se presenta como arquitectura final.
+- Siguiente implementación: añadir Hive Metastore, configurar Trino con `hive.metastore.uri` y validar `SHOW SCHEMAS` antes de crear tablas analíticas Iceberg.
+
+2026-08-19 (Hive Metastore preparado)
+- Se añadió `hive-metastore-db` con PostgreSQL aislado y el servicio `hive-metastore` en el Compose.
+- Se creó `infra/trino/catalog/hive.properties` apuntando a `thrift://hive-metastore:9083` y SeaweedFS S3.
+- El Compose valida correctamente, pero la imagen `apache/hive:4.0.0` (aprox. 1,15 GB) no terminó de descargarse en la sesión y no se creó el contenedor HMS.
+- Estado: configuración preparada, servicio pendiente de descarga/arranque; la pila existente de backend, NiFi, SeaweedFS y Trino sigue operativa.
+
+2026-08-19 (Hive Metastore operativo)
+- Se corrigió la imagen de Hive añadiendo el driver JDBC de PostgreSQL con permisos legibles para el usuario `hive`.
+- El Metastore inicializó correctamente su esquema en PostgreSQL y queda activo en `thrift://hive-metastore:9083`.
+- Trino se conectó mediante `infra/trino/catalog/hive.properties`.
+- Validación real: `SHOW CATALOGS` devuelve `hive`, `lake` y `system`; `SHOW SCHEMAS FROM hive` devuelve `default` e `information_schema`.
+- El catálogo `lake` REST se conserva como provisional; el catálogo técnico válido para continuar es `hive`.
+
+2026-08-20 (primera tabla Hive sobre SeaweedFS)
+- Se añadió el JDBC de PostgreSQL, el AWS SDK bundle y `hadoop-aws` al classpath común de Hive Metastore, junto con un `core-site.xml` con credenciales S3A hacia SeaweedFS.
+- Se creó el esquema `hive.raw` y la tabla externa `hive.raw.afectaciones_urbanas` sobre `s3a://raw/afectaciones_urbanas/` con formato CSV (columnas VARCHAR, ya que el conector Hive CSV no admite tipos DATE).
+- Validación real: `SELECT ... FROM hive.raw.afectaciones_urbanas` devuelve las filas reales publicadas por NiFi en SeaweedFS `raw`.
+- Arquitectura técnica confirmada end-to-end: FastAPI -> SeaweedFS S3 -> NiFi -> Hive Metastore -> Trino.
+- Siguiente paso: definir KPIs/consultas analíticas sobre esta tabla y decidir si se convierte a Iceberg para las capas curated/analytics.
+
+2026-08-20 (KPIs SQL de afectaciones)
+- Se definió el contrato de KPIs de Q3 desde el problema de negocio del proyecto activo: total_afectaciones, ranking por vía y desglose por tipo, sin depender de una referencia externa.
+- Dado que el CSV real del proyecto activo tiene un esquema mínimo, los indicadores enriquecidos como `variacion_media_pct` o `count_alto_critico` se calculan con reglas internas, degradando con seguridad si faltan columnas extra.
+- Se añadió `run_trino_query()` y `get_afectaciones_kpis()` en `backend/app/services.py`, y el endpoint `GET /analysis/sql/afectaciones-kpis` en `backend/app/main.py`.
+- Se añadió la dependencia `trino` al backend.
+- Validación: 30 tests pasados y prueba real del endpoint devolviendo `total_afectaciones`, ranking por vía y desglose por tipo desde `hive.raw.afectaciones_urbanas`.
+
+2026-08-20 (tabla Hive dinámica)
+- Se diseñó la tabla Hive de bronzo desde cero para el proyecto activo: al detectar la cabecera real del CSV, se crea `hive.raw.{dataset}` con columnas VARCHAR y sin suposiciones rígidas sobre el esquema.
+- Se añadió `run_trino_statement()` y `register_hive_table_from_csv()` en `backend/app/services.py`: detecta el delimitador, limpia los nombres de columna y recrea la tabla desde la cabecera del archivo subido.
+- Se conectó en `publish_upload_to_lake()`: tras una subida S3 válida, si `TRINO_HOST` está configurado, se registra/actualiza la tabla Hive automáticamente.
+- Se corrigió un bloqueo real de permisos en la configuración local de Trino con `hive.security=allow-all`, sin afectar la lógica del proyecto y manteniendo el entorno de desarrollo seguro para pruebas locales.
+- Validación real end-to-end: con un CSV ampliado se creó la tabla Hive con columnas reales adicionales y Trino devolvió los datos correctamente, manteniendo compatibilidad con filas antiguas con columnas incompletas.
+- El endpoint `/analysis/sql/afectaciones-kpis` mantiene su funcionamiento sobre la tabla evolucionada y se valida con pruebas automatizadas.
+- Validación: 29 tests pasados y la solución queda integrada en el MVP del proyecto activo.
+
+2026-08-20 (pct_impacto ponderado en KPIs de afectaciones)
+- Se implementó en `get_afectaciones_kpis()` una lógica interna de impacto ponderado para la dimensión de afectaciones urbanas, basada en pesos por tipo de afectación, tipo de intervención y franja horaria, con límites y niveles de criticidad.
+- Se añadieron `run_trino_query_with_columns()`, las constantes `IMPACTO_*`, `_franja_horaria_desde_hora()`, `_nivel_impacto()` y `calcular_variacion_impacto()` en `backend/app/services.py`, manteniendo la solución en Python puro y evitando dependencias pesadas.
+- `get_afectaciones_kpis()` ahora devuelve `variacion_media_pct`, `count_alto_critico`, `pct_alto_critico` y `detalle_variacion`, con degradación segura si faltan columnas opcionales.
+- Validación: 36 tests pasados y la lógica quedó preparada para la capa analítica del proyecto activo.
+
+2026-08-20 (extensión del patrón de ingesta a Control y Gestión ITS)
+- Se añadió `ITS_DATA_CONTRACT` en `backend/app/contracts.py`: inventario (una fila = un dispositivo), obligatorios `id, categoria, latitud, longitud`, catálogos para `categoria` y `titularidad`, sin `date_columns` ni reglas temporales (a diferencia de afectaciones).
+- Se extrajo `_ingest_dataset()` como función genérica parametrizada por contrato/dataset/función de persistencia, reutilizada por `ingest_affectaciones` e `ingest_its` para no duplicar lógica de validación/parseo/publicación al lago.
+- Se añadieron `persist_its()`, `list_its()` y `get_its_kpis()` (total por categoria y por titularidad vía Trino, sin ponderación de impacto).
+- `register_hive_table_from_csv()` y `publish_upload_to_lake()` ya eran genéricos por `dataset_name`, así que se reutilizaron sin cambios para registrar `hive.raw.control_gestion_its`.
+- Se añadieron endpoints `POST /ingesta/its`, `GET /analysis/sql/its-kpis` y `GET /its` en `backend/app/main.py`, análogos a los de afectaciones.
+- Validación: 46 tests pasados (10 nuevos cubriendo contrato ITS, ingesta, persistencia, listado y KPIs).
+
+2026-08-20 (criticidad por vía y tipo para responder Q3 completo)
+- Se implementó la lógica de criticidad por vía y tipo desde cero en el backend activo, con criterios defensibles para la dimensión de afectaciones urbanas: se calcula el máximo `pct_impacto` por vía y se ordena por nivel de riesgo.
+- El cálculo se centraliza en `calcular_variacion_impacto()` y `ranking_criticidad_por_via()`, evitando duplicidad en KPIs y contexto analítico para la pregunta Q3.
+- `build_affectaciones_analysis_context()` incorpora `variacion_media_pct`, `count_alto_critico`, `pct_alto_critico`, `distribucion_niveles` y `ranking_criticidad_vias` para entregar contexto útil a AI Studio sin depender de fuentes externas.
+- Validación: 48 tests pasados y la lógica quedó consolidada como parte del MVP del proyecto activo.
+
+2026-08-20 (Capa 2: coherencia temporal de afectaciones urbanas)
+- Se reforzó `AFFECTACIONES_DATA_CONTRACT`: `fecha_inicio`, `hora_inicio`, `fecha_fin` y `hora_fin` son ahora obligatorias para que cada fila represente un evento con inicio y fin definidos.
+- `validate_csv_text()` valida horas con formato `HH:MM` y rechaza cualquier fila cuya fecha/hora de fin sea anterior o igual a la de inicio.
+- Se actualizó el CSV demo válido para incluir una duración coherente.
+- No se añadieron transformaciones de Gold ni análisis avanzados; el cambio se limita a cerrar la validación bloqueante de Capa 2.
+- Validación: 51 tests pasados; permanece únicamente el warning de compatibilidad de `httpx` en `TestClient`.
+
+2026-08-20 (Capa 0: recepción e identidad de entregas)
+- Se añadió la identidad lógica de entrega para afectaciones: `entity + dimension + dataset + period + schema_version`, calculada por `build_delivery_key()`.
+- Se añadió la tabla PostgreSQL `ingesta_entregas`, que conserva filename, hash SHA-256, estado, fecha de recepción y relación con entregas reemplazadas.
+- `register_delivery()` aplica las decisiones de recepción: `accepted` para una entrega nueva, `duplicate` si coincide la clave y el hash, `conflict` si cambia el contenido para la misma clave, y `replace` cuando se solicita reemplazo controlado.
+- `POST /ingesta/afectaciones` acepta `entity`, `dataset`, `period`, `schema_version` y `replace`, y devuelve la decisión de Capa 0 junto con la clave lógica.
+- Las filas persistidas de afectaciones guardan `delivery_key` para trazabilidad posterior; la publicación a staging/raw y la validación temporal siguen siendo pasos separados.
+- En un reemplazo controlado se eliminan únicamente las filas PostgreSQL asociadas a la entrega anterior mediante `delivery_key`; el fichero raw se conserva íntegro y separado de esta sustitución lógica.
+- Si PostgreSQL no permite registrar la entrega, la recepción se bloquea y no se publica el archivo.
+- Validación: 52 tests pasados; permanece únicamente el warning de compatibilidad de `httpx` en `TestClient`.
+
+2026-08-20 (validación real de Capa 0 y Capa 1)
+- Se comprobó con `gestion_afectaciones_urbanas.csv` (250 filas) que el catálogo de afectaciones debía aceptar `corte_trafico`, `ocupacion_calzada`, `restriccion_paso`, `ocupacion_acera`, `mantenimiento` y `actuacion_municipal`; se actualizó el contrato para reflejar los valores reales de la dimensión.
+- Se ajustó Capa 0 para permitir el reintento de entregas en estado `rejected`; las entregas `accepted`/`received` continúan protegidas frente a duplicados o conflictos.
+- Validación real: primera entrega aceptada con 250 filas insertadas, publicada en `s3://staging/afectaciones_urbanas/gestion_afectaciones_urbanas.csv`; el fichero apareció posteriormente en `raw` con 76192 bytes.
+- Capa 1 generó el manifiesto separado `s3://raw/_traceability/afectaciones_urbanas/gestion_afectaciones_urbanas.csv.rows.csv` con 250 `row_id_tecnico`, sin modificar el CSV raw.
+- Segunda entrega idéntica: decisión `duplicate`, 0 filas insertadas y sin nueva publicación.
+- Trino confirmó la tabla `hive.raw.afectaciones_urbanas` disponible.
+- Validación automatizada posterior: 53 tests pasados; permanece únicamente el warning de compatibilidad de `httpx` en `TestClient`.
+
+2026-08-20 (Capa 2: incidencias y alcance analítico de afectaciones)
+- Se mantuvo el `id` original del CSV como identificador de negocio; `row_id_tecnico` identifica la fila física dentro de una entrega y no sustituye ni elimina el `id` original.
+- `validate_csv_text()` ahora devuelve `incidencias` clasificadas: errores `bloqueante` para estructura, obligatorios, formatos, catálogos y coherencia temporal; `advertencia` para columnas adicionales conservadas.
+- Se añadió la tabla PostgreSQL `ingesta_incidencias`, vinculada a `delivery_id`, para conservar el detalle de las incidencias de Capa 2.
+- Las incidencias se exponen en las respuestas de validación/ingesta; una incidencia bloqueante impide persistir y avanzar, mientras que una advertencia permite continuar.
+- El alcance analítico futuro de la dimensión afectaciones urbanas será resolver seis preguntas; no se implementan todavía métricas de explotación avanzada durante Capa 2.
+- Validación: 55 tests pasados; permanece únicamente el warning de compatibilidad de `httpx` en `TestClient`.
+
+2026-08-21 (Capa 5: modelo descriptivo de afectaciones urbanas)
+- Se implementó `build_afectaciones_layer5()` en `backend/app/services.py` para construir la capa 5 desde las filas consultadas en `hive.raw.afectaciones_urbanas`.
+- El modelo calcula reglas observables por tipo de intervención, impacto medio, nivel de criticidad y ranking de vías usando la lógica de impacto ya validada; no inventa resultados ni consulta a una IA durante la ingesta.
+
+2026-08-25 (interpretación de contexto con Ollama)
+- Se añadió `build_ollama_analysis_context()` para combinar el resumen de capa 4 con el contexto analítico de afectaciones urbanas.
+- Se añadió `call_ollama_analysis()` usando el endpoint estándar `/api/generate`, configurable con `OLLAMA_BASE_URL`, `OLLAMA_MODEL` y `OLLAMA_TIMEOUT_SECONDS`.
+- El endpoint `POST /analysis/interpretar/ollama/afectaciones` devuelve la respuesta textual y conserva el contexto usado para generarla; el GET de contexto permite inspeccionarlo sin llamar al modelo.
+- AI Studio/Gemini queda fuera del flujo implementado.
+- Se añadió `GET /analysis/layer5/afectaciones` en `backend/app/main.py` para exponer el resultado estructurado como contexto fiable para una futura interpretación con Gemini/AI Studio.
+- Se añadieron pruebas de servicio y endpoint, incluyendo el comportamiento basado en datos reales simulados y la propagación de errores de consulta.
+- Decisión de arquitectura: la capa 5 calcula primero métricas reproducibles en backend; la IA queda separada como capa posterior de interpretación narrativa.
+- Validación: 62 tests pasados; permanece únicamente el warning de compatibilidad de `httpx` en `TestClient`.
+
+2026-08-23 (contrato CSV EDINT de afectaciones urbanas)
+- Se alineó el contrato externo de `gestion_afectaciones_urbanas.csv` con el estándar de 15 cabeceras: identificación, descripción, localización, intervalo temporal, tipología, titularidad, impacto PMR y notas.
+- Se separaron dos conceptos en la validación: las 15 columnas deben existir para mantener interoperabilidad, mientras que solo `id`, `nombre`, inicio, fin y tipologías requieren valor obligatorio.
+- Los campos opcionales se permiten vacíos conforme al criterio de no invención; se mantienen bloqueados valores artificiales cuando se informan datos inválidos.
+- Se actualizaron los CSV de ejemplo del frontend con el contrato completo y catálogos controlados propios del proyecto.
+- Se añadieron pruebas para verificar tanto el rechazo de cabeceras incompletas como la aceptación de valores opcionales vacíos.
+- Validación: 64 tests pasados; permanece únicamente el warning de compatibilidad de `httpx` en `TestClient`.
+
+2026-08-23 (Capa 0: recepción y control de entrada)
+- Se amplió la identidad de entrega con `entry_channel` y `sender`, junto a entidad, dimensión, dataset, periodo, versión y hash SHA-256 ya existentes.
+- Se creó la tabla `ingesta_eventos_recepcion` para registrar la recepción, duplicados, conflictos, reemplazos y cambios finales de estado de cada entrega.
+- Las decisiones de duplicado, conflicto y reemplazo mantienen su comportamiento previo, pero ahora dejan evidencia auditable con actor, canal, observación y fecha.
+- `POST /ingesta/afectaciones` acepta los metadatos de entrada y utiliza valores neutros propios del proyecto: `municipio_demo`, `web_manual` y `usuario_local`.
+- Se añadieron pruebas de metadatos y evento de recepción.
+- Validación: 65 tests pasados; permanece únicamente el warning de compatibilidad de `httpx` en `TestClient`.
+
+2026-08-23 (Capa 1: preservación del dato original)
+- Se formalizó el registro de almacenamiento del CSV original mediante la tabla `ingesta_objetos_preservados`, enlazada con la entrega de Capa 0.
+- Para cada objeto preservado se guarda ubicación S3 o local, nombre, tamaño, hash SHA-256, formato CSV, estado y fecha de almacenamiento.
+- Se mantiene la separación entre dato de origen y trazabilidad técnica: el CSV se preserva sin columnas añadidas y el manifiesto de `row_id_tecnico` se publica bajo el prefijo independiente `_traceability`.
+- La preservación solo se registra cuando el objeto se ha publicado en S3 o en el espejo local configurado, evitando declarar como almacenado un fichero inexistente.
+- Se añadió prueba específica de metadatos de preservación.
+- Validación: 66 tests pasados; permanece únicamente el warning de compatibilidad de `httpx` en `TestClient`.
+
+2026-08-23 (Capa 2: validación y curación)
+- Se estructuraron las incidencias de validación con código de regla, severidad, campo, fila de origen, `row_id_tecnico` determinista y acción requerida, sin eliminar los mensajes legibles ya expuestos por la API.
+- Se añadieron estados explícitos de resultado: `rejected` para errores bloqueantes, `accepted_with_warnings` para observaciones no críticas y `ready_for_ingestion` para entregas limpias.
+- La tabla `ingesta_incidencias` conserva ahora la evidencia detallada de validación por entrega, incluyendo la regla que falló y la localización de la incidencia.
+- Todas las salidas de rechazo, incluidas las de fichero vacío, codificación o delimitador no válido, devuelven el mismo contrato estructurado de incidencias.
+- Se añadieron pruebas para validar evidencia por campo/fila, advertencias y estado de preparación para ingesta.
+- Validación: 67 tests pasados; permanece únicamente el warning de compatibilidad de `httpx` en `TestClient`.
+
+2026-08-23 (Capa 3: normalización Bronze/raw a Silver)
+- Se reforzó la transformación de `hive.raw.afectaciones_urbanas` hacia `hive.curated.afectaciones_urbanas` para que actúe como una capa Silver explícita.
+- La CTAS Parquet normaliza textos, estandariza `actuación_municipal` como `actuacion_municipal`, convierte comas decimales en coordenadas y tipa coordenadas, fechas, horas y marcas temporales.
+- `impacto_pmr` se transforma a booleano y se añade `duracion_minutos` como atributo derivado del intervalo temporal validado.
+- Se conserva `row_id_tecnico` en la salida curated para mantener trazabilidad del dato de negocio normalizado.
+- La implementación usa actualmente Hive/Parquet por la infraestructura activa del proyecto; la separación Bronze/raw a Silver queda preparada para una migración posterior a Iceberg sin alterar el contrato.
+- Validación: 67 tests pasados; permanece únicamente el warning de compatibilidad de `httpx` en `TestClient`.
+
+2026-08-23 (documentación del flujo implementado)
+- Se actualizó README.md para diferenciar el flujo operativo actual de PostgreSQL, SeaweedFS/NiFi/Hive/Trino y capa 5 del MVP inicial.
+- Se documentó que la interfaz actual consume registros de PostgreSQL y prepara contexto para Q3; los KPIs SQL y la capa 5 están disponibles por API, pero todavía no se representan en React.
+- Se aclaró que la IA no participa en la carga del CSV ni sustituye los cálculos: se integrará posteriormente para interpretar un contexto ya calculado.

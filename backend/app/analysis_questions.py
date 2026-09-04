@@ -1,0 +1,127 @@
+# Archivo: analysis_questions.py
+# Resumen: Catálogo equilibrado de preguntas analíticas unidimensionales y multidimensión.
+
+ANALYSIS_QUESTIONS = [
+    # --- BLOQUE 1: PREGUNTAS UNIDIMENSIONALES (AFECTACIONES URBANAS) ---
+    {
+        "id": "AQ1",
+        "type": "unidimensional",
+        "dimension": "afectaciones_urbanas",
+        "title": "¿Qué zonas concentran mayor número de afectaciones urbanas activas o recurrentes?",
+        "description": "Detecta las vías y zonas con mayor acumulación de afectaciones para priorizar gestión operativa.",
+        "focus": "zonas_recurrentes",
+    },
+    {
+        "id": "AQ2",
+        "type": "unidimensional",
+        "dimension": "afectaciones_urbanas",
+        "title": "¿Qué tipos de afectación generan mayor presión sobre el espacio urbano?",
+        "description": "Compara el peso relativo de cortes, ocupaciones y restricciones para identificar la tipología dominante.",
+        "focus": "tipos_presion",
+    },
+    {
+        "id": "AQ3",
+        "type": "unidimensional",
+        "dimension": "afectaciones_urbanas",
+        "title": "¿Cuándo se acumulan más obras, cortes, ocupaciones o restricciones en la ciudad?",
+        "description": "Identifica franjas horarias y patrones temporales de acumulación para mejorar la planificación.",
+        "focus": "acumulacion_temporal",
+    },
+    {
+        "id": "AQ4",
+        "type": "unidimensional",
+        "dimension": "afectaciones_urbanas",
+        "title": "¿Qué afectaciones presentan mayor duración y dónde se localizan?",
+        "description": "Relaciona duración e impacto territorial para ubicar actuaciones prolongadas de mayor riesgo.",
+        "focus": "duracion_localizacion",
+    },
+    {
+        "id": "AQ5",
+        "type": "unidimensional",
+        "dimension": "afectaciones_urbanas",
+        "title": "¿Qué zonas presentan mayor riesgo de saturación por acumulación de afectaciones simultáneas?",
+        "description": "Combina concentración y criticidad para localizar puntos con riesgo operativo por simultaneidad.",
+        "focus": "riesgo_saturacion",
+    },
+    {
+        "id": "AQ6",
+        "type": "unidimensional",
+        "dimension": "afectaciones_urbanas",
+        "title": "¿Qué afectaciones pueden comprometer más la accesibilidad peatonal o la movilidad de personas con movilidad reducida?",
+        "description": "Prioriza casos con potencial impacto sobre accesibilidad peatonal y PMR para respuesta preventiva.",
+        "focus": "accesibilidad_pmr",
+    },
+
+    # --- OTRAS DIMENSIONES UNIDIMENSIONALES ---
+    {
+        "id": "AQ_TRAF",
+        "type": "unidimensional",
+        "dimension": "movilidad_trafico",
+        "title": "Nodos y Franjas de Congestión Vial",
+        "description": "Comprueba qué vías y franjas horarias registran mayor intensidad de tráfico y riesgo de cuello de botella.",
+        "focus": "nodos_congestion",
+    },
+    {
+        "id": "AQ_PARK",
+        "type": "unidimensional",
+        "dimension": "movilidad_parking",
+        "title": "Patrones de Saturación de Aparcamientos",
+        "description": "Analiza qué parkings públicos alcanzan niveles críticos de ocupación (>80%) y en qué franjas se concentran.",
+        "focus": "saturacion_parking",
+    },
+    {
+        "id": "AQ_ITS",
+        "type": "unidimensional",
+        "dimension": "control_gestion_its",
+        "title": "Inventario y Cobertura Operativa de Dispositivos ITS",
+        "description": "Evalúa la distribución de activos ITS (cámaras, paneles PMV, semáforos) por categoría y titularidad en el municipio.",
+        "focus": "cobertura_its",
+    },
+
+    # --- BLOQUE 2: PREGUNTAS MULTIDIMENSIÓN (CRUCE DE DIMENSIONES) ---
+    {
+        "id": "EQ1",
+        "type": "multidimension",
+        "dimension": "movilidad_parking_y_trafico",
+        "title": "Efecto Mariposa: Saturación de Parking e Impacto en Tráfico",
+        "description": "Evalúa cómo la falta de plazas libres en aparcamientos principales provoca tráfico de agitación en las calles circundantes.",
+        "focus": "efecto_mariposa",
+        "participating_dimensions": ["movilidad_parking", "movilidad_trafico"],
+    },
+    {
+        "id": "EQ2",
+        "type": "multidimension",
+        "dimension": "afectaciones_its_y_trafico",
+        "title": "Coordinación ITS y Puntos Ciegos en Obras",
+        "description": "Verifica si las calles con cortes u obras disponen de paneles PMV o cámaras para desviar tráfico o si constituyen puntos ciegos.",
+        "focus": "obras_its",
+        "participating_dimensions": ["afectaciones_urbanas", "control_gestion_its", "movilidad_trafico"],
+    },
+    {
+        "id": "EQ3",
+        "type": "multidimension",
+        "dimension": "ocupacion_afectaciones_y_pmr",
+        "title": "Presión sobre la Red Peatonal y Accesibilidad PMR",
+        "description": "Detecta zonas donde coinciden terrazas autorizadas con obras en acera, bloqueando el paso peatonal o accesos PMR.",
+        "focus": "peatonal_pmr",
+        "participating_dimensions": ["ocupacion_permanente_espacio_publico", "afectaciones_urbanas", "movilidad_plazas_reservadas"],
+    },
+    {
+        "id": "EQ4",
+        "type": "multidimension",
+        "dimension": "ocupacion_carga_y_trafico",
+        "title": "Logística Urbana: Terrazas, Carga y Descarga y Congestión",
+        "description": "Analiza cómo la alta densidad de terrazas dificulta el uso de plazas de Carga/Descarga, generando dobles filas y retenciones.",
+        "focus": "logistica_terrazas",
+        "participating_dimensions": ["ocupacion_permanente_espacio_publico", "movilidad_plazas_reservadas", "movilidad_trafico"],
+    },
+    {
+        "id": "EQ5",
+        "type": "multidimension",
+        "dimension": "simulador_urbano",
+        "title": "Simulador de Impacto Urbano Consolidado",
+        "description": "Simula el impacto de autorizar un corte de calle o terraza adicional sobre el flujo de tráfico, plazas de parking y equipamiento ITS.",
+        "focus": "simulador_urbano",
+        "participating_dimensions": ["afectaciones_urbanas", "movilidad_trafico", "movilidad_parking", "control_gestion_its"],
+    },
+]

@@ -1,0 +1,3 @@
+id,nombre,descripcion,direccion,latitud,longitud,fecha_inicio,hora_inicio,fecha_fin,hora_fin,tipo_intervencion,tipo_afectacion,titularidad,impacto_pmr,notas
+2001,Obra demo,Renovacion de calzada,Calle Real 1,36.7213,-4.4216,2026-08-04,08:00,2026-08-04,12:00,obra,corte_trafico,municipal,si,Itinerario peatonal alternativo
+2002,Evento demo,Ocupacion temporal de plaza,Plaza Mayor 3,36.7201,-4.4202,2026-08-04,18:00,2026-08-04,22:00,evento,ocupacion_calzada,municipal,no,

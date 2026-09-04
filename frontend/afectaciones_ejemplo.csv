@@ -1,0 +1,3 @@
+id,nombre,descripcion,direccion,latitud,longitud,fecha_inicio,hora_inicio,fecha_fin,hora_fin,tipo_intervencion,tipo_afectacion,titularidad,impacto_pmr,notas
+1,Obra de asfaltado,Reparacion de calzada en avenida principal,Avenida de la Constitucion 10,36.7213,-4.4216,2026-08-01,08:00,2026-08-01,18:00,obra,ocupacion_calzada,municipal,no,Prueba sintetica de contrato
+2,Cierre de carril,Cierre temporal de carril para trabajos,Calle Mayor 5,36.7201,-4.4202,2026-08-02,09:00,2026-08-02,17:00,cierre,corte_trafico,municipal,si,Desvio peatonal disponible

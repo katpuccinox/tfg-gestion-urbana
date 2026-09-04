@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+boto3
+trino
+psycopg2-binary
+pydantic
+requests
+pytest
+PyJWT==2.9.0

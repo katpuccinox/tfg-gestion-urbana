@@ -1,0 +1,544 @@
+id,categoria,nombre,descripcion,direccion,latitud,longitud,titularidad,accesibilidad_pmr
+ITS-CAM-21611,camara_trafico,TV87-EL BONI - CAMPANILLAS,C/ José Calderón - El Boni,Calle José Calderón,36.72406291352086,-4.539062997820292,municipal,no
+ITS-CAM-75066,camara_trafico,TV100-JOSÉ CALDERÓN - JUNTA DE DISTRITO CAMPANILLAS,José Calderón - Junta De Distrito Campanillas,Calle José Calderón,36.72806421666882,-4.544862290941862,municipal,no
+ITS-CAM-75086,camara_trafico,TV120-HERMANOS LUMIERE - LICURGO,Hermanos Lumiere - Licurgo,Calle Hermanos Lumière,36.69370759993173,-4.4627101617254334,municipal,no
+ITS-CAM-75093,camara_trafico,TV127-CARRIL DEL CAPITÁN - JUAN DE ROBLES,Carril Del Capitán - Juan De Robles,Calle Juan de Robles,36.721554097509305,-4.46161103014071,municipal,no
+ITS-CAM-75069,camara_trafico,TV103-AVDA LOS GUINDOS - CMNO DE LA TÉRMICA,Avda Los Guindos - Cmno De La Térmica,Avenida de los Guindos,36.69082158314863,-4.44701655450928,municipal,no
+ITS-CAM-21622,camara_trafico,TV31-AYALA,C/ Ayala – C/Capulino Jáuregui.,Calle Ayala,36.706006914722536,-4.436089997928918,municipal,no
+ITS-CAM-21560,camara_trafico,TV36-HILERA,C/Hilera – C/Armengual de la Mota.,Calle Armengual de la Mota,36.71786391479794,-4.429432997935184,municipal,no
+ITS-CAM-75099,camara_trafico,TV95-JUAN SEBASTIÁN ELCANO - ALMERÍA - ARROYO JABONEROS,Juan Sebastián Elcano - Almería - Arroyo Jaboneros,Avenida de Juan Sebastián Elcano,36.72231037324942,-4.366237997769633,municipal,no
+ITS-CAM-21610,camara_trafico,TV86-GUTEMBERG,Paseo Marítimo - C/ Gutemberg,Calle Gutenberg,36.72025291504549,-4.405149997962274,municipal,no
+ITS-CAM-21559,camara_trafico,TV24-PTE. MEDITERRÁNEO,Avda Valle Inclán – Pte. Mediterráneo.,Puente del Mediterráneo,36.73749591485501,-4.424806997938501,municipal,no
+ITS-CAM-21615,camara_trafico,TV91-MÁRMOLES,Situación: Mármoles - Armengual de la Mota,Calle Armengual de la Mota,36.721549914804264,-4.428989997935328,municipal,no
+ITS-CAM-21556,camara_trafico,TV17-LA CORACHA,Paseo Reding – Avda. Cervantes.,Subida a la Coracha,36.721030914969084,-4.4128519979534655,municipal,no
+ITS-CAM-21545,camara_trafico,TV06-PSO PARQUE,Paseo del Parque - Plaza General Torrijos.,Plaza del General Torrijos,36.72033291496804,-4.412919997953456,municipal,no
+ITS-CAM-21574,camara_trafico,TV50-VIRREINAS,C/ Gounod - C/ J. Gaztambide (La Virreina).,Calle Gounod,36.75270291483545,-4.427387997934199,municipal,no
+ITS-CAM-75098,camara_trafico,TV94-PLAZA DE LA MARINA - MOLINA LARIO,Plaza De La Marina - Molina Lario,Plaza de la Marina,36.71831683716084,-4.419979557536229,municipal,no
+ITS-CAM-21546,camara_trafico,TV07-BOQUETE DEL MUELLE,Pso. de los Curas - Boquete del Muelle.,Plaza de la Marina,36.717676914898995,-4.419618997946151,municipal,no
+ITS-CAM-21616,camara_trafico,TV25-RAMÓN Y CAJAL,Avda Ramón y Cajal – Mosen Diego Valera.,Avenida de Santiago Ramón y Cajal,36.746703914883405,-4.4224629979402605,municipal,no
+ITS-CAM-21542,camara_trafico,TV03-JS ELCANO-ESTACIÓN,Avda. J. Sebastián Elcano – Avd. Estación de el Palo.,Avenida de Juan Sebastián Elcano,36.72110491545638,-4.361649998012766,municipal,no
+ITS-CAM-21602,camara_trafico,TV78-C. EPIDEMIA-GORDON,C/ Cristo de la Epidemia - C/ Gordon.,Calle Cristo de la Epidemia,36.729609514952735,-4.414866997950395,municipal,no
+ITS-CAM-21536,camara_trafico,TV20-PSO. CURAS,Pso. Curas – Avda. Cánovas Castillo.,Avenida de Cánovas del Castillo,36.71966191497385,-4.412311997954209,municipal,no
+ITS-CAM-21603,camara_trafico,TV79-PABLO PINEDA,Gta. Pablo Pineda Ferrer.,Calle Molino de San Telmo,36.73501891493375,-4.416990997947499,municipal,no
+ITS-CAM-21543,camara_trafico,TV04-JS ELCANO-PILONES,Avda. J. Sebastián Elcano - Arroyo de los Pilones.,Calle Ventura de la Vega,36.72242691533655,-4.374844697997098,municipal,no
+ITS-CAM-21564,camara_trafico,TV40-PTE. ARMIÑÁN,Pte. de Armiñán – Pso. de Martiricos.,Avenida del Doctor Gálvez Ginachero,36.72680081483236,-4.426516097937586,municipal,no
+ITS-CAM-78681,camara_trafico,TV136-GALVEZ GINACHERO,"Av. Doctor Gálvez Ginachero, nº 9",Avenida del Doctor Gálvez Ginachero,36.72678157317018,-4.427862525078663,municipal,no
+ITS-CAM-75075,camara_trafico,TV109-ALAMEDA BARCELÓ - GÓMEZ DE CÁDIZ,Alameda Barceló - Gómez De Cádiz,Alameda Barceló,36.73116685636162,-4.420777706472089,municipal,no
+ITS-CAM-21581,camara_trafico,TV57-PTO TORRE-J. LATINO,Avda. Lope de Rueda – C/ Juan Latino.,Calle Lope de Rueda,36.742079914155795,-4.488476997869329,municipal,no
+ITS-CAM-75091,camara_trafico,TV125-LOPE DE VEGA - LOPE DE RUEDA,Lope De Vega - Lope De Rueda,Calle Lope de Rueda,36.733427326135995,-4.47738449667837,municipal,no
+ITS-CAM-21580,camara_trafico,TV56-PTO TORRE-OROZCO,Avda. Lope de Rueda – C/ de Orozco.,Calle Lope de Rueda,36.74015791422473,-4.482494997875763,municipal,no
+ITS-CAM-21613,camara_trafico,TV89-JOAQUÍN VARGAS,Situación: Azucarera Intelhorce - C/Joaquín Vargas,Calle de Joaquín Vargas,36.69333691406283,-4.49428399786806,municipal,no
+ITS-CAM-21608,camara_trafico,TV84-EDUARDO TOLDRÁ,C/ Eduardo Toldrá,Calle Boccherini,36.690218914460424,-4.459591997904833,municipal,no
+ITS-CAM-21624,camara_trafico,TV33-AVDA. MOLIERE,Avda. Velázquez – Avda. Moliere.,Avenida de Velázquez,36.691059914488704,-4.457074997907466,municipal,no
+ITS-CAM-21579,camara_trafico,TV55-PTO. TORRE-ANDERSEN,Avda. Lope de Rueda – Avda. Andersen.,Calle Lope de Rueda,36.738297914245415,-4.480629997877891,municipal,no
+ITS-CAM-21567,camara_trafico,TV43-DOS ACERAS,C/ Refino – C/ Dos Aceras.,Calle Refino,36.726413914895964,-4.420313797944561,municipal,no
+ITS-CAM-21570,camara_trafico,TV46-SIMON BOLIVAR,Avda. Ortega y Gasset - Alcalde Díaz Zafra.,Glorieta de la Afición Malaguista,36.733669914763546,-4.433429997929262,municipal,no
+ITS-CAM-21553,camara_trafico,TV14-RENFE,Héroe Sostoa – Expl. de la Estación.,Plaza de los Gálvez,36.71182291478403,-4.43049399793456,municipal,no
+ITS-CAM-21582,camara_trafico,TV58-ORTEGA GASSET - A7,Avda. Ortega y Gasset – C/ Juan Gris.,Glorieta Ramón Sánchez,36.709497914516945,-4.455316997907611,municipal,no
+ITS-CAM-21557,camara_trafico,TV18-VICTORIA,C/ Victoria – Plaza María Guerrero.,Calle Granada,36.722629914926486,-4.417140997948486,municipal,no
+ITS-CAM-21604,camara_trafico,TV80-HOSPITAL CIVIL,Plaza Hospital Civil.,Plaza del Hospital Civil,36.72709391479044,-4.430565997933052,municipal,no
+ITS-CAM-75103,camara_trafico,TV99-EMILIO THUILLER - ALCALDE JOAQUÍN QUILES,Emilio Thuiller - Alcalde Joaquín Quiles,Calle Emilio Thuillier,36.749603781610325,-4.42216580560463,municipal,no
+ITS-CAM-75071,camara_trafico,TV105-AVDA. PRIES - SANTA CRISTINA,Avda. Pries - Santa Cristina,Avenida de Príes,36.721043085879785,-4.407209659092693,municipal,no
+ITS-CAM-75072,camara_trafico,TV106-PSO Mº PABLO RUIZ PICASSO - MARCOS DE OBREGÓN,Pso Mº Pablo Ruiz Picasso - Marcos De Obregón,Avenida del Pintor Joaquín Sorolla,36.722579729684675,-4.391412156304559,municipal,no
+ITS-CAM-75073,camara_trafico,TV107-PINTOR SOROLLA - TORRE DE SAN TELMO,Pintor Sorolla - Torre De San Telmo,Avenida del Pintor Joaquín Sorolla,36.72178404320656,-4.381192930065068,municipal,no
+ITS-CAM-21568,camara_trafico,TV44-THUILLER,C/ Emilio Thuiller - C/ Martín Aldehuela.,Calle Emilio Thuillier,36.74533091488878,-4.421875997941048,municipal,no
+ITS-CAM-21572,camara_trafico,TV48-AVDA.VELÁZQUEZ,Avda. Velázquez - C/ Gaucín.,Avenida de Velázquez,36.697882914585946,-4.448488997916106,municipal,no
+ITS-CAM-75095,camara_trafico,TV129-GLORIETA ALBERT CAMUS -,Glorieta Albert Camus,Glorieta de Albert Camus,36.715917738234964,-4.429344267570293,municipal,no
+ITS-CAM-21600,camara_trafico,TV76-PUENTE DE LA ROSALEDA,Avda. Luis Buñuel - Puente de la Rosaleda.,Paseo Martiricos,36.73275691483299,-4.426726997936799,municipal,no
+ITS-CAM-75080,camara_trafico,TV115-JUAN XXIII - CMNO SAN RAFAEL,Juan XXIII - Cmno San Rafael,Avenida de Juan Xxiii,36.70954809647716,-4.444801795122921,municipal,no
+ITS-CAM-21589,camara_trafico,TV65-AVDA ANDALUCIA,Avda. de Andalucia - C/ Alcalde Tomás Domínguez.,Calle Alcalde Tomás Domínguez,36.717408914732104,-4.43569299792829,municipal,no
+ITS-CAM-78675,camara_trafico,TV131-PLAZA BAILEN,Plaza Bailén,Avenida de Barcelona,36.72466671156702,-4.431303956759749,municipal,no
+ITS-CAM-21597,camara_trafico,TV73-PLAZA DE LA SOLIDARIDAD,Plaza de la Solidaridad,Plaza de la Solidaridad,36.71418191476395,-4.432519997932096,municipal,no
+ITS-CAM-78679,camara_trafico,TV134-PLAZA CAPUCHINOS,Plaza Capuchinos,Plaza de Capuchinos,36.72920548504507,-4.421088711288989,municipal,no
+ITS-CAM-21575,camara_trafico,TV51-PSO. DE LOS TILOS,Paseo de los Tilos - C/ Flores Garcia.,Paseo de los Tilos,36.712218914685906,-4.4398189979242275,municipal,no
+ITS-CAM-75067,camara_trafico,TV101-PSO DE LOS TILOS - EGUÍLUZ,Pso De Los Tilos - Eguíluz,Paseo de los Tilos,36.713488902295595,-4.43428750228417,municipal,no
+ITS-CAM-75078,camara_trafico,TV112-C/ ALMOGÍA - C/ BENAGALBÓN,C/ Almogía - C/ Benagalbón,Calle Almogía,36.71610200205944,-4.454041184926972,municipal,no
+ITS-CAM-21571,camara_trafico,TV47-MOLINILLO,Cruz del Molinillo - C/ Salamanca.,Calle Cruz del Molinillo,36.72708391485482,-4.424353997939978,municipal,no
+ITS-CAM-75084,camara_trafico,TV118-CRTA AZUCARERA INTELHORCE - CASTELAO,Crta Azucarera Intelhorce - Castelao,Carretera Azucarera-intelhorce,36.691543250859056,-4.4864259243102325,municipal,no
+ITS-CAM-21555,camara_trafico,TV16-SACABA,Av. Manuel Alvar,Avenida Imperio Argentina,36.68028291457716,-4.44852399791773,municipal,no
+ITS-CAM-75081,camara_trafico,TV116-VIRGEN DE LA CABEZA - CÓMPETA,Virgen De La Cabeza - Cómpeta,Calle Virgen de la Cabeza,36.71909034139443,-4.44932719031041,municipal,no
+ITS-CAM-21548,camara_trafico,TV09-MANUEL AZAÑA,,Plaza de Manuel Azaña,36.71491591459491,-4.4484119979145795,municipal,no
+ITS-CAM-21619,camara_trafico,TV28-ALAMEDA,Alameda Principal – C/Córdoba.,Alameda Principal,36.71760681486806,-4.4226376979427755,municipal,no
+ITS-CAM-78677,camara_trafico,TV132-MTNEZ MALDONADO - GRAL BLAKE,,Calle Martínez Maldonado,36.72144034340195,-4.437117742854744,municipal,no
+ITS-CAM-21561,camara_trafico,TV37-CORREOS,Avda. de la Aurora – C/Cuarteles.,Avenida de la Aurora,36.71562991482942,-4.426297997938872,municipal,no
+ITS-CAM-75087,camara_trafico,TV121-MARTÍNEZ DE LA ROSA - VANDELVIRA,Martínez De La Rosa - Vandelvira,Calle Martínez de la Rosa,36.72790944362645,-4.443114169974019,municipal,no
+ITS-CAM-21599,camara_trafico,TV75-MARTINEZ DE LA ROSA,C/ Martinez de la Rosa - C/ Moraima.,Calle Martínez de la Rosa,36.72657991470196,-4.438946997923836,municipal,no
+ITS-CAM-21566,camara_trafico,TV42-ÁLAMOS,C/ Álamos – C /Dos Aceras.,Calle Carretería,36.72436971489007,-4.420796297944208,municipal,no
+ITS-CAM-21547,camara_trafico,TV08-MANUEL ALCANTARA,Plaza Manuel Alcántara.,Plaza Poeta Manuel Alcántara,36.71674691480409,-4.4287899979359935,municipal,no
+ITS-CAM-21550,camara_trafico,TV11-EUGENIO GROSS,C/ Eugenio Gross – Cmno. de Suárez.,Camino de Suárez,36.7268709147427,-4.435109997928045,municipal,no
+ITS-CAM-21565,camara_trafico,TV41-CARRETERÍA,C/ Carretería – Puente de la Aurora.,Avenida de la Rosaleda,36.72174291484531,-4.425036997939712,municipal,no
+ITS-CAM-75102,camara_trafico,TV98-SAN JUAN BOSCO - ALBÉNIZ,San Juan Bosco - Albéniz,Calle San Juan Bosco,36.73496799538173,-4.422661440262923,municipal,no
+ITS-CAM-74266,camara_trafico,TV113 - PASILLO MATADERO - PUENTE DEL CARMEN,Pasillo Matadero - Pte Del Cármen,Pasillo del Matadero,36.711689463033025,-4.426545825084323,municipal,no
+ITS-CAM-21562,camara_trafico,TV38-PRÍES,Paseo de Sancha – C/ Gutemberg.,Paseo de Sancha,36.721581015050155,-4.404739597962626,municipal,no
+ITS-CAM-21594,camara_trafico,TV70-PSO. LIMONAR,Paseo Sancha – Paseo Limonar.,Paseo de Sancha,36.722719615109966,-4.39869859796942,municipal,no
+ITS-CAM-75101,camara_trafico,TV97-PSO SANCHA - RAFAEL PÉREZ ESTRADA,Pso Sancha - Rafael Pérez Estrada,Paseo de Sancha,36.72252734309541,-4.399575623188018,municipal,no
+ITS-CAM-21563,camara_trafico,TV39-MÁRMOLES,C/ Mármoles – C/ Pelayo.,Calle Martínez Maldonado,36.72152651476637,-4.432618197931301,municipal,no
+ITS-CAM-21584,camara_trafico,TV60-VICTORIA - FERRANDIZ,Plaza de la Victoria – C/ Ferrándiz.,Plaza de la Victoria,36.727094914963864,-4.413646997952011,municipal,no
+ITS-CAM-21558,camara_trafico,TV19-CÁNOVAS,Plaza de la Malagueta (playa).,Plaza de la Malagueta,36.717763915001434,-4.4094699979575935,municipal,no
+ITS-CAM-21578,camara_trafico,TV54-EL ATABAL,Avda. Lope de Vega - P.M. Barbadillo.,Avenida de Julio Cortázar,36.73082891437692,-4.468805997891106,municipal,no
+ITS-CAM-21617,camara_trafico,TV26-TABACALERA,Avda de la Paloma – Avda. Sor Tª Prat.,Avenida de Sor Teresa Prat,36.69975491468234,-4.439599997925641,municipal,no
+ITS-CAM-75024,camara_trafico,TV92-AVDA SOR TERESA PRAT - FRIGILIANA,Avda Sor Teresa Prat - Frigiliana,Avenida de Sor Teresa Prat,36.69530822667247,-4.4430726477373135,municipal,no
+ITS-CAM-21607,camara_trafico,TV83-REALENGA DE SAN LUIS,C/ Realenga de San Luis - C/ Manuel de Falla,Calle Realenga de San Luis,36.694399914584466,-4.448469997916457,municipal,no
+ITS-CAM-21614,camara_trafico,TV90-HERMANN HESSE,Situación: Azucarera Intelhorce - C/Hermann Hesse,Carretera Azucarera-intelhorce,36.68561591429539,-4.474037997889901,municipal,no
+ITS-CAM-75077,camara_trafico,TV111-HERRERA ORIA - VIRGEN DE LAS FLORES,Herrera Oria - Virgen De Las Flores,Avenida del Obispo Ángel Herrera Oria,36.718661233258096,-4.443365977210885,municipal,no
+ITS-CAM-21598,camara_trafico,TV74-AVDA. DE LA AURORA,Avda. de la Aurora - C/ Escultor Palma Burgos.,Avenida de la Aurora,36.715808914711324,-4.437586997926342,municipal,no
+ITS-CAM-75079,camara_trafico,TV114-AVDA AURORA - CONDE DE GUADALHORCE,Avda Aurora - Conde De Guadalhorce,Avenida de la Aurora,36.71473011046012,-4.442592828097308,municipal,no
+ITS-CAM-21590,camara_trafico,TV66-CMNO SAN RAFAEL,Cmno. de San Rafael - C/ Ceramistas.,Calle Alcalde Díaz Zafra,36.707188914587526,-4.448752997914937,municipal,no
+ITS-CAM-75089,camara_trafico,TV123-AVDA LAS AMÉRICAS - MAURICIO MORO,Avda Las Américas - Mauricio Moro,Calle Mauricio Moro Pareto,36.71529643806447,-4.435445705843582,municipal,no
+ITS-CAM-21587,camara_trafico,TV63-JUAN FRANCES BOSCA,Avda. Lope de Vega – C/ Juan Francés Bosca.,Plaza Manos Unidas,36.7273829144345,-4.463531997897066,municipal,no
+ITS-CAM-75085,camara_trafico,TV119-CTRA. DE LA AZUCARERA INTELHORCE - CONCEPCIÓN ARENAL,Ctra. De La Azucarera Intelhorce - Concepción Arenal,Carretera Azucarera-intelhorce,36.689807330710806,-4.482932809155636,municipal,no
+ITS-CAM-78680,camara_trafico,TV135-BOLIVIA - ARROYO JABONEROS,Bolivia - Arroyo Jaboneros,Calle Bolivia,36.71996872213814,-4.3662953497492145,municipal,no
+ITS-CAM-21537,camara_trafico,TV21-CARRIL CAPITÁN,Plaza del Pintor Sandro Boticelli.,Plaza del Pintor Sandro Botticelli,36.719837914475285,-4.459539997902071,municipal,no
+ITS-CAM-21626,camara_trafico,TV35-JUAN XXIII - GASSET,Avda. Juan XXIII – Avda. Ortega y Gasset.,Avenida de José Ortega y Gasset,36.71128091462121,-4.4458179979177475,municipal,no
+ITS-CAM-75070,camara_trafico,TV104-HÉROE DE SOSTOA - AVDA LA PALOMA,Héroe De Sostoa - Avda La Paloma,Calle Héroe de Sostoa,36.701464525794535,-4.443540338584191,municipal,no
+ITS-CAM-21576,camara_trafico,TV52-A. MACHADO - EL BULTO,P. M. Antonio Machado – Avda. Ingeniero J MªGarnica.,Paseo de Antonio Machado,36.70930291481057,-4.427830997937757,municipal,no
+ITS-CAM-75025,camara_trafico,TV93-PSO ANTONIO MACHADO - TOMÁS ECHEVARRIA,PSO ANTONIO MACHADO - TOMÁS ECHEVARRIA,Paseo de Antonio Machado,36.70305051985399,-4.433139483838113,municipal,no
+ITS-CAM-21605,camara_trafico,TV81-ATARAZANAS,C/ Atarazanas – Plaza Arriola.,Calle Atarazanas,36.71800091485209,-4.424208997940987,municipal,no
+ITS-CAM-21621,camara_trafico,TV30-ALAMEDA DE COLÓN,Alameda de Colón - Muelle de Heredia.,Avenida de Manuel Agustín Heredia,36.71315991485312,-4.4238899979417905,municipal,no
+ITS-CAM-21538,camara_trafico,TV22-CARLOS HAYA,Avda Carlos Haya – Avda Sta. R. Lima.,Avenida Carlos de Haya,36.72242591459181,-4.449028997913194,municipal,no
+ITS-CAM-75088,camara_trafico,TV122-HÉROE DE SOSTOA - PTE JUAN PABLO II,Héroe De Sostoa - Pte Juan Pablo Ii,Calle Héroe de Sostoa,36.70791424916756,-4.4354745814614915,municipal,no
+ITS-CAM-78676,camara_trafico,TV137-ARROYO ÁNGELES - MAZARREDO,C/ Mazarredo - Av. Arroyo de los Ángeles,Calle Mazarredo,36.727501484210016,-4.4285158930578294,municipal,no
+ITS-CAM-21539,camara_trafico,TV23-CMNO. SUÁREZ,Avda Valle Inclán - Camino de Suárez.,Calle Alcalde José Luis Estrada,36.72939491464857,-4.444073997917944,municipal,no
+ITS-CAM-21569,camara_trafico,TV45-ORTEGA Y GASSET,Avda. Ortega y Gasset - Alcalde Díaz Zafra.,Avenida de José Ortega y Gasset,36.71035091456018,-4.451405997911754,municipal,no
+ITS-CAM-21549,camara_trafico,TV10-PTE AMERICAS,Puente de las Américas – C/ Hilera.,Calle Ingeniero de la Torre Acosta,36.71811591471947,-4.436919997926862,municipal,no
+ITS-CAM-78678,camara_trafico,TV133-ING TORRE ACOSTA - CAPITAN MARCOS GARCIA,,Calle Ingeniero de la Torre Acosta,36.72023979942364,-4.438841224651465,municipal,no
+ITS-CAM-75096,camara_trafico,TV130-LUIS BUÑUEL - JORGE SILVELA (PTE ROSALEDA),Luis Buñuel - Jorge Silvela (Pte Rosaleda),Avenida de Jorge Silvela,36.73291803461239,-4.425201498745849,municipal,no
+ITS-CAM-75082,camara_trafico,TV117-AVDA. DE JOSÉ ORTEGA Y GASSET - AMONIACO,Avda. De José Ortega Y Gasset - Amoniaco.,Avenida de José Ortega y Gasset,36.70805943021756,-4.493541920504962,municipal,no
+ITS-CAM-21552,camara_trafico,TV13-JUAN XXIII,Avda Juan XXIII – C/ Héroe Sostoa.,Calle Héroe de Sostoa,36.70376891467183,-4.4407649979239885,municipal,no
+ITS-CAM-21551,camara_trafico,TV12-BERMÚDEZ,Plaza Aparejador Federico Bermúdez.,Plaza Aparejador Federico Bermúdez,36.72140091468826,-4.440006997923156,municipal,no
+ITS-CAM-21554,camara_trafico,TV15-ANTONIO MACHADO,Glorieta Antonio Molina.,Paseo de Antonio Machado,36.700245914723055,-4.435781997929793,municipal,no
+ITS-CAM-21573,camara_trafico,TV49-PZA BERGAMIN,Plaza José Bergamín.,Plaza José Bergamín,36.71948191453227,-4.45435699790769,municipal,no
+ITS-CAM-75074,camara_trafico,TV108-LUIS BUÑUEL - DR. MARAÑÓN,Luis Buñuel - Dr. Marañón,Avenida de Luis Buñuel,36.7329905435748,-4.428651998030407,municipal,no
+ITS-CAM-21593,camara_trafico,TV69-LOS VEGAS,Avda. José Ortega y Gasset - Avda. los Vegas.,Avenida de José Ortega y Gasset,36.70767491426684,-4.477470997884165,municipal,no
+ITS-CAM-21588,camara_trafico,TV64-MARIA ZAMBRANO,Avda. Jose Ortega y Gasset – Avda. Mª Zambrano.,Avenida de José Ortega y Gasset,36.706533914407,-4.465085997897404,municipal,no
+ITS-CAM-21591,camara_trafico,TV67-FERIA NORTE,Avda. José Ortega y Gasset - Palacio de Ferias.,Avenida de José Ortega y Gasset,36.70728791445585,-4.460745997901973,municipal,no
+ITS-CAM-21606,camara_trafico,TV82-ROTONDA PTA,Rotonda Parque tecnológico,Glorieta Plácido Fernández Viagas,36.73104091337015,-4.550801997808316,municipal,no
+ITS-CAM-21592,camara_trafico,TV68-PARÍS,Avda. José Ortega y Gasset - C/ Paris.,Avenida de José Ortega y Gasset,36.70659191433593,-4.471381997890696,municipal,no
+ITS-CAM-21586,camara_trafico,TV62-ROSARIO PINO,C/ Actriz Rosartio Pino - C/ Peinado.,Calle Actriz Rosario Pino,36.731071914853544,-4.424659997939263,municipal,no
+ITS-CAM-21618,camara_trafico,TV27-GUINDOS,Avda. de los Guindos – c/ Pacífico.,Calle Pacífico,36.689554914637526,-4.443339997922507,municipal,no
+ITS-CAM-75094,camara_trafico,TV128-C/ NAVARRO LEDESMA - C/ ALICIA ALONSO,C/ Navarro Ledesma - C/ Alicia Alonso.,Calle Navarro Ledesma,36.72241374406078,-4.487079693023306,municipal,no
+ITS-CAM-21623,camara_trafico,TV32-AVDA. EUROPA,Av . Europa con C/ Gaucín,Avenida de Europa,36.699776914538596,-4.452916997911119,municipal,no
+ITS-CAM-21625,camara_trafico,TV34-LA UNIÓN,C/ La Unión – C/ Santa Marta.,Calle la Unión,36.710714914682804,-4.44004399792412,municipal,no
+ITS-CAM-21583,camara_trafico,TV59-NAVARRO LEDESMA,C/ Navarro Ledesma - Avda. Diego Fdez. Mendoza.,Calle Navarro Ledesma,36.72460391434704,-4.471176997889185,municipal,no
+ITS-CAM-75090,camara_trafico,TV124-NAVARRO LEDESMA - PARMÉNIDES,Navarro Ledesma - Parménides,Calle Navarro Ledesma,36.72451800729893,-4.479892966749699,municipal,no
+ITS-CAM-75076,camara_trafico,TV110-NAVARRO LEDESMA - ORSON WELLES,Navarro Ledesma - Orson Welles,Calle Navarro Ledesma,36.72550736907263,-4.463103633892712,municipal,no
+ITS-CAM-21596,camara_trafico,TV72-AV EUROPA - AV PALOMA,Avda. de Europa - Avda. de la Paloma.,Avenida de Europa,36.70242491461743,-4.445775997918636,municipal,no
+ITS-CAM-21585,camara_trafico,TV61-PZA OLLETAS,Plaza de Olletas – Cmno. del Colmenar.,Calle Toquero,36.733398914945404,-4.41576399794903,municipal,no
+ITS-CAM-75068,camara_trafico,TV102-AVDA EUROPA - HORACIO QUIROGA,Avda Europa - Horacio Quiroga,Avenida de Europa,36.69650842438352,-4.458568459839183,municipal,no
+ITS-CAM-21612,camara_trafico,TV88. GUERRERO STRACHAN,Intersección con Cl. Lorenza Correa,Calle Lorenza Correa,36.73751991487794,-4.4225779979409925,municipal,no
+ITS-CAM-75092,camara_trafico,TV126-DIEGO FERNÁNDEZ DE MENDOZA - JORGE LUIS BORGES,Diego Fernández De Mendoza - Jorge Luis Borges,Avenida de Jorge Luis Borges,36.720405720621116,-4.469004527510916,municipal,no
+ITS-CAM-75100,camara_trafico,TV96-AVDA. SALVADOR ALLENDE - C/ AGUILAR Y CANO,Avda. Salvador Allende - C/ Aguilar Y Cano,Avenida de Salvador Allende,36.719139277903835,-4.357839175165649,municipal,no
+ITS-CAM-21577,camara_trafico,TV53-C.HAYA - V. INCLÁN,Avda. Carlos Haya – Avda. Valle Inclán.,Avenida Carlos de Haya,36.72406991452471,-4.455245997906293,municipal,no
+ITS-CAM-21541,camara_trafico,TV02-CTRA ALMERÍA,Ctra. de Almería – Ctra. de Olías.,Calle Almería,36.720112915533015,-4.352998998023139,municipal,no
+ITS-CAM-21620,camara_trafico,TV29-IDRIS,P.M. Pablo Ruiz Picasso - c/Idris.,Calle Idris,36.72254191512961,-4.396670997971764,municipal,no
+ITS-CAM-21601,camara_trafico,TV77-AVDA MOLIERE - PATO,Avda. Moliere - Camino del Pato.,Glorieta Once de Marzo,36.68671291453278,-4.452875997912407,municipal,no
+ITS-CAM-21595,camara_trafico,TV71-VALLE INCLAN,Avda. Valle Inclán – Avda. Simón Bolívar.,Glorieta Manuel Pellegrini,36.73632791476401,-4.433505997928927,municipal,no
+ITS-SEM-19306,semaforo,SEMAFOROACUSTICO_13.12,,Calle las Espuelas,36.73000003763976,-4.400000000017663,municipal,si
+ITS-SEM-18982,semaforo,SEMAFOROACUSTICO_03.09,Intersección con Cl. Gutemberg,Calle Gutenberg,36.72029703762738,-4.405258000017775,municipal,si
+ITS-SEM-19206,semaforo,SEMAFOROACUSTICO_10.02,Intersección con Pllo. Santo Domingo,Plaza de la Aurora,36.72174475189456,-4.425784349459853,municipal,si
+ITS-SEM-19279,semaforo,SEMAFOROACUSTICO_12.18,,Calle Doctor Salguero Morales,36.738512214516604,-4.426668081186751,municipal,si
+ITS-SEM-19301,semaforo,SEMAFOROACUSTICO_13.07,Con calle Doctor Ferrán,Camino Colmenar,36.73427603764514,-4.415862000018092,municipal,si
+ITS-SEM-19302,semaforo,SEMAFOROACUSTICO_13.08,Intersección c/ Olletas,Camino Colmenar,36.735117037646226,-4.415945000018089,municipal,si
+ITS-SEM-19303,semaforo,SEMAFOROACUSTICO_13.09,Intersección con Av. Manuel Gorría,Camino Colmenar,36.73640403764783,-4.4156810000180915,municipal,si
+ITS-SEM-19268,semaforo,SEMAFOROACUSTICO_12.03,Intersección con Av. Guerrero Strachan,Avenida de Guerrero Strachan,36.737404037649135,-4.4229610000182875,municipal,si
+ITS-SEM-19091,semaforo,SEMAFOROACUSTICO_01.07,Intersección c/ Antonio Trueba,Avenida de Juan Sebastián Elcano,36.722162910460995,-4.365952312963144,municipal,si
+ITS-SEM-19090,semaforo,SEMAFOROACUSTICO_01.05,Intersección con Cl. Ángel Guimerá,Avenida de Juan Sebastián Elcano,36.72235747703833,-4.371777400391365,municipal,si
+ITS-SEM-19093,semaforo,SEMAFOROACUSTICO_01.09,Intersección con Cl. Luis Taboada,Avenida de Juan Sebastián Elcano,36.72140237615504,-4.36298176647908,municipal,si
+ITS-SEM-19298,semaforo,SEMAFOROACUSTICO_13.04,Intersección con c/ Rodrigo de Ulloa,Calle Cristo de la Epidemia,36.73136934670756,-4.415237903613038,municipal,si
+ITS-SEM-19100,semaforo,SEMAFOROACUSTICO_01.16,Av. Juan Sebastián Elcano - C/ Octavio Picón.,Avenida de Juan Sebastián Elcano,36.72244003763019,-4.367826000016866,municipal,si
+ITS-SEM-19088,semaforo,SEMAFOROACUSTICO_01.02,Cruce con Cl. Juan Valera,Avenida de Juan Sebastián Elcano,36.722403957630185,-4.37614446001706,municipal,si
+ITS-SEM-19089,semaforo,SEMAFOROACUSTICO_01.04,Cruce con Cl. Fernandez Shaw,Avenida de Juan Sebastián Elcano,36.7224218576302,-4.373815710017007,municipal,si
+ITS-SEM-18995,semaforo,SEMAFOROACUSTICO_03.24,Intersección con Av. Cánovas del Castillo.,Paseo de la Farola,36.719652849924934,-4.412190914172007,municipal,si
+ITS-SEM-19293,semaforo,SEMAFOROACUSTICO_12.35,,Calle Gounod,36.7526081427338,-4.427378826085583,municipal,si
+ITS-SEM-19205,semaforo,SEMAFOROACUSTICO_10.01,Intersección con c/ Cisneros,Pasillo de Santa Isabel,36.720600985214965,-4.425065517443831,municipal,si
+ITS-SEM-19128,semaforo,SEMAFOROACUSTICO_07.13,C/ Ayala - C/ Orfila,Calle Ayala,36.7082050376119,-4.433445000018486,municipal,si
+ITS-SEM-19179,semaforo,SEMAFOROACUSTICO_08.37,,Calle Jorge Guillén,36.70087047388634,-4.442255671134823,municipal,si
+ITS-SEM-19127,semaforo,SEMAFOROACUSTICO_07.12,Intersección con cl. Ingeniero José María Garnica,Calle Ayala,36.71106535018979,-4.430065155047699,municipal,si
+ITS-SEM-19162,semaforo,SEMAFOROACUSTICO_08.17,Intersección con Cl. Francisco Ballesteros,Avenida de la Paloma,36.70029703760188,-4.4409970000186725,municipal,si
+ITS-SEM-19200,semaforo,SEMAFOROACUSTICO_09.14,Cruce con Cl. Juan de Robles,Calle Mesonero Romanos,36.721759677629095,-4.460459970019292,municipal,si
+ITS-SEM-19061,semaforo,SEMAFOROACUSTICO_06.11,Intersección con Avda. San Sebastián,Calle Eugenio Gross,36.723002445592876,-4.435751438159455,municipal,si
+ITS-SEM-19199,semaforo,SEMAFOROACUSTICO_09.13,Cruce con Cl. Juan de Robles,Calle Juan de Robles,36.72162031762893,-4.461532270019322,municipal,si
+ITS-SEM-19115,semaforo,SEMAFOROACUSTICO_06.26,Intersección con c/ Tomás Escalonilla,Calle Tomás Escalonilla,36.72484272609387,-4.442038536090551,municipal,si
+ITS-SEM-19132,semaforo,SEMAFOROACUSTICO_07.18,Intersección con Cl. Princesa,Glorieta Antonio Molina,36.70020166963513,-4.435987472552715,municipal,si
+ITS-SEM-19347,semaforo,SEMAFOROACUSTICO_15.23,Intersección con Cl. Juan de Robles,Calle Juan de Robles,36.721594037628876,-4.4624080000193445,municipal,si
+ITS-SEM-19314,semaforo,SEMAFOROACUSTICO_14.03,Intersección con Cl. Omar,Calle Omar,36.692709037592195,-4.44152800001867,municipal,si
+ITS-SEM-19120,semaforo,SEMAFOROACUSTICO_07.04,Intersección con Plaza de Toros Vieja,Calle Cuarteles,36.71333594922448,-4.428584575671447,municipal,si
+ITS-SEM-19169,semaforo,SEMAFOROACUSTICO_08.24,Intersección de Cl. Omar,Calle Luis Barahona de Soto,36.693639064857585,-4.444558471460021,municipal,si
+ITS-SEM-19146,semaforo,SEMAFOROACUSTICO_07.38,Intersección con Cl. Eslava,Calle Cuarteles,36.7125575885534,-4.429349005240709,municipal,si
+ITS-SEM-19020,semaforo,SEMAFOROACUSTICO_04.23,Intersección con Cl. Almansa,Calle Almansa,36.71932603762611,-4.429200000018396,municipal,si
+ITS-SEM-19388,semaforo,SEMAFOROACUSTICO_18.07,Cruce con Cmno. Hacienda Caliche,Carretera de Álora,36.66667709755874,-4.5101391000206785,municipal,si
+ITS-SEM-19297,semaforo,SEMAFOROACUSTICO_13.03,Intersección con c/ Luis de Maceda,Calle Compás de la Victoria,36.728517780476594,-4.413301348704222,municipal,si
+ITS-SEM-19077,semaforo,SEMAFOROACUSTICO_00.07,Cruce con Cl. Borodin,Avenida de Jane Bowles,36.74550983765937,-4.4264229200183935,municipal,si
+ITS-SEM-19029,semaforo,SEMAFOROACUSTICO_04.32,Intersección con Cl. Medellin,Calle Cuarteles,36.7151334592053,-4.426835775393697,municipal,si
+ITS-SEM-19210,semaforo,SEMAFOROACUSTICO_10.06,Intersección con Cl. Calzada de la Trinidad,Calle Calzada de la Trinidad,36.724627742328835,-4.431449174899458,municipal,si
+ITS-SEM-19166,semaforo,SEMAFOROACUSTICO_08.21,Intersección con Avda. La Paloma,Avenida de la Paloma,36.69984521941876,-4.44008991124111,municipal,si
+ITS-SEM-19161,semaforo,SEMAFOROACUSTICO_08.16,A la altura de Tabacalera,Avenida de la Paloma,36.69985812262283,-4.440118074435757,municipal,si
+ITS-SEM-19062,semaforo,SEMAFOROACUSTICO_06.12,Intersección con c/ Carlos Falguera,Calle Eugenio Gross,36.72502761165053,-4.435488581676007,municipal,si
+ITS-SEM-19153,semaforo,SEMAFOROACUSTICO_08.07,Intersección con Av. de la Paloma,Avenida de la Paloma,36.702489793351305,-4.445911645908091,municipal,si
+ITS-SEM-19311,semaforo,SEMAFOROACUSTICO_13.17,Intersección c/ Gordon,Calle Cristo de la Epidemia,36.72956103763921,-4.414725000018049,municipal,si
+ITS-SEM-19213,semaforo,SEMAFOROACUSTICO_10.09,Intersección con c/ Alonso Cano,Avenida del Doctor Gálvez Ginachero,36.72693609904439,-4.429394602794,municipal,si
+ITS-SEM-19148,semaforo,SEMAFOROACUSTICO_08.02,Intersección con Av. de la Paloma,Avenida de la Paloma,36.70143894141189,-4.443583488483112,municipal,si
+ITS-SEM-19068,semaforo,SEMAFOROACUSTICO_06.19,Intersección con Cl. Esperanto,Calle Esperanto,36.71869825291188,-4.431325793284756,municipal,si
+ITS-SEM-19141,semaforo,SEMAFOROACUSTICO_07.28,Intersección con Cl. Ferrocarril del Puerto,Calle Ayala,36.708971007123765,-4.432527422923433,municipal,si
+ITS-SEM-19016,semaforo,SEMAFOROACUSTICO_04.19,Intersección con c/ Armengual de la Mota,Calle Armengual de la Mota,36.717979468776676,-4.429431915301608,municipal,si
+ITS-SEM-19002,semaforo,SEMAFOROACUSTICO_04.05,Intersección con Plaza de la Marina,Plaza de la Marina,36.71843595165498,-4.419803023356464,municipal,si
+ITS-SEM-19001,semaforo,SEMAFOROACUSTICO_04.04,Intersección con c/ Molina Lario,Plaza de la Marina,36.71845315176484,-4.419808387774497,municipal,si
+ITS-SEM-19357,semaforo,SEMAFOROACUSTICO_15.36,,Calle Max Bruch,36.730167788969574,-4.462279619318685,municipal,si
+ITS-SEM-19176,semaforo,SEMAFOROACUSTICO_08.34,Intersección c/ Calañas,Avenida de los Guindos,36.69251103759186,-4.451938000018961,municipal,si
+ITS-SEM-19087,semaforo,SEMAFOROACUSTICO_01.01,Cruce con Cl. Vicente Espinel,Avenida de Juan Sebastián Elcano,36.72207208762976,-4.37911705001713,municipal,si
+ITS-SEM-19159,semaforo,SEMAFOROACUSTICO_08.14,Intersección con Av. Los Guindos,Avenida de los Guindos,36.6917297502925,-4.450006037969421,municipal,si
+ITS-SEM-19348,semaforo,SEMAFOROACUSTICO_15.27,Intersección c/ Miguel Carrera,Calle Miguel Carrera,36.72328503763103,-4.469808000019573,municipal,si
+ITS-SEM-19372,semaforo,SEMAFOROACUSTICO_17.03,Cruce con Cl. José Fernando Carvajal,Calle José Calderón,36.72791565763665,-4.544741430022054,municipal,si
+ITS-SEM-19381,semaforo,SEMAFOROACUSTICO_17.12,Cruce con Cl. Ronda del norte,Calle Ronda del Norte,36.73361166764383,-4.573009440023141,municipal,si
+ITS-SEM-19082,semaforo,SEMAFOROACUSTICO_00.20,Avda. Montserrat Caballé - Alfonso Ponce de León,Avenida Montserrat Caballe,36.65409703754269,-4.480212000019688,municipal,si
+ITS-SEM-19353,semaforo,SEMAFOROACUSTICO_15.32,Av. Plutarco-Av. José Ribera,Avenida de José Ribera,36.72058503762763,-4.471775000019622,municipal,si
+ITS-SEM-19387,semaforo,SEMAFOROACUSTICO_18.05,Intersección con Cl. Decano Eduardo Palanca,Carretera de Álora,36.66809303756049,-4.513997000020812,municipal,si
+ITS-SEM-19095,semaforo,SEMAFOROACUSTICO_01.11,Intersección con c/ Villafuerte,Avenida de Juan Sebastián Elcano,36.72102559983306,-4.360129907743918,municipal,si
+ITS-SEM-19066,semaforo,SEMAFOROACUSTICO_06.16,Intersección con c/ Martínez de la Rosa,Calle Eugenio Gross,36.7259520327571,-4.435236454028599,municipal,si
+ITS-SEM-19267,semaforo,SEMAFOROACUSTICO_12.02,Con calle San Juan Bosco,Calle Albéniz,36.73471303764572,-4.422568000018268,municipal,si
+ITS-SEM-19371,semaforo,SEMAFOROACUSTICO_17.02,Cruce con Cl. Jumillano,Calle José Calderón,36.72891127763797,-4.54650829002212,municipal,si
+ITS-SEM-19373,semaforo,SEMAFOROACUSTICO_17.04,Intersección con Cl. Alcábalas,Calle José Calderón,36.72738803763604,-4.543832000022019,municipal,si
+ITS-SEM-19382,semaforo,SEMAFOROACUSTICO_17.13,Intersección con Cl. Pontazgo,Calle José Calderón,36.72672003763516,-4.54280000002199,municipal,si
+ITS-SEM-19340,semaforo,SEMAFOROACUSTICO_15.14,Cruce con Cl. Atlántida,Calle Junco,36.743328937656486,-4.489642400020239,municipal,si
+ITS-SEM-19185,semaforo,SEMAFOROACUSTICO_08.46,Intersección con Cl. Francisco Padilla y Cl. Francisco Pacheco,Calle Francisco Pacheco,36.69148603759055,-4.446322000018801,municipal,si
+ITS-SEM-19175,semaforo,SEMAFOROACUSTICO_08.33,Intersección con Cl. Francisco de Padilla,Camino de los Guindos,36.6933218348011,-4.449087381381805,municipal,si
+ITS-SEM-19324,semaforo,SEMAFOROACUSTICO_14.14,Intersección con c/ Palma del Rio,Calle Palma del Río,36.689229449726874,-4.455401301403016,municipal,si
+ITS-SEM-19374,semaforo,SEMAFOROACUSTICO_17.05,Intersección con Cl. Giotto,Calle José Calderón,36.723966037631634,-4.5388950000218395,municipal,si
+ITS-SEM-19380,semaforo,SEMAFOROACUSTICO_17.11,,Calle José Calderón,36.72581083496172,-4.541533325595612,municipal,si
+ITS-SEM-19177,semaforo,SEMAFOROACUSTICO_08.35,Intersección c/ La Crónica,Avenida de los Guindos,36.69100103758994,-4.447817000018835,municipal,si
+ITS-SEM-19121,semaforo,SEMAFOROACUSTICO_07.05,Intersección con c/ Cuarteles,Calle Jacinto Verdaguer,36.71215765431306,-4.4298613071625725,municipal,si
+ITS-SEM-19375,semaforo,SEMAFOROACUSTICO_17.06,Cruce con Cl. Matisse,Calle José Calderón,36.72328829763085,-4.538031090021804,municipal,si
+ITS-SEM-19370,semaforo,SEMAFOROACUSTICO_17.01,Cruce con Cl. Marianela,Calle Marianela,36.73014709763951,-4.549209490022231,municipal,si
+ITS-SEM-19053,semaforo,SEMAFOROACUSTICO_06.02,Intersección con Cl. Monseñor Carrillo Rubio,Calle Monseñor Carrillo Rubio,36.71902075322966,-4.435333013553115,municipal,si
+ITS-SEM-19031,semaforo,SEMAFOROACUSTICO_04.34,Calle Cuarteles con Pasaje Noblejas.,Calle Cuarteles,36.713946591303106,-4.428026676196336,municipal,si
+ITS-SEM-18992,semaforo,SEMAFOROACUSTICO_03.21,Intersección con Plaza General Torrijos,Subida a la Coracha,36.720947126928486,-4.412931203860139,municipal,si
+ITS-SEM-19178,semaforo,SEMAFOROACUSTICO_08.36,Intersección Avda. Sor Teresa Prat,Avenida de los Guindos,36.69022803758897,-4.445055000018758,municipal,si
+ITS-SEM-19323,semaforo,SEMAFOROACUSTICO_14.13,Intersección c/ Villanueva de Tapia,Avenida de Molière,36.68786803758594,-4.453969000019005,municipal,si
+ITS-SEM-19321,semaforo,SEMAFOROACUSTICO_14.10,Intersección Camino de la Termica,Avenida de Molière,36.685021037582366,-4.448916000018855,municipal,si
+ITS-SEM-19173,semaforo,SEMAFOROACUSTICO_08.29,Intersección con Avda. Moliere,Avenida de Molière,36.69069576488501,-4.456847012062095,municipal,si
+ITS-SEM-19140,semaforo,SEMAFOROACUSTICO_07.27,Intersección con Cl. Gongora,Calle Góngora,36.71013644942665,-4.431084394473388,municipal,si
+ITS-SEM-19253,semaforo,SEMAFOROACUSTICO_11.15,Intersección con Corregidor Antonio Bobadilla,Calle Corregidor Antonio de Bobadilla,36.71092773597046,-4.448872804660637,municipal,si
+ITS-SEM-19126,semaforo,SEMAFOROACUSTICO_07.11,Intersección con c/ Jacinto Verdaguer,Calle Salitre,36.71171041355731,-4.429260492343218,municipal,si
+ITS-SEM-19356,semaforo,SEMAFOROACUSTICO_15.35,,Calle Antares,36.73444457220232,-4.491170639525076,municipal,si
+ITS-SEM-19144,semaforo,SEMAFOROACUSTICO_07.34,Intersección Paseo Antonio Machado,Calle Góngora,36.70851903761235,-4.428960000018366,municipal,si
+ITS-SEM-19180,semaforo,SEMAFOROACUSTICO_08.39,C/ Eduardo Toldrá - C/ Boccherini,Calle Eduardo Toldrá,36.6901510375888,-4.459806000019177,municipal,si
+ITS-SEM-19367,semaforo,SEMAFOROACUSTICO_16.05,,Avenida de Washington,36.70833318093008,-4.482157116276121,municipal,si
+ITS-SEM-19081,semaforo,SEMAFOROACUSTICO_00.16,Intersección con Camino San Rafael,Avenida de las Malagueñas,36.70165003760354,-4.460798000019239,municipal,si
+ITS-SEM-19080,semaforo,SEMAFOROACUSTICO_00.15,Intersección con Cl. Piyayo,Avenida de las Malagueñas,36.70132903760308,-4.461566000019265,municipal,si
+ITS-SEM-18973,semaforo,SEMAFOROACUSTICO_02.17,Intersección con Cl. Venezuela,Calle Venezuela,36.72004003762719,-4.3678940000168645,municipal,si
+ITS-SEM-19277,semaforo,SEMAFOROACUSTICO_12.13,Intersección con Cl. Obispo Severo,Avenida de Santiago Ramón y Cajal,36.74501803765881,-4.422749000018297,municipal,si
+ITS-SEM-19275,semaforo,SEMAFOROACUSTICO_12.11,Intersección c/ Pedro Saéz,Calle Pedro Sáenz,36.739965037652354,-4.423274000018305,municipal,si
+ITS-SEM-19276,semaforo,SEMAFOROACUSTICO_12.12,,Avenida de Santiago Ramón y Cajal,36.742944408011205,-4.423248343546001,municipal,si
+ITS-SEM-19266,semaforo,SEMAFOROACUSTICO_12.01,Intersección Av. Jorge Silvela,Puente del Mediterráneo,36.73749703764921,-4.424949000018335,municipal,si
+ITS-SEM-19119,semaforo,SEMAFOROACUSTICO_07.03,Intersección con c/ Plaza de Toros Vieja,Calle Salitre,36.71288871532752,-4.42801594736027,municipal,si
+ITS-SEM-19026,semaforo,SEMAFOROACUSTICO_04.29,Intersección con Pasillo del Matadero,Calle Salitre,36.714402419550154,-4.426401257533262,municipal,si
+ITS-SEM-19309,semaforo,SEMAFOROACUSTICO_13.15,Intersección c/ Rojas,Alameda Barceló,36.73143403764151,-4.419858000018183,municipal,si
+ITS-SEM-19310,semaforo,SEMAFOROACUSTICO_13.16,Esquina con Cl. Eduardo Domínguez Ávila,Alameda Barceló,36.7313540376414,-4.4215990000182295,municipal,si
+ITS-SEM-19278,semaforo,SEMAFOROACUSTICO_12.14,Intersección c/ Dolores Cortés,Avenida de Santiago Ramón y Cajal,36.747692037662205,-4.422763000018304,municipal,si
+ITS-SEM-19042,semaforo,SEMAFOROACUSTICO_05.09,Intersección con c/ Virgen de la Estrella,Calle Virgen de la Estrella,36.71591179378041,-4.443068504352271,municipal,si
+ITS-SEM-19322,semaforo,SEMAFOROACUSTICO_14.11,Avenida Moliere con calle La Crónica.,Avenida de Molière,36.68571437358189,-4.450750350971057,municipal,si
+ITS-SEM-18993,semaforo,SEMAFOROACUSTICO_03.22,Intersección con c/ De la Alcazabilla,Plaza de María Guerrero,36.72266706262037,-4.4170618057431845,municipal,si
+ITS-SEM-18988,semaforo,SEMAFOROACUSTICO_03.15,Intersección con Cl. Marcos de Obregón,Avenida del Pintor Joaquín Sorolla,36.72295803763086,-4.392630000017468,municipal,si
+ITS-SEM-19096,semaforo,SEMAFOROACUSTICO_01.12,Intersección con c/ Real,Calle Mar,36.72092509000267,-4.359285011904209,municipal,si
+ITS-SEM-18987,semaforo,SEMAFOROACUSTICO_03.14,Cruce con Cl. Marcos de Obregón,Avenida del Pintor Joaquín Sorolla,36.723483477631504,-4.393374460017489,municipal,si
+ITS-SEM-19134,semaforo,SEMAFOROACUSTICO_07.20,Intersección con c/ Tomás Echevarria,Calle Tomás Echeverría,36.70285967161681,-4.433369636554105,municipal,si
+ITS-SEM-19269,semaforo,SEMAFOROACUSTICO_12.04,Intersección con Cl. Pedro Sáenz,Calle María Tubau,36.74016303765266,-4.422720000018288,municipal,si
+ITS-SEM-19291,semaforo,SEMAFOROACUSTICO_12.33,Intersección con Cl. Salesianos,Calle Emilio Díaz,36.73479581541838,-4.423687532562437,municipal,si
+ITS-SEM-19222,semaforo,SEMAFOROACUSTICO_10.19,Intersección Paseo de Martiricos,Paseo Martiricos,36.732753037643164,-4.426740000018368,municipal,si
+ITS-SEM-19041,semaforo,SEMAFOROACUSTICO_05.08,Intersección con c/ Joaquin Verdugo Landi,Avenida de Andalucía,36.71687932576664,-4.439216852206785,municipal,si
+ITS-SEM-18978,semaforo,SEMAFOROACUSTICO_03.05,,Avenida de Príes,36.7210509166256,-4.407271615184728,municipal,si
+ITS-SEM-19355,semaforo,SEMAFOROACUSTICO_15.34,,Calle Sirio,36.739429415522416,-4.49132087232634,municipal,si
+ITS-SEM-18994,semaforo,SEMAFOROACUSTICO_03.23,A la altura de los Baños del Carmen,Avenida del Pintor Joaquín Sorolla,36.72191029566098,-4.381849765794787,municipal,si
+ITS-SEM-19103,semaforo,SEMAFOROACUSTICO_01.21,Intersección con c/ Algarrobo,Carretera de Olías,36.72104817421538,-4.351076111213952,municipal,si
+ITS-SEM-19028,semaforo,SEMAFOROACUSTICO_04.31,Intersección con c/ Pasillo de Santa Isabel,Plaza de Arriola,36.71918415287397,-4.425237178820784,municipal,si
+ITS-SEM-19147,semaforo,SEMAFOROACUSTICO_07.40,Intersección Avda. Las Américas,Plaza de la Solidaridad,36.713687037618946,-4.432554000018482,municipal,si
+ITS-SEM-19245,semaforo,SEMAFOROACUSTICO_11.06,Intersección Camino San Rafael,Avenida de Juan Xxiii,36.7101110376143,-4.444905000018807,municipal,si
+ITS-SEM-19174,semaforo,SEMAFOROACUSTICO_08.30,,Calle Niño Jesús de Praga,36.69675825992235,-4.449644360301152,municipal,si
+ITS-SEM-19072,semaforo,SEMAFOROACUSTICO_06.23,Intersección con Cl. Covadonga,Pasaje Covadonga,36.73157141372274,-4.436470270175492,municipal,si
+ITS-SEM-19203,semaforo,SEMAFOROACUSTICO_09.17,Intersección con Cl. Los Millones,Calle los Millones,36.72363903763157,-4.445444000018862,municipal,si
+ITS-SEM-19247,semaforo,SEMAFOROACUSTICO_11.09,Intersección con c/ Antonio Luis Carrión,Paseo de los Tilos,36.71286882625957,-4.43797700108961,municipal,si
+ITS-SEM-19019,semaforo,SEMAFOROACUSTICO_04.22,Intersección con c/ Nazareno del Paso,Avenida de Andalucía,36.71675032220599,-4.42718982698367,municipal,si
+ITS-SEM-19039,semaforo,SEMAFOROACUSTICO_05.05,Intersección con Paseo de los Tilos,Paseo de los Tilos,36.71341327614393,-4.434549808520726,municipal,si
+ITS-SEM-19171,semaforo,SEMAFOROACUSTICO_08.26,Intersección con Doradilla.,Avenida de Velázquez,36.70041242071998,-4.445042610187243,municipal,si
+ITS-SEM-19251,semaforo,SEMAFOROACUSTICO_11.13,Intersección con Cl. Corregidor Paz Guzmán.,Avenida de Juan Xxiii,36.712587691046245,-4.446896016616625,municipal,si
+ITS-SEM-19049,semaforo,SEMAFOROACUSTICO_05.19,C/ Cómpeta - C/ Archidona,Calle Cómpeta,36.71918103762589,-4.451515000019019,municipal,si
+ITS-SEM-19048,semaforo,SEMAFOROACUSTICO_05.18,Intersección con c/ Corregidor Carlos Garafa,Calle Cómpeta,36.71908955312215,-4.450696706790845,municipal,si
+ITS-SEM-19186,semaforo,SEMAFOROACUSTICO_08.47,,Avenida de Velázquez,36.69249307753854,-4.455064180785135,municipal,si
+ITS-SEM-19151,semaforo,SEMAFOROACUSTICO_08.05,Intersección con Avda. La Luz,Avenida de Velázquez,36.69548757599882,-4.451082944888943,municipal,si
+ITS-SEM-19246,semaforo,SEMAFOROACUSTICO_11.08,Intersección con Cl. Benagalbón,Calle Almogía,36.71619003762202,-4.4540580000190895,municipal,si
+ITS-SEM-19272,semaforo,SEMAFOROACUSTICO_12.07,,Calle Emilio Thuillier,36.74320399114522,-4.422222356122515,municipal,si
+ITS-SEM-19273,semaforo,SEMAFOROACUSTICO_12.08,Intersección con Cl. Mosen Diego Valera,Calle Emilio Thuillier,36.74660703766079,-4.421842000018283,municipal,si
+ITS-SEM-19274,semaforo,SEMAFOROACUSTICO_12.09,Intersección c/ Alcalde Joaquín Quiles,Camino de Casabermeja,36.74999203766513,-4.422315000018299,municipal,si
+ITS-SEM-19022,semaforo,SEMAFOROACUSTICO_04.25,Intersección con c/ Eslava,Plaza de la Solidaridad,36.714204607624104,-4.431202411670053,municipal,si
+ITS-SEM-19004,semaforo,SEMAFOROACUSTICO_04.07,Intersección con Cl. Córdoba,Calle Córdoba,36.715623681901185,-4.421715438384135,municipal,si
+ITS-SEM-19288,semaforo,SEMAFOROACUSTICO_12.30,,Calle Emilio Thuillier,36.74755236674235,-4.421695977692517,municipal,si
+ITS-SEM-19207,semaforo,SEMAFOROACUSTICO_10.03,Intersección con c/ Armengual de la Mota,Calle Jaboneros,36.721598557103,-4.428990930337239,municipal,si
+ITS-SEM-19073,semaforo,SEMAFOROACUSTICO_06.25,Intersección con Cl. Tejares,Calle Blas de Lezo,36.72833203763754,-4.43460600001858,municipal,si
+ITS-SEM-19271,semaforo,SEMAFOROACUSTICO_12.06,Intersección con Cl. Doctor Martos,Calle Emilio Thuillier,36.7424920376556,-4.422364000018282,municipal,si
+ITS-SEM-19007,semaforo,SEMAFOROACUSTICO_04.10,Intersección con Cl. Canales,Calle Canales,36.711878129145795,-4.426707029360961,municipal,si
+ITS-SEM-19211,semaforo,SEMAFOROACUSTICO_10.07,,Avenida de Barcelona,36.72618006079133,-4.430783647144221,municipal,si
+ITS-SEM-19239,semaforo,SEMAFOROACUSTICO_10.38,,Calle Ollerías,36.72672348635089,-4.42351329235698,municipal,si
+ITS-SEM-19217,semaforo,SEMAFOROACUSTICO_10.13,,Paseo Martiricos,36.728617037637946,-4.427005000018371,municipal,si
+ITS-SEM-19212,semaforo,SEMAFOROACUSTICO_10.08,Intersección con Cl. Dr. Fleming,Calle del Doctor Fleming,36.72781105290807,-4.430258944649075,municipal,si
+ITS-SEM-19209,semaforo,SEMAFOROACUSTICO_10.05,Intersección con c/ Lanuza,Calle Pelayo,36.72237467626994,-4.432522058505435,municipal,si
+ITS-SEM-19255,semaforo,SEMAFOROACUSTICO_11.21,,Paseo de los Tilos,36.71212774771092,-4.439846945285058,municipal,si
+ITS-SEM-19040,semaforo,SEMAFOROACUSTICO_05.07,Cruce con Cl. Horacio Lengo,Calle Horacio Lengo,36.71514474762078,-4.4396327400186735,municipal,si
+ITS-SEM-19130,semaforo,SEMAFOROACUSTICO_07.15,Intersección con Cl. Goya,Calle Goya,36.70504449761795,-4.436674118060554,municipal,si
+ITS-SEM-19391,semaforo,SEMAFOROACUSTICO_19.04,Cruce con Cl. Arcipreste de Talavera,Calle de Joaquín Vargas,36.69348269759301,-4.494590000020247,municipal,si
+ITS-SEM-19076,semaforo,SEMAFOROACUSTICO_00.04,Cruce con Cl. Joselito de Málaga,Camino de los Prados,36.69892474759997,-4.475273940019669,municipal,si
+ITS-SEM-19075,semaforo,SEMAFOROACUSTICO_00.03,Cruce con Cl. Paris,Camino de los Prados,36.69902177760012,-4.472533280019584,municipal,si
+ITS-SEM-19165,semaforo,SEMAFOROACUSTICO_08.20,Intersección con Avda.Los Guindos,Camino de la Térmica,36.690695764885014,-4.447038173694357,municipal,si
+ITS-SEM-19335,semaforo,SEMAFOROACUSTICO_15.09,Intersección con Cl. Pirita,Calle Lope de Rueda,36.73918803765124,-4.481368000019963,municipal,si
+ITS-SEM-19351,semaforo,SEMAFOROACUSTICO_15.30,Intersección c/ Escritor Enrique y Castillo,Calle Lope de Rueda,36.73723203764874,-4.479959000019916,municipal,si
+ITS-SEM-19070,semaforo,SEMAFOROACUSTICO_06.21,Intersección con c/ Sondalezas,Calle Sondalezas,36.72360871109585,-4.44137871267286,municipal,si
+ITS-SEM-19259,semaforo,SEMAFOROACUSTICO_11.25,Intersección con Bulevar Adolfo Suarez,Avenida de Juan Xxiii,36.70692703761024,-4.443067000018754,municipal,si
+ITS-SEM-19256,semaforo,SEMAFOROACUSTICO_11.22,Intersección con c/ Stendhal,Calle Almogía,36.71727063524243,-4.454262703676244,municipal,si
+ITS-SEM-19361,semaforo,SEMAFOROACUSTICO_15.41,Cruce con Cl. Editor Angel Caffarena,Avenida del Editor Ángel Caffarena,36.72636368763494,-4.4745221700197195,municipal,si
+ITS-SEM-19338,semaforo,SEMAFOROACUSTICO_15.12,Intersección con Cl. Oro,Calle Lope de Rueda,36.73991903765215,-4.485645000020106,municipal,si
+ITS-SEM-19244,semaforo,SEMAFOROACUSTICO_11.05,Intersección con Cl. La Unión,Avenida de Juan Xxiii,36.70854803761237,-4.4440020000187825,municipal,si
+ITS-SEM-19258,semaforo,SEMAFOROACUSTICO_11.24,Intersección con Cl. Bodegueros,Avenida de Juan Xxiii,36.70777903761134,-4.443638000018764,municipal,si
+ITS-SEM-19339,semaforo,SEMAFOROACUSTICO_15.13,,Calle Lope de Rueda,36.741409941035414,-4.487746142071117,municipal,si
+ITS-SEM-19350,semaforo,SEMAFOROACUSTICO_15.29,Intersección c/ Kandinsky,Calle Kandinsky,36.714605037620025,-4.466611000019447,municipal,si
+ITS-SEM-19334,semaforo,SEMAFOROACUSTICO_15.07,Av. Lope de Rueda - C/ Lara Castañeda,Calle Lope de Rueda,36.73576203764691,-4.4789560000198865,municipal,si
+ITS-SEM-19333,semaforo,SEMAFOROACUSTICO_15.06,Intersección con Cl. Alcarría,Calle Lope de Rueda,36.73514503764612,-4.47855500001987,municipal,si
+ITS-SEM-19336,semaforo,SEMAFOROACUSTICO_15.10,Intersección con Carril de Orozco,Calle Lope de Rueda,36.74012403765246,-4.48292000002002,municipal,si
+ITS-SEM-19337,semaforo,SEMAFOROACUSTICO_15.11,Intersección con Cl. Escritora Matilde del Nido,Calle Lope de Rueda,36.74000803765231,-4.484580000020073,municipal,si
+ITS-SEM-19343,semaforo,SEMAFOROACUSTICO_15.18,Av. Lope de Rueda - C/ Selenita,Calle Lope de Rueda,36.74743703766165,-4.4927610000203435,municipal,si
+ITS-SEM-19045,semaforo,SEMAFOROACUSTICO_05.13,,Calle Virgen de la Cabeza,36.71730045266259,-4.448690414447645,municipal,si
+ITS-SEM-19131,semaforo,SEMAFOROACUSTICO_07.17,Intersección con Av. Sor Teresa Prat,Calle Princesa,36.70176723532579,-4.438905715961002,municipal,si
+ITS-SEM-19010,semaforo,SEMAFOROACUSTICO_04.13,Intersección con c/ Torregorda,Alameda Principal,36.71724913477357,-4.42363858224786,municipal,si
+ITS-SEM-19013,semaforo,SEMAFOROACUSTICO_04.16,Puente de Tetuan,Alameda Principal,36.71681052389456,-4.425280094165027,municipal,si
+ITS-SEM-19047,semaforo,SEMAFOROACUSTICO_05.17,Intersección con c/ Competa,Calle Virgen de la Cabeza,36.71903795320854,-4.4491517543982235,municipal,si
+ITS-SEM-19008,semaforo,SEMAFOROACUSTICO_04.11,Intersección con Plaza de la Marina,Alameda Principal,36.718031747964524,-4.421095848101685,municipal,si
+ITS-SEM-19283,semaforo,SEMAFOROACUSTICO_12.24,Cruce con Cl. Vandelvira,Calle Vandelvira,36.72790354763695,-4.443028810018808,municipal,si
+ITS-SEM-19043,semaforo,SEMAFOROACUSTICO_05.11,,Plaza de Manuel Azaña,36.715116258352055,-4.448186159152829,municipal,si
+ITS-SEM-19071,semaforo,SEMAFOROACUSTICO_06.22,Intersección con c/ Rosa,Calle Rosa,36.72272725967195,-4.442038536090542,municipal,si
+ITS-SEM-19009,semaforo,SEMAFOROACUSTICO_04.12,Intersección con c/ Córdoba,Alameda Principal,36.71757594125147,-4.422544240969754,municipal,si
+ITS-SEM-19152,semaforo,SEMAFOROACUSTICO_08.06,Intersección con Avda. Los Guindos,Avenida de Velázquez,36.6931734352066,-4.453990459461157,municipal,si
+ITS-SEM-19342,semaforo,SEMAFOROACUSTICO_15.16,Intersección con Cl. Retama,Calle Lope de Rueda,36.74481403765834,-4.491234000020291,municipal,si
+ITS-SEM-19341,semaforo,SEMAFOROACUSTICO_15.15,Av. Lope de Rueda - C/ Diana,Calle Lope de Rueda,36.74401103765729,-4.490386000020258,municipal,si
+ITS-SEM-19036,semaforo,SEMAFOROACUSTICO_04.39,,Glorieta de Albert Camus,36.71594176681758,-4.429657898506571,municipal,si
+ITS-SEM-19064,semaforo,SEMAFOROACUSTICO_06.14,Intersección con Cl. Blas de Lezo,Calle Blas de Lezo,36.729658204706865,-4.434163570422619,municipal,si
+ITS-SEM-19238,semaforo,SEMAFOROACUSTICO_10.37,,Paseo Martiricos,36.732222016789464,-4.426718936553319,municipal,si
+ITS-SEM-19270,semaforo,SEMAFOROACUSTICO_12.05,Intersección con Cl. Abindarraez,Calle María Tubau,36.74074303765338,-4.4226070000182816,municipal,si
+ITS-SEM-19328,semaforo,SEMAFOROACUSTICO_14.18,Cruce con Av. Imperio Argentina,Camino de la Térmica,36.68117071757739,-4.450772600018898,municipal,si
+ITS-SEM-19327,semaforo,SEMAFOROACUSTICO_14.17,,Camino de la Térmica,36.68049971912118,-4.449947014591074,municipal,si
+ITS-SEM-19228,semaforo,SEMAFOROACUSTICO_10.27,Intersección c/ Postigo,Calle Cruz del Molinillo,36.7271470376361,-4.4225200000182445,municipal,si
+ITS-SEM-19290,semaforo,SEMAFOROACUSTICO_12.32,,Avenida Málaga Oloroso,36.746214881713925,-4.4175204313844025,municipal,si
+ITS-SEM-19223,semaforo,SEMAFOROACUSTICO_10.20,Intersección Avda. Doctor Marañón,Avenida de Luis Buñuel,36.73290703764339,-4.4282230000184155,municipal,si
+ITS-SEM-19300,semaforo,SEMAFOROACUSTICO_13.06,Intersección con Plaza de Olletas,Plaza de Olletas,36.733089048989875,-4.4160962104978285,municipal,si
+ITS-SEM-19098,semaforo,SEMAFOROACUSTICO_01.14,Intersección Ctra. de Olias,Calle Almería,36.72021803762742,-4.353262000016521,municipal,si
+ITS-SEM-19294,semaforo,SEMAFOROACUSTICO_12.36,,Calle Lorenza Correa,36.73774589859586,-4.4226091465898705,municipal,si
+ITS-SEM-19221,semaforo,SEMAFOROACUSTICO_10.18,Intersección con Cl. Pepe González Marín,Avenida de Jorge Silvela,36.733156037643724,-4.425094000018325,municipal,si
+ITS-SEM-19289,semaforo,SEMAFOROACUSTICO_12.31,Av. Jorge Silvela - C/ Fernando Loring,Avenida de Jorge Silvela,36.735296037646386,-4.424835000018334,municipal,si
+ITS-SEM-19224,semaforo,SEMAFOROACUSTICO_10.22,,Avenida de Luis Buñuel,36.73363003764432,-4.432757000018534,municipal,si
+ITS-SEM-19225,semaforo,SEMAFOROACUSTICO_10.23,,Avenida de Luis Buñuel,36.73368815731405,-4.432722648482821,municipal,si
+ITS-SEM-18985,semaforo,SEMAFOROACUSTICO_03.12,Intersección con Cl. Rafael Pérez Estrada,Paseo Marítimo Pablo Ruiz Picasso,36.72175703762923,-4.399475000017632,municipal,si
+ITS-SEM-18986,semaforo,SEMAFOROACUSTICO_03.13,Intersección con c/ Idris,Paseo Marítimo Pablo Ruiz Picasso,36.72255096817335,-4.396564364450851,municipal,si
+ITS-SEM-18990,semaforo,SEMAFOROACUSTICO_03.19,,Paseo Marítimo Pablo Ruiz Picasso,36.72308027185762,-4.394528986703751,municipal,si
+ITS-SEM-19125,semaforo,SEMAFOROACUSTICO_07.10,Intersección con Av. Juan XXIII,Calle Héroe de Sostoa,36.70362952881016,-4.440863728541927,municipal,si
+ITS-SEM-19365,semaforo,SEMAFOROACUSTICO_16.03,,Avenida de José Ortega y Gasset,36.708272635732186,-4.488076949721391,municipal,si
+ITS-SEM-19227,semaforo,SEMAFOROACUSTICO_10.25,,Avenida de Fátima,36.72458795203785,-4.4263836774314305,municipal,si
+ITS-SEM-19262,semaforo,SEMAFOROACUSTICO_11.31,,Bulevar Adolfo Suárez,36.7033240376057,-4.449965000018935,municipal,si
+ITS-SEM-19261,semaforo,SEMAFOROACUSTICO_11.27,Sillita de la Reina con Nueva Avd. del Parque,Bulevar Adolfo Suárez,36.704698037607436,-4.44699900001885,municipal,si
+ITS-SEM-19263,semaforo,SEMAFOROACUSTICO_11.32,Cancho Pérez con Nueva Avd. del Parque,Bulevar Adolfo Suárez,36.70177503760366,-4.452982000019019,municipal,si
+ITS-SEM-19003,semaforo,SEMAFOROACUSTICO_04.06,Intersección con Cl. Casas de Campo,Avenida de Manuel Agustín Heredia,36.71644071277612,-4.420934915560771,municipal,si
+ITS-SEM-19216,semaforo,SEMAFOROACUSTICO_10.12,Intersección con c/ Martiricos,Avenida del Arroyo de los Ángeles,36.72735745399225,-4.42779332401207,municipal,si
+ITS-SEM-19215,semaforo,SEMAFOROACUSTICO_10.11,Intersección con Cl. Mazarredo,Avenida del Arroyo de los Ángeles,36.72766303763669,-4.4284060000184065,municipal,si
+ITS-SEM-19005,semaforo,SEMAFOROACUSTICO_04.08,Intersección con Alameda de Colón,Avenida de Manuel Agustín Heredia,36.713489570089344,-4.423981666583187,municipal,si
+ITS-SEM-19017,semaforo,SEMAFOROACUSTICO_04.20,A la altura de Jardines de Picasso,Jardines de Picasso,36.71699972889457,-4.4331872463411335,municipal,si
+ITS-SEM-19318,semaforo,SEMAFOROACUSTICO_14.07,Intersección con Cl. Ayamonte,Calle Pacífico,36.68593103758347,-4.445523000018755,municipal,si
+ITS-SEM-19170,semaforo,SEMAFOROACUSTICO_08.25,Intersección con Cl. Toledillo,Calle Cortijo de Echarte,36.701614551064154,-4.449203386921722,municipal,si
+ITS-SEM-19312,semaforo,SEMAFOROACUSTICO_14.01,Intersección con Cl. Concejal Muñoz Cerván.,Calle Pacífico,36.697440346937896,-4.438197612781032,municipal,si
+ITS-SEM-19313,semaforo,SEMAFOROACUSTICO_14.02,Intersección con Carril de la Chupa.,Calle Pacífico,36.69431761017748,-4.440536499042082,municipal,si
+ITS-SEM-19317,semaforo,SEMAFOROACUSTICO_14.06,Intersección con Cl. Almonte,Calle Pacífico,36.68757203758558,-4.444470000018735,municipal,si
+ITS-SEM-19156,semaforo,SEMAFOROACUSTICO_08.10,Intersección con Av. Isaac Peral,Avenida de Isaac Peral,36.69803623144653,-4.455867767353064,municipal,si
+ITS-SEM-19135,semaforo,SEMAFOROACUSTICO_07.21,A la altura de c/ Tomás Echevarría,Paseo de Antonio Machado,36.704949880455665,-4.431679844874696,municipal,si
+ITS-SEM-19315,semaforo,SEMAFOROACUSTICO_14.04,Esq. con Cl. Francisco de Cossio,Calle Pacífico,36.69111003759008,-4.442246000018681,municipal,si
+ITS-SEM-19233,semaforo,SEMAFOROACUSTICO_10.32,A la altura del Hospital Materno Infantil,Avenida del Arroyo de los Ángeles,36.72908403763851,-4.432687000018526,municipal,si
+ITS-SEM-19006,semaforo,SEMAFOROACUSTICO_04.09,Intersección con Puente del Carmen,Avenida de Manuel Agustín Heredia,36.712119657616924,-4.425100000018271,municipal,si
+ITS-SEM-19234,semaforo,SEMAFOROACUSTICO_10.33,,Calle Toledo,36.728937557043324,-4.428421287503325,municipal,si
+ITS-SEM-19249,semaforo,SEMAFOROACUSTICO_11.11,Avenida José Ortega y Gasset con calle Valderaduey.,Avenida de José Ortega y Gasset,36.71171901436557,-4.4438409805485755,municipal,si
+ITS-SEM-19385,semaforo,SEMAFOROACUSTICO_18.03,,Carretera Coín,36.66066039326546,-4.4996223931569785,municipal,si
+ITS-SEM-19102,semaforo,SEMAFOROACUSTICO_01.18,Intersección con Cl. Aljofaina,Calle Almería,36.72089982815293,-4.358109533803411,municipal,si
+ITS-SEM-18981,semaforo,SEMAFOROACUSTICO_03.08,Intersección con Cl. Keromnes,Paseo Marítimo Pablo Ruiz Picasso,36.71906703762577,-4.40781100001783,municipal,si
+ITS-SEM-19097,semaforo,SEMAFOROACUSTICO_01.13,Intersección con c/ Padre Coloma,Calle Almería,36.7205370240756,-4.356455281393442,municipal,si
+ITS-SEM-19101,semaforo,SEMAFOROACUSTICO_01.17,Intersección con c/ Padre Lerchundi,Calle Almería,36.72038222714776,-4.355448111908331,municipal,si
+ITS-SEM-19295,semaforo,SEMAFOROACUSTICO_13.01,C/ Ferrándiz - C/ Subida San Cristobal,Calle Ferrándiz,36.72724003763621,-4.409450000017905,municipal,si
+ITS-SEM-19012,semaforo,SEMAFOROACUSTICO_04.15,Intersección con c/ Puerta del Mar,Calle Martínez,36.718478951922386,-4.422909021395786,municipal,si
+ITS-SEM-19092,semaforo,SEMAFOROACUSTICO_01.08,Intersección con Cl. Escritor Marín Higuero,Calle Escultor Marín Higuero,36.72181569926683,-4.364321529882054,municipal,si
+ITS-SEM-19099,semaforo,SEMAFOROACUSTICO_01.15,Intersección con c/ Doctor Gutierrez Mata,Calle Almería,36.71967219974193,-4.351497888581546,municipal,si
+ITS-SEM-18997,semaforo,SEMAFOROACUSTICO_03.27,Intersección con Cl. Santa Cristina,Paseo Marítimo Pablo Ruiz Picasso,36.719678037626636,-4.406753000017814,municipal,si
+ITS-SEM-19094,semaforo,SEMAFOROACUSTICO_01.10,Intersección por Av. Estación del Palo,Avenida de la Estación de el Palo,36.72108257326144,-4.361325502412344,municipal,si
+ITS-SEM-19305,semaforo,SEMAFOROACUSTICO_13.11,Intersección con Cl. Decano Ignacio Alaminos,Calle Decano Ignacio Alaminos,36.73517413634054,-4.409648180025868,municipal,si
+ITS-SEM-18989,semaforo,SEMAFOROACUSTICO_03.18,Intersección con Cl. Jerico,Paseo Marítimo Pablo Ruiz Picasso,36.7207020376279,-4.4026550000177025,municipal,si
+ITS-SEM-18975,semaforo,SEMAFOROACUSTICO_03.01,Intersección con c/ Cervantes,Paseo de Reding,36.72096217653283,-4.409760832804449,municipal,si
+ITS-SEM-19366,semaforo,SEMAFOROACUSTICO_16.04,,Avenida de José Ortega y Gasset,36.708313715076095,-4.485667524325237,municipal,si
+ITS-SEM-19160,semaforo,SEMAFOROACUSTICO_08.15,Intersección con Av. gregorio Diego,Camino del Pato,36.689570355708945,-4.451254606265878,municipal,si
+ITS-SEM-19014,semaforo,SEMAFOROACUSTICO_04.17,Intersección con c/ Pinzón,Alameda de Colón,36.71464323338136,-4.424443244952347,municipal,si
+ITS-SEM-19058,semaforo,SEMAFOROACUSTICO_06.08,Intersección con c/ José María Coopello,Calle José María Coopello,36.725066308571115,-4.439098835010147,municipal,si
+ITS-SEM-19349,semaforo,SEMAFOROACUSTICO_15.28,Intersección c/ Pablo Gargallo,Calle Pablo Gargallo,36.72182203762919,-4.469109000019541,municipal,si
+ITS-SEM-19133,semaforo,SEMAFOROACUSTICO_07.19,Intersección con c/ Mendoza,Calle Mendoza,36.70178443916724,-4.434211850184805,municipal,si
+ITS-SEM-19360,semaforo,SEMAFOROACUSTICO_15.40,Cruce con Cl. Esquilo,Avenida de Jenofonte,36.72121827762832,-4.485990450020057,municipal,si
+ITS-SEM-19316,semaforo,SEMAFOROACUSTICO_14.05,Intersección con Av. Los Guindos,Calle Pacífico,36.689422486580646,-4.443261623401279,municipal,si
+ITS-SEM-19187,semaforo,SEMAFOROACUSTICO_09.01,Intersección con Carril de Gamarra,Calle Juanita Reina,36.721694228725916,-4.44253005089254,municipal,si
+ITS-SEM-19011,semaforo,SEMAFOROACUSTICO_04.14,Intersección con c/ Torregorda,Calle Atarazanas,36.71807474845826,-4.42407846452632,municipal,si
+ITS-SEM-19202,semaforo,SEMAFOROACUSTICO_09.16,Intersección con Cl. Evaristo Minguet,Calle Juanita Reina,36.72245503763001,-4.443304000018799,municipal,si
+ITS-SEM-19057,semaforo,SEMAFOROACUSTICO_06.07,Intersección con c/ José Mª Freullier,Calle José María Freuiller,36.72400858572319,-4.43934559823952,municipal,si
+ITS-SEM-19142,semaforo,SEMAFOROACUSTICO_07.31,Intersección con c/ Juana Jugan,Calle Héroe de Sostoa,36.71074281647518,-4.431795179862353,municipal,si
+ITS-SEM-19122,semaforo,SEMAFOROACUSTICO_07.06,Intersección con Cl. Heroe de Sostoa,Calle Héroe de Sostoa,36.71160720378237,-4.4306337833588705,municipal,si
+ITS-SEM-19198,semaforo,SEMAFOROACUSTICO_09.12,Cruce con Cl. Orson Wells,Avenida de Jorge Luis Borges,36.719973267626884,-4.462060910019336,municipal,si
+ITS-SEM-19252,semaforo,SEMAFOROACUSTICO_11.14,Intersección con Cl. Corregidor Ruiz de Pereda,Avenida de José Ortega y Gasset,36.71100603761544,-4.447591000018887,municipal,si
+ITS-SEM-19188,semaforo,SEMAFOROACUSTICO_09.02,Intersección con Cl. Muladies,Avenida Carlos de Haya,36.721459349303736,-4.44359354676696,municipal,si
+ITS-SEM-19191,semaforo,SEMAFOROACUSTICO_09.05,Intersección con Cl. Sánchez Borrero,Avenida Carlos de Haya,36.72282239241624,-4.451199620981164,municipal,si
+ITS-SEM-19192,semaforo,SEMAFOROACUSTICO_09.06,Intersección con Cl. Núnez Vela,Avenida Carlos de Haya,36.72284281637993,-4.451301544923734,municipal,si
+ITS-SEM-19254,semaforo,SEMAFOROACUSTICO_11.18,Intersección con c/ Pedro Zapata,Avenida de José Ortega y Gasset,36.70996604222265,-4.4534352421951064,municipal,si
+ITS-SEM-19193,semaforo,SEMAFOROACUSTICO_09.07,Intersección con Cl. Castilla,Avenida Carlos de Haya,36.72315078759425,-4.452981948871618,municipal,si
+ITS-SEM-19190,semaforo,SEMAFOROACUSTICO_09.04,Intersección con Avda. Santa Rosa de Lima,Avenida Carlos de Haya,36.7224332611241,-4.448624700326798,municipal,si
+ITS-SEM-19344,semaforo,SEMAFOROACUSTICO_15.20,Cruce con Cl. Juán Frances Bosca,Calle Tamayo y Baus,36.72684541763553,-4.466905560019492,municipal,si
+ITS-SEM-19196,semaforo,SEMAFOROACUSTICO_09.10,Intersección con Cl. James Joyce,Avenida Carlos de Haya,36.72530803763363,-4.458248000019229,municipal,si
+ITS-SEM-19346,semaforo,SEMAFOROACUSTICO_15.22,Intersección con Cl. Charles Dickens,Calle Flaubert,36.72397103763195,-4.46288900001936,municipal,si
+ITS-SEM-19320,semaforo,SEMAFOROACUSTICO_14.09,,Calle Pacífico,36.682610037579224,-4.447442000018805,municipal,si
+ITS-SEM-19319,semaforo,SEMAFOROACUSTICO_14.08,Intersección Avda. Moliere,Calle Pacífico,36.683954037581024,-4.446653000018783,municipal,si
+ITS-SEM-19195,semaforo,SEMAFOROACUSTICO_09.09,Cruce con Cl. Juan de Robles,Avenida Carlos de Haya,36.72455770763268,-4.4564818000191835,municipal,si
+ITS-SEM-19189,semaforo,SEMAFOROACUSTICO_09.03,Intersección con Cl. México,Avenida Carlos de Haya,36.72195974372959,-4.445842579026015,municipal,si
+ITS-SEM-19054,semaforo,SEMAFOROACUSTICO_06.04,,Plaza Aparejador Federico Bermúdez,36.721497510540225,-4.440069794673561,municipal,si
+ITS-SEM-19201,semaforo,SEMAFOROACUSTICO_09.15,,Plaza José Bergamín,36.719313152347446,-4.454612731952702,municipal,si
+ITS-SEM-19292,semaforo,SEMAFOROACUSTICO_12.34,Intersección con Cl. Enrique de Egas y con Camino de Suárez,Calle Enrique de Egas,36.72767185636926,-4.4419956207463125,municipal,si
+ITS-SEM-19124,semaforo,SEMAFOROACUSTICO_07.09,Intersección c/ Amadeo Vives,Calle Héroe de Sostoa,36.70670503761004,-4.4368790000185765,municipal,si
+ITS-SEM-19250,semaforo,SEMAFOROACUSTICO_11.12,Intersección con Av. José Ortega y Gasset,Avenida de José Ortega y Gasset,36.71132103761584,-4.445846000018841,municipal,si
+ITS-SEM-19368,semaforo,SEMAFOROACUSTICO_16.09,,Avenida de José Ortega y Gasset,36.70665006862314,-4.46930122974746,municipal,si
+ITS-SEM-19123,semaforo,SEMAFOROACUSTICO_07.07,Cruce con Cl. Fuengirola,Calle Héroe de Sostoa,36.708874027612765,-4.434153130018514,municipal,si
+ITS-SEM-19138,semaforo,SEMAFOROACUSTICO_07.24,Intersección con c/ Ingeniero José Mª Garnica,Paseo de Antonio Machado,36.70958598441622,-4.4277262687866425,municipal,si
+ITS-SEM-19137,semaforo,SEMAFOROACUSTICO_07.23,,Paseo de Antonio Machado,36.70796774103976,-4.429112111964262,municipal,si
+ITS-SEM-19111,semaforo,SEMAFOROACUSTICO_02.10,Intersección con c/ Mar,Avenida de Salvador Allende,36.71927714001639,-4.359177052991362,municipal,si
+ITS-SEM-19354,semaforo,SEMAFOROACUSTICO_15.33,,Avenida de Jorge Luis Borges,36.72016612561401,-4.46615369352174,municipal,si
+ITS-SEM-19113,semaforo,SEMAFOROACUSTICO_02.12,Intersección con c/ Padre Lenchundi,Avenida de Salvador Allende,36.7187606030791,-4.355833679454214,municipal,si
+ITS-SEM-18970,semaforo,SEMAFOROACUSTICO_02.14,Cruce con Playa Virginia,Avenida de Salvador Allende,36.717718647624245,-4.350789670016461,municipal,si
+ITS-SEM-19143,semaforo,SEMAFOROACUSTICO_07.32,Intersección c/ Bartolomé Pancorbo,Calle Héroe de Sostoa,36.7047320376075,-4.439505000018641,municipal,si
+ITS-SEM-18972,semaforo,SEMAFOROACUSTICO_02.16,Intersección c/ Plaza Virginia,Avenida de Salvador Allende,36.71740803762385,-4.348947000016421,municipal,si
+ITS-SEM-18974,semaforo,SEMAFOROACUSTICO_02.18,Avenida Salvador Allende con c/ Julio Gómez.,Avenida de Salvador Allende,36.718341350981994,-4.354255199448916,municipal,si
+ITS-SEM-19114,semaforo,SEMAFOROACUSTICO_02.13,Intersección con c/ Leopardi,Avenida de Salvador Allende,36.71800702266986,-4.352891966717061,municipal,si
+ITS-SEM-18991,semaforo,SEMAFOROACUSTICO_03.20,Intersección con Cl. Idris,Calle Idris,36.723320628084835,-4.3967092037376565,municipal,si
+ITS-SEM-19108,semaforo,SEMAFOROACUSTICO_02.07,Intersección c/ Escultor Marín Higuero,Avenida de Salvador Allende,36.71978903762685,-4.364760000016784,municipal,si
+ITS-SEM-19110,semaforo,SEMAFOROACUSTICO_02.09,Intersección con calle Alonso Carrillo de Albornoz,Avenida de Salvador Allende,36.71952603762648,-4.361098000016702,municipal,si
+ITS-SEM-19384,semaforo,SEMAFOROACUSTICO_18.02,Carretera de Coín -C/ Escritor Herrera Santaolalla,Carretera Coín,36.65986303755005,-4.495375000020179,municipal,si
+ITS-SEM-19326,semaforo,SEMAFOROACUSTICO_14.16,Cruce con Cl. Carlos Rein,Calle Pacífico,36.698786447599886,-4.437211930018565,municipal,si
+ITS-SEM-19139,semaforo,SEMAFOROACUSTICO_07.26,Intersección con Cl. Jerónimo Bobadilla,Avenida de Europa,36.70307403760533,-4.4435520000187525,municipal,si
+ITS-SEM-19149,semaforo,SEMAFOROACUSTICO_08.03,Intersección con Avda. Manuel Torres,Avenida de Europa,36.70251559886944,-4.445793628711448,municipal,si
+ITS-SEM-19219,semaforo,SEMAFOROACUSTICO_10.16,Intersección con Cl. Martínez Barrionuevo,Calle Actriz Rosario Pino,36.73074903764059,-4.425256000018326,municipal,si
+ITS-SEM-19220,semaforo,SEMAFOROACUSTICO_10.17,Intersección Cl. Pepe González Marín,Calle Actriz Rosario Pino,36.732487037642834,-4.424095000018306,municipal,si
+ITS-SEM-19194,semaforo,SEMAFOROACUSTICO_09.08,Intersección con c/ Alonso de Aguilar,Avenida Carlos de Haya,36.72399138685732,-4.455245733280252,municipal,si
+ITS-SEM-19078,semaforo,SEMAFOROACUSTICO_00.12,,Avenida de José Ortega y Gasset,36.7062450376092,-4.505000000020625,municipal,si
+ITS-SEM-19364,semaforo,SEMAFOROACUSTICO_16.02,Av. José Ortega y Gasset,Avenida de José Ortega y Gasset,36.70830303761189,-4.4905230000201595,municipal,si
+ITS-SEM-19362,semaforo,SEMAFOROACUSTICO_15.43,,Calle Félix Gancedo,36.72117149762832,-4.49189044002024,municipal,si
+ITS-SEM-19248,semaforo,SEMAFOROACUSTICO_11.10,Intersección con c/ Conde de Guadalhorce,Plaza Cruz de Humilladero,36.71219958300047,-4.441170841474168,municipal,si
+ITS-SEM-19383,semaforo,SEMAFOROACUSTICO_18.01,,Carretera Coín,36.65940784320755,-4.492869302520017,municipal,si
+ITS-SEM-19363,semaforo,SEMAFOROACUSTICO_16.01,,Avenida de José Ortega y Gasset,36.70826389248753,-4.4904998158467295,municipal,si
+ITS-SEM-19112,semaforo,SEMAFOROACUSTICO_02.11,Intersección con c/ Aguilar y Cano,Avenida de Salvador Allende,36.71910890308104,-4.357808455841473,municipal,si
+ITS-SEM-19386,semaforo,SEMAFOROACUSTICO_18.04,,Calle Sedella,36.66145532070398,-4.503192507707157,municipal,si
+ITS-SEM-19183,semaforo,SEMAFOROACUSTICO_08.42,En el Colegio Santa Bárbara,Avenida de Europa,36.6954360375956,-4.460739000019225,municipal,si
+ITS-SEM-19182,semaforo,SEMAFOROACUSTICO_08.41,Intersección con Cl. Currito de la Cruz.,Avenida de Europa,36.69858875954674,-4.454816579837795,municipal,si
+ITS-SEM-19018,semaforo,SEMAFOROACUSTICO_04.21,Intersección con c/ Nazareno del Paso,Calle Hilera,36.71779954488257,-4.427222013491858,municipal,si
+ITS-SEM-19345,semaforo,SEMAFOROACUSTICO_15.21,Cruce con Cl. Orson Welles,Calle Navarro Ledesma,36.725620637634066,-4.463153380019381,municipal,si
+ITS-SEM-19038,semaforo,SEMAFOROACUSTICO_05.04,Intersección c/ Virgen de la Cabeza,Calle Virgen de la Fuensanta,36.713967037619234,-4.447418000018893,municipal,si
+ITS-SEM-19032,semaforo,SEMAFOROACUSTICO_04.35,Intersección con Pasaje Linaje,Calle Linaje,36.715847291214814,-4.425065517443817,municipal,si
+ITS-SEM-19065,semaforo,SEMAFOROACUSTICO_06.15,Intersección con Urb. La Roca,Avenida de Simón Bolívar,36.73228503764258,-4.433621000018559,municipal,si
+ITS-SEM-19154,semaforo,SEMAFOROACUSTICO_08.08,Intersección con Cl. Puerto Oncala,Avenida de Europa,36.700546302250565,-4.451383113880043,municipal,si
+ITS-SEM-19240,semaforo,SEMAFOROACUSTICO_11.01,Intersección con c/ Flores García,Calle la Unión,36.71131155001406,-4.438854753989745,municipal,si
+ITS-SEM-19243,semaforo,SEMAFOROACUSTICO_11.04,Intersección con c/ Andarax,Calle la Unión,36.70928387206057,-4.442850574869786,municipal,si
+ITS-SEM-19359,semaforo,SEMAFOROACUSTICO_15.39,Cruce con Cl. María Casares,Calle Navarro Ledesma,36.724356987632376,-4.481504700019925,municipal,si
+ITS-SEM-19044,semaforo,SEMAFOROACUSTICO_05.12,Intersección con c/ Virgen de la Estrella,Calle Virgen de la Fuensanta,36.7147034367211,-4.442725181598347,municipal,si
+ITS-SEM-19172,semaforo,SEMAFOROACUSTICO_08.28,Intersección con Cl. Cortijuelo,Avenida de Europa,36.7021490376042,-4.447455000018855,municipal,si
+ITS-SEM-19155,semaforo,SEMAFOROACUSTICO_08.09,Intersección con Cl. Gaucín,Avenida de Europa,36.70004683173512,-4.45240259172431,municipal,si
+ITS-SEM-19241,semaforo,SEMAFOROACUSTICO_11.02,Intersección con c/ Antonio Martelo,Calle la Unión,36.71037673906878,-4.440663233418082,municipal,si
+ITS-SEM-19242,semaforo,SEMAFOROACUSTICO_11.03,Intersección con c/ Gregorio de Frias,Calle la Unión,36.70985154127093,-4.44170996548617,municipal,si
+ITS-SEM-18976,semaforo,SEMAFOROACUSTICO_03.03,Intersección con Cl. Reding,Calle Reding,36.71908686562763,-4.410991966742321,municipal,si
+ITS-SEM-19358,semaforo,SEMAFOROACUSTICO_15.37,,Calle Navarro Ledesma,36.724380307632366,-4.478179460019822,municipal,si
+ITS-SEM-18996,semaforo,SEMAFOROACUSTICO_03.26,Paseo de los Curas a la altura de Recinto Eduardo Ocón.,Avenida de Cervantes,36.71864235271914,-4.416160583514144,municipal,si
+ITS-SEM-18999,semaforo,SEMAFOROACUSTICO_04.02,A la altura del recinto Eduardo Ocón,Avenida de Cervantes,36.7195625507155,-4.415827989596294,municipal,si
+ITS-SEM-19034,semaforo,SEMAFOROACUSTICO_04.37,Frente al Museo de la Aduana,Avenida de Cervantes,36.71955503762641,-4.4159740000180445,municipal,si
+ITS-SEM-19035,semaforo,SEMAFOROACUSTICO_04.38,A la altura del Ayuntamiento de Málaga,Avenida de Cervantes,36.71987403762681,-4.414839000018026,municipal,si
+ITS-SEM-19208,semaforo,SEMAFOROACUSTICO_10.04,Intersección con c/ Alonso de Palencia,Calle Martínez Maldonado,36.72147063643196,-4.43265214564266,municipal,si
+ITS-SEM-19214,semaforo,SEMAFOROACUSTICO_10.10,Intersección con c/ Mazarredo,Calle Don Juan de Austria,36.72686945595823,-4.428665712494189,municipal,si
+ITS-SEM-18977,semaforo,SEMAFOROACUSTICO_03.04,,Plaza de la Malagueta,36.718282225502065,-4.409767538326982,municipal,si
+ITS-SEM-19218,semaforo,SEMAFOROACUSTICO_10.14,Intersección con Cl. Huerto de los Claveles,Calle Huerto de los Claveles,36.726746381074506,-4.425652250665874,municipal,si
+ITS-SEM-19307,semaforo,SEMAFOROACUSTICO_13.13,Intersección con Alameda Barceló,Alameda de Capuchinos,36.73203403764227,-4.417463000018122,municipal,si
+ITS-SEM-19308,semaforo,SEMAFOROACUSTICO_13.14,Intersección con Cl. Miguel Bueno Lara,Alameda de Capuchinos,36.73024403763998,-4.419627000018176,municipal,si
+ITS-SEM-19067,semaforo,SEMAFOROACUSTICO_06.17,Intersección con Cl. Alonso de Palencia,Calle Hilera,36.71946795142982,-4.432661533374202,municipal,si
+ITS-SEM-19304,semaforo,SEMAFOROACUSTICO_13.10,Cmno. de los Almendrales - C/ Toquero,Camino de los Almendrales,36.734697037645724,-4.412597000018001,municipal,si
+ITS-SEM-19118,semaforo,SEMAFOROACUSTICO_06.29,Esquina calle Juan Fernández Suria,Calle Martínez Maldonado,36.721564037628966,-4.438387000018663,municipal,si
+ITS-SEM-19237,semaforo,SEMAFOROACUSTICO_10.36,,Avenida del Doctor Marañón,36.73233993515899,-4.428298524460932,municipal,si
+ITS-SEM-19046,semaforo,SEMAFOROACUSTICO_05.15,Intersección con c/ Virgen de las Flores,Avenida del Obispo Ángel Herrera Oria,36.71855205232173,-4.443309903163627,municipal,si
+ITS-SEM-19117,semaforo,SEMAFOROACUSTICO_06.28,Intersección c/ Diego Vázquez Otero,Avenida del Obispo Ángel Herrera Oria,36.7181950376246,-4.439474000018683,municipal,si
+ITS-SEM-19104,semaforo,SEMAFOROACUSTICO_02.01,A la altura de los Baños del Camen,Calle Bolivia,36.72150664773499,-4.38306145371729,municipal,si
+ITS-SEM-19105,semaforo,SEMAFOROACUSTICO_02.02,C/ Boliva - C/ Pez Plata,Calle Bolivia,36.72144503762888,-4.379739000017143,municipal,si
+ITS-SEM-18971,semaforo,SEMAFOROACUSTICO_02.15,Intersección c/ Ángel Guimera,Calle Bolivia,36.72108403762843,-4.371889000016955,municipal,si
+ITS-SEM-19106,semaforo,SEMAFOROACUSTICO_02.03,C/ Bolivia con César Riario.,Calle Bolivia,36.72160070702846,-4.376903772371213,municipal,si
+ITS-SEM-19055,semaforo,SEMAFOROACUSTICO_06.05,Cruce con Cl. Monseñor Carrillo Rubio,Calle Martínez Maldonado,36.72151157762886,-4.437153820018624,municipal,si
+ITS-SEM-19369,semaforo,SEMAFOROACUSTICO_16.12,Intersección con Cl. Hamlet,Calle Hamlet,36.71029825528613,-4.466084539909715,municipal,si
+ITS-SEM-19235,semaforo,SEMAFOROACUSTICO_10.34,,Calle Godino,36.729897549795545,-4.428591359305385,municipal,si
+ITS-SEM-19027,semaforo,SEMAFOROACUSTICO_04.30,Intersección con Cl. Walt Whitman,Avenida de la Aurora,36.71631303762226,-4.432938000018499,municipal,si
+ITS-SEM-19060,semaforo,SEMAFOROACUSTICO_06.10,Intersección con Camino de Suárez,Camino de Suárez,36.727327894728134,-4.4373285770602715,municipal,si
+ITS-SEM-19030,semaforo,SEMAFOROACUSTICO_04.33,Intersección con Cl. Conde Duque de Olivares.,Calle Conde Duque de Olivares,36.714307813909905,-4.427683353442412,municipal,si
+ITS-SEM-19163,semaforo,SEMAFOROACUSTICO_08.18,Intersección con c/ Emilio Prados,Calle Emilio Prados,36.69711775604007,-4.441735446471772,municipal,si
+ITS-SEM-19204,semaforo,SEMAFOROACUSTICO_09.18,C/ La Argentinita - Cmno. Castillejos,Calle Albacete,36.72631303763498,-4.446651000018905,municipal,si
+ITS-SEM-19325,semaforo,SEMAFOROACUSTICO_14.15,Cruce con Cl. Nuestra Señora de las Candelas,Calle Nuestra Señora de las Candelas,36.68841351758663,-4.451882400018947,municipal,si
+ITS-SEM-19025,semaforo,SEMAFOROACUSTICO_04.28,Intersección con Pasillo del Matadero,Avenida de la Aurora,36.715769888064514,-4.426406621951298,municipal,si
+ITS-SEM-19021,semaforo,SEMAFOROACUSTICO_04.24,Intersección con Cl. Gabriel Celaya,Avenida de la Aurora,36.71613110209863,-4.431191682833996,municipal,si
+ITS-SEM-19116,semaforo,SEMAFOROACUSTICO_06.27,Intersección con Cl. Berrocal.,Calle Martínez de la Rosa,36.726278802207226,-4.436781406421218,municipal,si
+ITS-SEM-19157,semaforo,SEMAFOROACUSTICO_08.12,Calle Realenga de San Luís con calle Frigiliana.,Calle Frigiliana,36.69707044259449,-4.44680213930106,municipal,si
+ITS-SEM-19051,semaforo,SEMAFOROACUSTICO_05.25,A LA ALTURA DEL Nº 65,Avenida del Obispo Ángel Herrera Oria,36.71892103762557,-4.4477050000189156,municipal,si
+ITS-SEM-19069,semaforo,SEMAFOROACUSTICO_06.20,Intersección con Cl. Compositor Lembergh Ruiz,Calle Compositor Lehmberg Ruiz,36.71816934945956,-4.430547952670408,municipal,si
+ITS-SEM-19284,semaforo,SEMAFOROACUSTICO_12.25,Intersección c/ Vandelvira,Camino de Suárez,36.7287540376381,-4.442330000018787,municipal,si
+ITS-SEM-19296,semaforo,SEMAFOROACUSTICO_13.02,,Plaza de la Victoria,36.727042512884665,-4.413708373922238,municipal,si
+ITS-SEM-19285,semaforo,SEMAFOROACUSTICO_12.26,Intersección con Cl. Barón de Les,Calle Martínez de la Rosa,36.72734025587634,-4.441192299146329,municipal,si
+ITS-SEM-19287,semaforo,SEMAFOROACUSTICO_12.28,Intersección con Cl. Arturo Reyes,Calle Arturo Reyes,36.73017735546162,-4.439247027058238,municipal,si
+ITS-SEM-19286,semaforo,SEMAFOROACUSTICO_12.27,Intersección con c/ Baron de Les,Camino de Suárez,36.7281362021409,-4.440783262271551,municipal,si
+ITS-SEM-19181,semaforo,SEMAFOROACUSTICO_08.40,Esq. con Cl. Guillermo Carrera Rubio,Calle Frigiliana,36.695971037596316,-4.444372000018751,municipal,si
+ITS-SEM-19037,semaforo,SEMAFOROACUSTICO_05.03,Intersección con Avda. Aurora,Calle Cristo de la Expiración,36.7161612031915,-4.427463412303201,municipal,si
+ITS-SEM-19024,semaforo,SEMAFOROACUSTICO_04.27,Intersección con Cl. Cristo de la Expiración,Calle Cristo de la Expiración,36.71590749361104,-4.4274151325409274,municipal,si
+ITS-SEM-19136,semaforo,SEMAFOROACUSTICO_07.22,Intersección c/ Orfila,Calle López Pinto,36.70650103760976,-4.430604000018408,municipal,si
+ITS-SEM-19056,semaforo,SEMAFOROACUSTICO_06.06,Intersección con c/ Martínez Maldonado,Calle Martínez Maldonado,36.721467411538384,-4.435756802577488,municipal,si
+ITS-SEM-19023,semaforo,SEMAFOROACUSTICO_04.26,,Calle Manuel José García Caparrós,36.71779954488259,-4.42553758623046,municipal,si
+ITS-SEM-19236,semaforo,SEMAFOROACUSTICO_10.35,,Avenida del Doctor Marañón,36.731372653368986,-4.428458835276018,municipal,si
+ITS-SEM-19107,semaforo,SEMAFOROACUSTICO_02.06,Cruce con Cl. Almirante Enriquez,Calle Bolivia,36.71992026762702,-4.366392250016826,municipal,si
+ITS-SEM-19377,semaforo,SEMAFOROACUSTICO_17.08,Av. José Ortega y Gasset - C/ Epicuro,Camino Santa Inés,36.72093303762781,-4.535223000021693,municipal,si
+ITS-SEM-18998,semaforo,SEMAFOROACUSTICO_04.01,Intersección con Plaza General Torrijos,Paseo de los Curas,36.72022474245285,-4.413349628466471,municipal,si
+ITS-SEM-19059,semaforo,SEMAFOROACUSTICO_06.09,Intersección con c/ Martínez de la Rosa,Calle Martínez de la Rosa,36.726566874121886,-4.4387072324939645,municipal,si
+ITS-SEM-19050,semaforo,SEMAFOROACUSTICO_05.24,,Avenida de la Aurora,36.71579678065523,-4.437813448067474,municipal,si
+ITS-SEM-19390,semaforo,SEMAFOROACUSTICO_19.03,Cruce con Cl. Castelao,Carretera Azucarera-intelhorce,36.691923027591024,-4.486691210020002,municipal,si
+ITS-SEM-19282,semaforo,SEMAFOROACUSTICO_12.23,Cruce con Cl. Albacete,Calle Martínez de la Rosa,36.72825057763738,-4.444143930018835,municipal,si
+ITS-SEM-19063,semaforo,SEMAFOROACUSTICO_06.13,Intersección con c/ Velarde,Camino de Suárez,36.726897940510256,-4.434946775454979,municipal,si
+ITS-SEM-19033,semaforo,SEMAFOROACUSTICO_04.36,Intersección con Cl. Constancia,Calle Constancia,36.713378952346616,-4.4264012575332625,municipal,si
+ITS-SEM-19129,semaforo,SEMAFOROACUSTICO_07.14,Intersección con cl. Amadeo Vives,Calle Amadeo Vives,36.705887445376035,-4.436116218585438,municipal,si
+ITS-SEM-19052,semaforo,SEMAFOROACUSTICO_05.26,Intersección con Cl. Virgen del Rosario,Avenida del Obispo Ángel Herrera Oria,36.71870603762531,-4.4448280000188305,municipal,si
+ITS-SEM-19376,semaforo,SEMAFOROACUSTICO_17.07,Cruce con Cl. Ruiz y Maiquez,Calle Ruiz y Máiquez,36.72254332762984,-4.537086860021769,municipal,si
+ITS-SEM-19145,semaforo,SEMAFOROACUSTICO_07.37,Calle Explanada de la Estación con calle Mendívil.,Avenida de las Américas,36.71298332271509,-4.431502819079727,municipal,si
+ITS-SEM-19257,semaforo,SEMAFOROACUSTICO_11.23,Intersección con c/ Mahler,Camino de San Rafael,36.70389080540658,-4.4553489983272705,municipal,si
+ITS-SEM-19378,semaforo,SEMAFOROACUSTICO_17.09,Travesía de Maqueda - C/ Tacón,Calle Travesía de Maqueda,36.732783037642776,-4.568710000022966,municipal,si
+ITS-SEM-19264,semaforo,SEMAFOROACUSTICO_11.33,Camino San Rafael - Ciudad de Andújar,Camino de San Rafael,36.70876803761266,-4.446526000018854,municipal,si
+ITS-SEM-19332,semaforo,SEMAFOROACUSTICO_15.04,Intersección con Cl. Juan de Ortega,Avenida de Lope de Vega,36.73244303764271,-4.472774000019682,municipal,si
+ITS-SEM-19379,semaforo,SEMAFOROACUSTICO_17.10,Travesía de Maqueda,Calle Travesía de Maqueda,36.73294403764298,-4.566599000022892,municipal,si
+ITS-SEM-19015,semaforo,SEMAFOROACUSTICO_04.18,Intersección con c/ Armengual de la Mota,Plaza Poeta Manuel Alcántara,36.71684492483836,-4.429550170916839,municipal,si
+ITS-SEM-19280,semaforo,SEMAFOROACUSTICO_12.19,Intersección c/ Arlanza,Avenida de la Palmilla,36.73583603764716,-4.427230000018392,municipal,si
+ITS-SEM-19389,semaforo,SEMAFOROACUSTICO_18.09,Intersección con Cl. Maestro Vert,Calle Torremolinos,36.66632703755832,-4.50366900002046,municipal,si
+ITS-SEM-19260,semaforo,SEMAFOROACUSTICO_11.26,Intersección c/ Amarguillo,Camino de San Rafael,36.710236037614536,-4.443677000018772,municipal,si
+ITS-SEM-18983,semaforo,SEMAFOROACUSTICO_03.10,Intersección Pso. Salvador Rueda,Paseo de Sancha,36.7224630376302,-4.399708000017637,municipal,si
+ITS-SEM-18984,semaforo,SEMAFOROACUSTICO_03.11,Intersección con Paseo del Limonar,Paseo de Sancha,36.72275413334057,-4.39865782858702,municipal,si
+ITS-SEM-19330,semaforo,SEMAFOROACUSTICO_15.02,Cruce con Av. Julio Cortazar,Avenida de Lope de Vega,36.73052510764023,-4.468207400019539,municipal,si
+ITS-SEM-18979,semaforo,SEMAFOROACUSTICO_03.06,Intersección con c/ Gutemberg,Paseo de Sancha,36.72137496453058,-4.405609443801552,municipal,si
+ITS-SEM-19150,semaforo,SEMAFOROACUSTICO_08.04,Intersección con c/ Gaucin,Calle Gaucín,36.697954338971726,-4.448336362857618,municipal,si
+ITS-SEM-19184,semaforo,SEMAFOROACUSTICO_08.43,Intersección con Cayetano de Cabra.,Calle Gaucín,36.698717793599194,-4.450047612209168,municipal,si
+ITS-SEM-19197,semaforo,SEMAFOROACUSTICO_09.11,Cruce con Castañón de Mena,Avenida de Lope de Vega,36.726285247634884,-4.46115037001932,municipal,si
+ITS-SEM-19164,semaforo,SEMAFOROACUSTICO_08.19,Intersección con Carril de la Chupa,Avenida de Sor Teresa Prat,36.695284876394,-4.443002119679095,municipal,si
+ITS-SEM-18980,semaforo,SEMAFOROACUSTICO_03.07,Intersección con c/ Jericó,Paseo de Sancha,36.72154534642968,-4.402290880697779,municipal,si
+ITS-SEM-19109,semaforo,SEMAFOROACUSTICO_02.08,Intersección c/ Arquitecto Eduardo Esteve,Carril de la Virgen Milagrosa,36.719693037626705,-4.363263000016746,municipal,si
+ITS-SEM-19265,semaforo,SEMAFOROACUSTICO_11.34,Cmno. San Rafael - C/ Félix García Palacios,Camino de San Rafael,36.70483503760758,-4.453318000019036,municipal,si
+ITS-SEM-19158,semaforo,SEMAFOROACUSTICO_08.13,Intersección con Cl. Júcar,Calle Realenga de San Luis,36.69524603759538,-4.447846000018849,municipal,si
+ITS-SEM-19352,semaforo,SEMAFOROACUSTICO_15.31,Frente al Colegio Luis Buñuel,Avenida de Lope de Vega,36.728741037637995,-4.465571000019458,municipal,si
+ITS-SEM-19329,semaforo,SEMAFOROACUSTICO_15.01,Av. Lope de Vega - C/ Tamayo y Baus,Avenida de Lope de Vega,36.729696037639194,-4.466847000019495,municipal,si
+ITS-SEM-19281,semaforo,SEMAFOROACUSTICO_12.22,Cruce con Cmno. de Suarez,Avenida de Valle-inclán,36.72887792763823,-4.4451859300188765,municipal,si
+ITS-SEM-19331,semaforo,SEMAFOROACUSTICO_15.03,Intersección con Av. Atabal,Avenida de Lope de Vega,36.731273037641195,-4.469342000019582,municipal,si
+ITS-SEM-19167,semaforo,SEMAFOROACUSTICO_08.22,Intersección con c/ Vicente Aleixandre,Avenida de Sor Teresa Prat,36.69853929643587,-4.4407121837325745,municipal,si
+ITS-SEM-19168,semaforo,SEMAFOROACUSTICO_08.23,Intersección con c/ Manuel Altolaguirre,Avenida de Sor Teresa Prat,36.69633869343968,-4.442285299319845,municipal,si

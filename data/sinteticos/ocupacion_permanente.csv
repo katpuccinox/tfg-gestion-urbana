@@ -1,0 +1,90 @@
+id,nombre_establecimiento,tipo_ocupacion,direccion,latitud,longitud,ocupacion_longitud,ocupacion_superficie,titularidad,estado_autorizacion,fecha_inicio_autorizacion,fecha_fin_autorizacion,notas
+OCUP-0001,Establecimiento Calle Marqués de Larios 1,quiosco,Calle Marqués de Larios,36.719725,-4.421105,21,45,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0002,Establecimiento Calle Granada 2,puesto,Calle Granada,36.721751,-4.419068,15,55,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0003,Establecimiento Calle Granada 3,terraza,Calle Granada,36.721398,-4.418965,17,30,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0004,Establecimiento Alameda Principal 4,puesto,Alameda Principal,36.718249,-4.422902,16,31,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0005,Establecimiento Alameda Principal 5,terraza,Alameda Principal,36.718386,-4.423074,15,20,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0006,Establecimiento Plaza de la Marina 6,puesto,Plaza de la Marina,36.717211,-4.420615,11,33,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0007,Establecimiento Calle Mayor 7,quiosco,Calle Mayor,36.720800,-4.420207,14,18,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0008,Establecimiento Calle Granada 8,quiosco,Calle Granada,36.721558,-4.419207,10,56,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0009,Establecimiento Calle Alameda Colón 9,terraza,Calle Alameda Colón,36.715947,-4.424894,12,40,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0010,Establecimiento Calle Alameda Colón 10,quiosco,Calle Alameda Colón,36.716020,-4.425114,20,24,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0011,Establecimiento Calle Alameda Colón 11,concesion,Calle Alameda Colón,36.716162,-4.424833,21,45,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0012,Establecimiento Alameda Principal 12,quiosco,Alameda Principal,36.718681,-4.423217,13,15,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0013,Establecimiento Calle Granada 13,terraza,Calle Granada,36.721627,-4.418990,8,30,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0014,Establecimiento Alameda Principal 14,puesto,Alameda Principal,36.718470,-4.422992,18,17,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0015,Establecimiento Calle Alameda Colón 15,puesto,Calle Alameda Colón,36.716258,-4.425051,17,44,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0016,Establecimiento Calle Mayor 16,concesion,Calle Mayor,36.720797,-4.420075,5,32,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0017,Establecimiento Calle Granada 17,quiosco,Calle Granada,36.721283,-4.419128,20,56,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0018,Establecimiento Calle Alameda Colón 18,concesion,Calle Alameda Colón,36.716069,-4.424756,5,28,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0019,Establecimiento Alameda Principal 19,concesion,Alameda Principal,36.718267,-4.423127,14,19,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0020,Establecimiento Calle Mayor 20,concesion,Calle Mayor,36.720583,-4.419926,7,19,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0021,Establecimiento Calle Marqués de Larios 21,quiosco,Calle Marqués de Larios,36.719731,-4.421525,5,51,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0022,Establecimiento Calle Mayor 22,concesion,Calle Mayor,36.720312,-4.419899,21,35,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0023,Establecimiento Calle Marqués de Larios 23,concesion,Calle Marqués de Larios,36.719824,-4.421674,17,35,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0024,Establecimiento Calle Marqués de Larios 24,puesto,Calle Marqués de Larios,36.719773,-4.421493,25,18,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0025,Establecimiento Alameda Principal 25,terraza,Alameda Principal,36.718411,-4.423097,25,23,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0026,Establecimiento Calle Alameda Colón 26,quiosco,Calle Alameda Colón,36.716187,-4.425262,19,14,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0027,Establecimiento Calle Mayor 27,terraza,Calle Mayor,36.720675,-4.419769,15,31,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0028,Establecimiento Calle Alameda Colón 28,puesto,Calle Alameda Colón,36.715722,-4.424912,14,34,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0029,Establecimiento Calle Granada 29,puesto,Calle Granada,36.721275,-4.419079,17,59,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0030,Establecimiento Plaza de la Marina 30,puesto,Plaza de la Marina,36.717784,-4.420502,20,35,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0031,Establecimiento Avenida de Andalucía 31,concesion,Avenida de Andalucía,36.717747,-4.427939,10,46,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0032,Establecimiento Calle Granada 32,terraza,Calle Granada,36.721248,-4.418903,14,40,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0033,Establecimiento Alameda Principal 33,concesion,Alameda Principal,36.718411,-4.423275,16,51,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0034,Establecimiento Paseo del Parque 34,terraza,Paseo del Parque,36.718745,-4.415917,16,44,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0035,Establecimiento Calle Marqués de Larios 35,quiosco,Calle Marqués de Larios,36.719809,-4.421293,19,14,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0036,Establecimiento Avenida de Andalucía 36,quiosco,Avenida de Andalucía,36.718167,-4.428080,17,48,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0037,Establecimiento Alameda Principal 37,concesion,Alameda Principal,36.718769,-4.423077,7,48,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0038,Establecimiento Calle Granada 38,concesion,Calle Granada,36.721389,-4.419133,8,13,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0039,Establecimiento Calle Alameda Colón 39,concesion,Calle Alameda Colón,36.716248,-4.425229,13,57,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0040,Establecimiento Calle Mayor 40,puesto,Calle Mayor,36.720616,-4.419701,11,19,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0041,Establecimiento Avenida de Andalucía 41,concesion,Avenida de Andalucía,36.717804,-4.427872,7,55,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0042,Establecimiento Calle Granada 42,terraza,Calle Granada,36.721530,-4.419126,14,22,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0043,Establecimiento Calle Granada 43,quiosco,Calle Granada,36.721273,-4.419179,9,27,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0044,Establecimiento Calle Marqués de Larios 44,puesto,Calle Marqués de Larios,36.719632,-4.421479,22,20,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0045,Establecimiento Avenida de Andalucía 45,puesto,Avenida de Andalucía,36.717939,-4.427870,20,45,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0046,Establecimiento Plaza de la Marina 46,terraza,Plaza de la Marina,36.717275,-4.420610,7,40,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0047,Establecimiento Calle Granada 47,quiosco,Calle Granada,36.721727,-4.418832,25,49,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0048,Establecimiento Alameda Principal 48,concesion,Alameda Principal,36.718502,-4.422779,8,45,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0049,Establecimiento Paseo del Parque 49,quiosco,Paseo del Parque,36.718797,-4.415739,12,34,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0050,Establecimiento Avenida de Andalucía 50,puesto,Avenida de Andalucía,36.717818,-4.427726,13,20,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0051,Establecimiento Avenida de Andalucía 51,quiosco,Avenida de Andalucía,36.718055,-4.427952,10,54,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0052,Establecimiento Calle Marqués de Larios 52,terraza,Calle Marqués de Larios,36.719349,-4.421131,23,28,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0053,Establecimiento Plaza de la Marina 53,terraza,Plaza de la Marina,36.717499,-4.420424,14,53,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0054,Establecimiento Calle Alameda Colón 54,quiosco,Calle Alameda Colón,36.716183,-4.424889,14,41,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0055,Establecimiento Calle Marqués de Larios 55,quiosco,Calle Marqués de Larios,36.719564,-4.421409,11,33,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0056,Establecimiento Calle Granada 56,puesto,Calle Granada,36.721641,-4.418784,17,20,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0057,Establecimiento Avenida de Andalucía 57,puesto,Avenida de Andalucía,36.717845,-4.428226,19,27,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0058,Establecimiento Avenida de Andalucía 58,terraza,Avenida de Andalucía,36.717874,-4.428070,24,38,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0059,Establecimiento Alameda Principal 59,puesto,Alameda Principal,36.718760,-4.422867,11,60,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0060,Establecimiento Calle Alameda Colón 60,concesion,Calle Alameda Colón,36.715999,-4.425115,5,17,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0061,Establecimiento Calle Alameda Colón 61,quiosco,Calle Alameda Colón,36.715829,-4.425088,6,30,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0062,Establecimiento Calle Alameda Colón 62,puesto,Calle Alameda Colón,36.716022,-4.424792,18,20,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0063,Establecimiento Calle Granada 63,concesion,Calle Granada,36.721420,-4.419060,23,47,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0064,Establecimiento Calle Granada 64,puesto,Calle Granada,36.721244,-4.418997,22,29,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0065,Establecimiento Alameda Principal 65,terraza,Alameda Principal,36.718436,-4.422823,15,47,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0066,Establecimiento Alameda Principal 66,quiosco,Alameda Principal,36.718561,-4.423059,6,14,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0067,Establecimiento Alameda Principal 67,puesto,Alameda Principal,36.718682,-4.422988,9,50,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0068,Establecimiento Calle Granada 68,puesto,Calle Granada,36.721298,-4.418706,14,49,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0069,Establecimiento Calle Alameda Colón 69,puesto,Calle Alameda Colón,36.715985,-4.425290,15,55,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0070,Establecimiento Plaza de la Marina 70,puesto,Plaza de la Marina,36.717678,-4.420365,25,13,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0071,Establecimiento Paseo del Parque 71,quiosco,Paseo del Parque,36.719133,-4.415950,10,45,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0072,Establecimiento Alameda Principal 72,quiosco,Alameda Principal,36.718219,-4.422731,8,24,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0073,Establecimiento Calle Alameda Colón 73,puesto,Calle Alameda Colón,36.715951,-4.425052,11,38,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0074,Establecimiento Calle Marqués de Larios 74,quiosco,Calle Marqués de Larios,36.719611,-4.421363,20,45,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0075,Establecimiento Calle Granada 75,quiosco,Calle Granada,36.721476,-4.418980,22,34,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0076,Establecimiento Calle Alameda Colón 76,quiosco,Calle Alameda Colón,36.716274,-4.425133,14,26,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0077,Establecimiento Paseo del Parque 77,quiosco,Paseo del Parque,36.719114,-4.416007,20,34,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0078,Establecimiento Paseo del Parque 78,terraza,Paseo del Parque,36.719044,-4.415974,17,34,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0079,Establecimiento Paseo del Parque 79,terraza,Paseo del Parque,36.718873,-4.415872,16,40,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0080,Establecimiento Calle Alameda Colón 80,quiosco,Calle Alameda Colón,36.715821,-4.424977,22,56,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0081,Establecimiento Alameda Principal 81,terraza,Alameda Principal,36.718569,-4.422948,12,15,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0082,Establecimiento Calle Mayor 82,terraza,Calle Mayor,36.720260,-4.420102,20,18,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0083,Establecimiento Calle Marqués de Larios 83,quiosco,Calle Marqués de Larios,36.719544,-4.421139,20,42,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0084,Establecimiento Paseo del Parque 84,puesto,Paseo del Parque,36.718871,-4.416265,7,53,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0085,Establecimiento Calle Marqués de Larios 85,quiosco,Calle Marqués de Larios,36.719551,-4.421197,6,37,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0086,Establecimiento Alameda Principal 86,puesto,Alameda Principal,36.718726,-4.423294,23,50,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0087,Establecimiento Calle Granada 87,puesto,Calle Granada,36.721473,-4.418915,21,43,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0088,Establecimiento Calle Alameda Colón 88,puesto,Calle Alameda Colón,36.715816,-4.425232,10,58,privada,en_revision,2026-01-01,2026-12-31,Autorización municipal vigente
+OCUP-0089,Establecimiento Paseo del Parque 89,quiosco,Paseo del Parque,36.718708,-4.416098,14,48,privada,activa,2026-01-01,2026-12-31,Autorización municipal vigente

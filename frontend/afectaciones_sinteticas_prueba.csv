@@ -1,0 +1,7 @@
+id,nombre,descripcion,direccion,latitud,longitud,fecha_inicio,hora_inicio,fecha_fin,hora_fin,tipo_intervencion,tipo_afectacion,titularidad,impacto_pmr,notas
+3001,Obra avenida litoral,Renovacion de pavimento,Avenida del Mediterraneo 12,36.7211,-4.4208,2026-08-25,07:30,2026-08-25,10:30,obra,corte_trafico,municipal,si,Desvio por calle lateral
+3002,Evento plaza centro,Concierto al aire libre,Plaza de la Constitucion 4,36.7204,-4.4212,2026-08-25,18:00,2026-08-25,23:00,evento,ocupacion_calzada,municipal,no,Control de acceso
+3003,Mantenimiento semaforo,Revision del controlador,Calle Victoria 7,36.7198,-4.4195,2026-08-26,09:00,2026-08-26,09:45,mantenimiento,restriccion_paso,municipal,si,Intervencion coordinada
+3004,Obra abastecimiento,Reparacion de canalizacion,Calle Carreteria 21,36.7230,-4.4189,2026-08-26,16:00,2026-08-26,20:00,obra,ocupacion_calzada,municipal,si,Un carril abierto
+3005,Actuacion municipal,Limpieza extraordinaria,Paseo del Parque 2,36.7187,-4.4231,2026-08-27,06:00,2026-08-27,08:00,actuacion_municipal,ocupacion_acera,municipal,no,Pasillo peatonal señalizado
+3006,Evento deportivo,Carrera urbana,Calle Alcazabilla 5,36.7219,-4.4168,2026-08-27,17:00,2026-08-27,21:00,evento,corte_trafico,municipal,si,Desvio temporal de autobuses

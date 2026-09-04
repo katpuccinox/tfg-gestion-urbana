@@ -1,0 +1,208 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: proyecto-postgres
+    environment:
+      POSTGRES_USER: datalake
+      POSTGRES_PASSWORD: datalake_local
+      POSTGRES_DB: datalake
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: proyecto-backend
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: datalake
+      POSTGRES_USER: datalake
+      POSTGRES_PASSWORD: datalake_local
+      S3_ENDPOINT: http://seaweedfs-s3:8333
+      S3_ACCESS_KEY: seaweed_access_key
+      S3_SECRET_KEY: seaweed_secret_key
+      S3_BUCKET_STAGING: staging
+      S3_BUCKET_RAW: raw
+      TRINO_HOST: trino
+      TRINO_PORT: "8080"
+      TRINO_USER: admin
+      NIFI_BASE: http://nifi:8080
+      NIFI_USER: admin
+      NIFI_PASS: admin
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      OLLAMA_MODEL: llama3.2
+      OLLAMA_TIMEOUT_SECONDS: "300"
+      JWT_SECRET: cambia-esta-clave-larga-en-produccion-2026
+    depends_on:
+      - postgres
+      - nifi
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    container_name: proyecto-frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+  superset:
+    build:
+      context: ./superset
+      dockerfile: Dockerfile
+    container_name: proyecto-superset
+    restart: unless-stopped
+    environment:
+      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+      SUPERSET_SECRET_KEY: proyecto-alba-superset-local-secret
+      SUPERSET_ADMIN_USERNAME: admin
+      SUPERSET_ADMIN_PASSWORD: admin
+      SUPERSET_ADMIN_FIRSTNAME: Alba
+      SUPERSET_ADMIN_LASTNAME: Sanchez
+      SUPERSET_ADMIN_EMAIL: admin@proyectoalba.local
+    depends_on:
+      - trino
+    command: >
+      /bin/bash -c "
+      superset db upgrade &&
+      (superset fab create-admin --username admin --firstname Alba --lastname Sanchez --email admin@proyectoalba.local --password admin || true) &&
+      superset init &&
+      gunicorn --bind 0.0.0.0:8088 --workers 2 --timeout 120 'superset.app:create_app()'
+      "
+    ports:
+      - "9190:8088"
+    volumes:
+      - superset_home:/app/superset_home
+
+  nifi:
+    image: apache/nifi:2.0.0
+    container_name: proyecto-nifi
+    restart: unless-stopped
+    environment:
+      NIFI_WEB_HTTPS_PORT: "8443"
+      NIFI_WEB_HTTPS_HOST: "0.0.0.0"
+      NIFI_SENSITIVE_PROPS_KEY: "proyecto-alba-nifi-key"
+      SINGLE_USER_CREDENTIALS_USERNAME: "admin"
+      SINGLE_USER_CREDENTIALS_PASSWORD: "Admin1234!Secure"
+    ports:
+      - "8443:8443"
+    volumes:
+      - nifi_conf:/opt/nifi/nifi-current/conf
+      - nifi_flow:/opt/nifi/nifi-current/flowfile_repository
+      - nifi_content:/opt/nifi/nifi-current/content_repository
+      - nifi_provenance:/opt/nifi/nifi-current/provenance_repository
+
+  seaweedfs-master:
+    image: chrislusf/seaweedfs:latest
+    container_name: proyecto-seaweedfs-master
+    restart: unless-stopped
+    command: master -ip=seaweedfs-master -port=9333
+    ports:
+      - "9333:9333"
+    volumes:
+      - seaweedfs_master_data:/data
+
+  seaweedfs-volume:
+    image: chrislusf/seaweedfs:latest
+    container_name: proyecto-seaweedfs-volume
+    restart: unless-stopped
+    command: volume -mserver=seaweedfs-master:9333 -port=8080 -ip=seaweedfs-volume
+    depends_on:
+      - seaweedfs-master
+    volumes:
+      - seaweedfs_volume_data:/data
+
+  seaweedfs-filer:
+    image: chrislusf/seaweedfs:latest
+    container_name: proyecto-seaweedfs-filer
+    restart: unless-stopped
+    command: filer -master=seaweedfs-master:9333 -port=8888 -ip=seaweedfs-filer
+    depends_on:
+      - seaweedfs-master
+    volumes:
+      - seaweedfs_filer_data:/data
+
+  seaweedfs-s3:
+    image: chrislusf/seaweedfs:latest
+    container_name: proyecto-seaweedfs-s3
+    restart: unless-stopped
+    command: s3 -filer=seaweedfs-filer:8888 -port=8333 -config=/etc/seaweedfs/s3.json
+    depends_on:
+      - seaweedfs-filer
+    ports:
+      - "9100:8333"
+    volumes:
+      - ./infra/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+
+  seaweedfs-init:
+    image: minio/mc:latest
+    container_name: proyecto-seaweedfs-init
+    depends_on:
+      - seaweedfs-s3
+    entrypoint: >
+      /bin/sh -c "
+        until mc alias set local http://seaweedfs-s3:8333 seaweed_access_key seaweed_secret_key; do sleep 2; done &&
+        mc mb --ignore-existing local/staging &&
+        mc mb --ignore-existing local/raw &&
+        mc mb --ignore-existing local/curated &&
+        mc mb --ignore-existing local/analytics &&
+        echo 'SeaweedFS buckets staging, raw, curated y analytics creados'
+      "
+
+  hive-metastore-db:
+    image: postgres:15-alpine
+    container_name: proyecto-hive-metastore-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive
+      POSTGRES_DB: metastore_db
+    volumes:
+      - hive_metastore_db_data:/var/lib/postgresql/data
+
+  hive-metastore:
+    build:
+      context: ./infra/hive
+      dockerfile: Dockerfile
+    container_name: proyecto-hive-metastore
+    restart: unless-stopped
+    depends_on:
+      - hive-metastore-db
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      HIVE_AUX_JARS_PATH: /opt/hive/lib/postgresql-42.7.4.jar,/opt/hive/lib/aws-java-sdk-bundle-1.11.1026.jar
+      SERVICE_OPTS: "-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://hive-metastore-db:5432/metastore_db -Djavax.jdo.option.ConnectionUserName=hive -Djavax.jdo.option.ConnectionPassword=hive"
+    ports:
+      - "9083:9083"
+
+  trino:
+    image: trinodb/trino:435
+    container_name: proyecto-trino
+    restart: unless-stopped
+    depends_on:
+      - seaweedfs-s3
+      - hive-metastore
+    ports:
+      - "9110:8080"
+    volumes:
+      - ./infra/trino/catalog:/etc/trino/catalog:ro
+
+volumes:
+  postgres_data:
+  nifi_conf:
+  nifi_flow:
+  nifi_content:
+  nifi_provenance:
+
+  seaweedfs_master_data:
+  seaweedfs_volume_data:
+  seaweedfs_filer_data:
+  trino_data:
+  hive_metastore_db_data:
+  superset_home:

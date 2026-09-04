@@ -1,0 +1,331 @@
+id,nombre,latitud,longitud,direccion,fecha,hora,ocupacion_total,ocupacion_libres
+PARK-0001,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-11-24,03:00,866,766
+PARK-0002,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-04-25,04:00,866,794
+PARK-0003,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-02-22,21:00,866,255
+PARK-0004,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-10-30,13:00,866,70
+PARK-0005,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-01-17,00:00,866,698
+PARK-0006,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-11-05,00:00,866,707
+PARK-0007,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-10-15,06:00,866,691
+PARK-0008,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-08-03,07:00,866,554
+PARK-0009,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-08-18,18:00,866,79
+PARK-0010,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-03-23,22:00,866,355
+PARK-0011,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-08-05,10:00,866,69
+PARK-0012,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-06-22,03:00,866,770
+PARK-0013,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-02-17,12:00,866,17
+PARK-0014,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-11-06,08:00,866,251
+PARK-0015,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-01-23,23:00,866,652
+PARK-0016,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-07-13,02:00,866,785
+PARK-0017,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-10-10,09:00,866,129
+PARK-0018,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-07-05,18:00,866,116
+PARK-0019,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-04-09,22:00,866,383
+PARK-0020,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-05-29,02:00,866,763
+PARK-0021,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-04-30,03:00,866,835
+PARK-0022,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-07-06,05:00,866,739
+PARK-0023,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-07-09,11:00,866,17
+PARK-0024,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-12-16,20:00,866,78
+PARK-0025,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-02-06,19:00,866,70
+PARK-0026,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-05-06,05:00,866,812
+PARK-0027,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-08-25,12:00,866,17
+PARK-0028,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-12-19,17:00,866,17
+PARK-0029,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-04-23,21:00,866,286
+PARK-0030,Parking Publico Cervantes,36.7208633,-4.4119148,Calle Cervantes,2026-01-29,07:00,866,422
+PARK-0031,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-01-17,10:00,291,54
+PARK-0032,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-10-18,22:00,291,160
+PARK-0033,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-06-11,06:00,291,242
+PARK-0034,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-11-26,14:00,291,62
+PARK-0035,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-03-15,08:00,291,105
+PARK-0036,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-10-03,08:00,291,102
+PARK-0037,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-10-27,13:00,291,24
+PARK-0038,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-04-23,04:00,291,280
+PARK-0039,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-09-18,15:00,291,60
+PARK-0040,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-02-26,04:00,291,269
+PARK-0041,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-11-18,05:00,291,259
+PARK-0042,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-02-02,12:00,291,44
+PARK-0043,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-07-15,19:00,291,23
+PARK-0044,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-10-11,00:00,291,249
+PARK-0045,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-12-15,23:00,291,197
+PARK-0046,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-05-17,20:00,291,44
+PARK-0047,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-06-24,03:00,291,273
+PARK-0048,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-01-02,23:00,291,212
+PARK-0049,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-05-15,16:00,291,68
+PARK-0050,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-02-24,20:00,291,81
+PARK-0051,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-06-02,20:00,291,73
+PARK-0052,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-07-11,05:00,291,263
+PARK-0053,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-10-04,16:00,291,52
+PARK-0054,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-09-08,00:00,291,258
+PARK-0055,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-02-27,11:00,291,15
+PARK-0056,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-06-07,07:00,291,196
+PARK-0057,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-01-30,07:00,291,152
+PARK-0058,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-02-13,23:00,291,244
+PARK-0059,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-09-06,02:00,291,250
+PARK-0060,Parking Publico El Palo,36.721035,-4.3607192,Calle Alonso Carrillo de Albornoz,2026-03-06,04:00,291,274
+PARK-0061,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-12-04,15:00,929,227
+PARK-0062,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-09-28,19:00,929,195
+PARK-0063,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-08-05,06:00,929,690
+PARK-0064,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-12-20,06:00,929,794
+PARK-0065,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-06-09,12:00,929,84
+PARK-0066,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-08-13,16:00,929,272
+PARK-0067,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-08-20,03:00,929,870
+PARK-0068,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-01-11,18:00,929,194
+PARK-0069,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-10-11,07:00,929,596
+PARK-0070,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-12-29,20:00,929,256
+PARK-0071,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-01-31,07:00,929,580
+PARK-0072,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-06-19,02:00,929,857
+PARK-0073,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-09-21,07:00,929,601
+PARK-0074,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-10-04,04:00,929,817
+PARK-0075,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-10-20,18:00,929,291
+PARK-0076,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-07-28,06:00,929,746
+PARK-0077,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-02-18,03:00,929,893
+PARK-0078,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-07-30,14:00,929,247
+PARK-0079,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-01-28,21:00,929,418
+PARK-0080,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-02-01,12:00,929,207
+PARK-0081,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-06-23,03:00,929,870
+PARK-0082,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-08-18,04:00,929,840
+PARK-0083,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-08-05,05:00,929,851
+PARK-0084,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-02-08,14:00,929,176
+PARK-0085,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-10-09,03:00,929,702
+PARK-0086,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-01-08,02:00,929,806
+PARK-0087,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-05-02,05:00,929,889
+PARK-0088,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-07-25,01:00,929,815
+PARK-0089,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-03-26,12:00,929,105
+PARK-0090,Parking Publico Av. de Andalucía,36.7173271,-4.427712,Avenida de Andalucía - Málaga,2026-08-21,09:00,929,295
+PARK-0091,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-08-05,22:00,526,190
+PARK-0092,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-10-12,21:00,526,183
+PARK-0093,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-09-07,04:00,526,480
+PARK-0094,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-01-30,18:00,526,31
+PARK-0095,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-10-05,01:00,526,470
+PARK-0096,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-10-27,15:00,526,85
+PARK-0097,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-09-15,16:00,526,50
+PARK-0098,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-02-11,05:00,526,414
+PARK-0099,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-02-05,19:00,526,11
+PARK-0100,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-07-26,03:00,526,465
+PARK-0101,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-10-19,07:00,526,308
+PARK-0102,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-02-11,13:00,526,23
+PARK-0103,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-12-03,18:00,526,69
+PARK-0104,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-05-14,06:00,526,423
+PARK-0105,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-12-09,22:00,526,281
+PARK-0106,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-03-09,21:00,526,141
+PARK-0107,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-11-27,09:00,526,162
+PARK-0108,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-02-07,00:00,526,426
+PARK-0109,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-08-23,19:00,526,11
+PARK-0110,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-02-07,17:00,526,77
+PARK-0111,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-04-20,16:00,526,93
+PARK-0112,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-02-05,07:00,526,240
+PARK-0113,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-07-09,09:00,526,77
+PARK-0114,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-12-27,09:00,526,62
+PARK-0115,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-11-10,20:00,526,114
+PARK-0116,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-10-11,09:00,526,111
+PARK-0117,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-12-06,03:00,526,474
+PARK-0118,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-03-01,03:00,526,492
+PARK-0119,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-10-11,04:00,526,492
+PARK-0120,Parking Publico Camas,36.7202072,-4.4244981,Calle Camas - Málaga,2026-06-25,06:00,526,378
+PARK-0121,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-12-18,20:00,543,41
+PARK-0122,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-05-09,01:00,543,508
+PARK-0123,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-02-17,20:00,543,80
+PARK-0124,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-01-02,10:00,543,20
+PARK-0125,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-03-08,20:00,543,44
+PARK-0126,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-08-15,17:00,543,62
+PARK-0127,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-12-28,13:00,543,12
+PARK-0128,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-12-20,04:00,543,506
+PARK-0129,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-10-07,01:00,543,464
+PARK-0130,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-03-17,13:00,543,31
+PARK-0131,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-03-07,01:00,543,503
+PARK-0132,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-01-21,11:00,543,11
+PARK-0133,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-04-18,21:00,543,151
+PARK-0134,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-10-14,13:00,543,11
+PARK-0135,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-11-14,23:00,543,357
+PARK-0136,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-03-25,05:00,543,431
+PARK-0137,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-07-31,00:00,543,426
+PARK-0138,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-07-30,21:00,543,95
+PARK-0139,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-05-08,08:00,543,158
+PARK-0140,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-07-15,01:00,543,447
+PARK-0141,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-08-29,07:00,543,283
+PARK-0142,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-06-29,09:00,543,33
+PARK-0143,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-04-27,07:00,543,284
+PARK-0144,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-06-18,08:00,543,178
+PARK-0145,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-02-05,08:00,543,200
+PARK-0146,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-12-14,17:00,543,34
+PARK-0147,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-06-19,00:00,543,399
+PARK-0148,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-04-02,18:00,543,11
+PARK-0149,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-05-16,01:00,543,460
+PARK-0150,Parking Publico Alcazaba,36.7224312,-4.4165168,Plaza la Alcazaba,2026-06-10,13:00,543,11
+PARK-0151,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-11-07,16:00,704,206
+PARK-0152,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-04-08,08:00,704,314
+PARK-0153,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-01-23,22:00,704,488
+PARK-0154,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-10-03,21:00,704,319
+PARK-0155,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-12-10,06:00,704,600
+PARK-0156,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-12-07,10:00,704,213
+PARK-0157,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-11-16,10:00,704,232
+PARK-0158,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-06-03,16:00,704,278
+PARK-0159,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-06-08,21:00,704,366
+PARK-0160,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-06-01,17:00,704,231
+PARK-0161,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-03-07,06:00,704,664
+PARK-0162,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-12-13,23:00,704,522
+PARK-0163,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-03-31,19:00,704,238
+PARK-0164,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-01-01,09:00,704,294
+PARK-0165,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-05-27,06:00,704,633
+PARK-0166,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-12-02,10:00,704,203
+PARK-0167,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-08-27,14:00,704,245
+PARK-0168,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-08-31,23:00,704,554
+PARK-0169,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-03-28,21:00,704,299
+PARK-0170,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-11-21,19:00,704,184
+PARK-0171,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-06-21,02:00,704,634
+PARK-0172,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-12-11,09:00,704,333
+PARK-0173,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-04-26,06:00,704,584
+PARK-0174,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-09-01,19:00,704,197
+PARK-0175,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-02-07,14:00,704,265
+PARK-0176,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-04-10,22:00,704,424
+PARK-0177,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-12-23,12:00,704,209
+PARK-0178,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-12-02,22:00,704,448
+PARK-0179,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-01-03,03:00,704,660
+PARK-0180,Parking Publico San Juan De La Cruz,36.717865,-4.4332781,Compositor Lemberg Ruiz - 29007 Málaga (málaga),2026-12-23,16:00,704,287
+PARK-0181,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-08-26,01:00,450,441
+PARK-0182,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-03-04,14:00,450,17
+PARK-0183,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-03-10,14:00,450,32
+PARK-0184,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-11-01,10:00,450,57
+PARK-0185,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-08-15,19:00,450,9
+PARK-0186,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-08-07,17:00,450,69
+PARK-0187,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-08-17,05:00,450,398
+PARK-0188,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-05-13,07:00,450,263
+PARK-0189,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-11-23,08:00,450,129
+PARK-0190,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-11-17,07:00,450,265
+PARK-0191,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-05-21,14:00,450,9
+PARK-0192,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-05-20,10:00,450,9
+PARK-0193,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-06-13,17:00,450,14
+PARK-0194,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-07-16,22:00,450,205
+PARK-0195,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-03-20,22:00,450,206
+PARK-0196,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-06-19,17:00,450,9
+PARK-0197,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-08-27,13:00,450,9
+PARK-0198,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-07-19,18:00,450,9
+PARK-0199,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-12-23,00:00,450,347
+PARK-0200,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-07-14,15:00,450,56
+PARK-0201,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-01-04,11:00,450,9
+PARK-0202,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-08-03,17:00,450,9
+PARK-0203,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-10-07,19:00,450,9
+PARK-0204,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-05-20,13:00,450,9
+PARK-0205,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-09-06,00:00,450,396
+PARK-0206,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-07-27,23:00,450,296
+PARK-0207,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-03-26,14:00,450,9
+PARK-0208,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-10-01,00:00,450,401
+PARK-0209,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-07-21,18:00,450,9
+PARK-0210,Parking Publico Pz. de la Marina,36.7174149,-4.4200468,Plaza de la Marina,2026-11-26,13:00,450,9
+PARK-0211,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-03-11,14:00,253,38
+PARK-0212,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-06-17,06:00,253,195
+PARK-0213,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-08-21,10:00,253,56
+PARK-0214,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-05-23,13:00,253,8
+PARK-0215,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-05-10,02:00,253,248
+PARK-0216,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-01-27,11:00,253,26
+PARK-0217,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-04-25,20:00,253,26
+PARK-0218,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-01-21,00:00,253,203
+PARK-0219,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-05-07,06:00,253,194
+PARK-0220,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-05-03,04:00,253,248
+PARK-0221,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-08-31,21:00,253,69
+PARK-0222,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-08-27,22:00,253,121
+PARK-0223,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-05-12,11:00,253,21
+PARK-0224,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-02-28,05:00,253,213
+PARK-0225,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-06-09,03:00,253,248
+PARK-0226,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-10-22,21:00,253,106
+PARK-0227,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-07-12,12:00,253,17
+PARK-0228,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-10-31,22:00,253,145
+PARK-0229,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-11-18,07:00,253,136
+PARK-0230,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-12-17,19:00,253,22
+PARK-0231,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-03-03,18:00,253,40
+PARK-0232,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-08-08,21:00,253,103
+PARK-0233,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-07-09,02:00,253,245
+PARK-0234,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-08-04,15:00,253,55
+PARK-0235,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-02-24,13:00,253,13
+PARK-0236,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-08-24,22:00,253,146
+PARK-0237,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-03-20,13:00,253,23
+PARK-0238,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-11-30,08:00,253,91
+PARK-0239,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-11-12,17:00,253,53
+PARK-0240,Parking Publico Tejón y Rodriguez,36.7235985,-4.4214821,Calle Tejón y Rodriguez,2026-10-31,08:00,253,118
+PARK-0241,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-06-15,07:00,400,235
+PARK-0242,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-08-19,07:00,400,246
+PARK-0243,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-08-26,18:00,400,73
+PARK-0244,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-01-15,15:00,400,90
+PARK-0245,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-06-16,05:00,400,378
+PARK-0246,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-05-13,10:00,400,56
+PARK-0247,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-05-24,19:00,400,50
+PARK-0248,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-01-06,16:00,400,101
+PARK-0249,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-04-08,02:00,400,367
+PARK-0250,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-10-12,07:00,400,218
+PARK-0251,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-12-20,15:00,400,92
+PARK-0252,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-01-09,02:00,400,386
+PARK-0253,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-05-31,07:00,400,251
+PARK-0254,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-12-06,18:00,400,49
+PARK-0255,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-07-08,15:00,400,95
+PARK-0256,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-10-09,10:00,400,64
+PARK-0257,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-06-30,22:00,400,235
+PARK-0258,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-04-29,03:00,400,367
+PARK-0259,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-04-09,10:00,400,40
+PARK-0260,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-12-20,05:00,400,343
+PARK-0261,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-04-09,06:00,400,321
+PARK-0262,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-10-29,16:00,400,102
+PARK-0263,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-11-02,09:00,400,60
+PARK-0264,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-06-01,07:00,400,243
+PARK-0265,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-07-04,05:00,400,370
+PARK-0266,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-03-06,08:00,400,129
+PARK-0267,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-01-24,01:00,400,389
+PARK-0268,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-03-06,20:00,400,88
+PARK-0269,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-09-09,03:00,400,354
+PARK-0270,Parking Publico Carlos Haya,36.71192991,-4.44097,"Avenida de Santa Rosa de Lima, 4",2026-08-29,15:00,400,96
+PARK-0271,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-08-14,10:00,437,135
+PARK-0272,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-09-02,03:00,437,406
+PARK-0273,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-02-03,12:00,437,141
+PARK-0274,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-12-18,01:00,437,400
+PARK-0275,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-03-19,04:00,437,392
+PARK-0276,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-02-13,07:00,437,345
+PARK-0277,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-03-02,17:00,437,152
+PARK-0278,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-11-13,07:00,437,326
+PARK-0279,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-09-25,12:00,437,135
+PARK-0280,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-10-29,13:00,437,112
+PARK-0281,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-06-06,18:00,437,159
+PARK-0282,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-02-20,06:00,437,387
+PARK-0283,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-11-17,06:00,437,367
+PARK-0284,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-05-03,05:00,437,393
+PARK-0285,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-10-10,02:00,437,396
+PARK-0286,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-12-19,19:00,437,108
+PARK-0287,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-08-29,09:00,437,155
+PARK-0288,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-05-25,22:00,437,275
+PARK-0289,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-08-21,02:00,437,428
+PARK-0290,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-11-17,18:00,437,183
+PARK-0291,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-12-05,06:00,437,391
+PARK-0292,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-11-28,04:00,437,400
+PARK-0293,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-05-17,04:00,437,400
+PARK-0294,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-06-07,19:00,437,121
+PARK-0295,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-10-19,09:00,437,195
+PARK-0296,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-06-05,22:00,437,269
+PARK-0297,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-07-26,08:00,437,251
+PARK-0298,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-02-11,19:00,437,127
+PARK-0299,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-01-21,13:00,437,123
+PARK-0300,Parking Publico Pío Baroja,36.7210350,-4.3607192,Avenida Pío Baroja - el Palo - Málaga (málaga),2026-01-14,02:00,437,428
+PARK-0301,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-04-28,21:00,931,254
+PARK-0302,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-01-11,21:00,931,338
+PARK-0303,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-05-18,18:00,931,19
+PARK-0304,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-08-29,16:00,931,137
+PARK-0305,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-11-30,14:00,931,62
+PARK-0306,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-10-27,13:00,931,52
+PARK-0307,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-11-22,15:00,931,85
+PARK-0308,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-07-29,10:00,931,97
+PARK-0309,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-06-14,21:00,931,264
+PARK-0310,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-07-30,22:00,931,467
+PARK-0311,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-09-11,09:00,931,211
+PARK-0312,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-10-09,01:00,931,872
+PARK-0313,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-08-21,02:00,931,868
+PARK-0314,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-07-26,16:00,931,119
+PARK-0315,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-01-01,21:00,931,250
+PARK-0316,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-01-28,06:00,931,770
+PARK-0317,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-09-23,11:00,931,77
+PARK-0318,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-08-15,01:00,931,870
+PARK-0319,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-04-15,08:00,931,437
+PARK-0320,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-08-13,22:00,931,517
+PARK-0321,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-09-06,03:00,931,797
+PARK-0322,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-05-03,22:00,931,472
+PARK-0323,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-03-23,09:00,931,242
+PARK-0324,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-02-17,07:00,931,552
+PARK-0325,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-02-28,14:00,931,24
+PARK-0326,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-03-20,15:00,931,159
+PARK-0327,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-05-30,16:00,931,170
+PARK-0328,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-09-05,15:00,931,183
+PARK-0329,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-05-05,14:00,931,131
+PARK-0330,Parking Publico Salitre,36.7153,-4.4286,Calle Salitre,2026-11-03,16:00,931,171

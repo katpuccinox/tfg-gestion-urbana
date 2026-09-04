@@ -1,0 +1,18 @@
+# Entornos y dependencias (regenerables)
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+frontend/dist/
+
+# Caches de herramientas
+.pytest_cache/
+.vscode/
+
+# Datos sensibles / locales
+.env
+.env.*
+*.local
+
+# Artefactos de build
+*.log
