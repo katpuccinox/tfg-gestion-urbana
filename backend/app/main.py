@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.analysis_questions import ANALYSIS_QUESTIONS
+from app.ml import get_model_metrics, predict_congestion_ml, train_congestion_model
 from app.auth import (
     LoginRequest,
     RegisterRequest,
@@ -66,6 +67,9 @@ from app.services import (
     get_its_pmr_coverage,
     get_lake_root,
     get_catalog_entry_csv,
+    get_eq1_parking_trafico,
+    get_eq3_ocupacion_afectaciones,
+    get_eq4_ocupacion_carga_trafico,
     get_ingest_delivery_detail,
     list_catalog_entries,
     get_ocupacion_superficie_por_via,
@@ -105,6 +109,10 @@ def initialize_authentication() -> None:
         ContractsManager().save_contracts_to_postgres()
     except Exception:
         pass  # el catálogo se puede sincronizar más tarde desde el panel de administración
+    try:
+        train_congestion_model()
+    except Exception:
+        pass  # se reintenta on-demand la primera vez que se pida /api/ml/movilidad/modelo
 
 
 @app.post("/auth/login")
@@ -279,7 +287,7 @@ def reglas_congestion(_policy: dict = Depends(require_policy_accepted)) -> Dict[
         "modelo": resultado["model"],
         "total_registros": resultado["total_registros"],
         "metricas": resultado["metricas"],
-        "prioridades": resultado["prioridades"],
+        "prioridades": resultado["prioridades"][:10],
     }
 
 
@@ -291,6 +299,64 @@ def predecir_congestion(payload: CongestionPredictionRequest, _policy: dict = De
     if not resultado.get("is_valid"):
         raise HTTPException(status_code=404, detail=resultado.get("errors", ["Sin histórico suficiente"]))
     return {"success": True, **resultado}
+
+
+@app.get("/api/ml/movilidad/modelo")
+def modelo_congestion_metricas(_policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+    """Métricas del modelo entrenado (RandomForestClassifier sobre las 9348 mediciones
+    reales de tráfico): accuracy real en test y qué variables pesan más."""
+    metrics = get_model_metrics()
+    if not metrics.get("is_valid"):
+        raise HTTPException(status_code=500, detail=metrics.get("errors", ["No se pudo entrenar el modelo"]))
+    return metrics
+
+
+@app.post("/api/ml/movilidad/modelo/reentrenar")
+def modelo_congestion_reentrenar(admin: dict = Depends(require_admin)) -> Dict[str, object]:
+    """Fuerza un reentrenamiento (p. ej. tras subir más mediciones de tráfico)."""
+    return train_congestion_model()
+
+
+@app.post("/api/ml/movilidad/predecir-ml")
+def predecir_congestion_ml_endpoint(payload: CongestionPredictionRequest, _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+    """Predicción con el modelo entrenado (generaliza patrones entre vías), a
+    diferencia de /predecir que solo mira el histórico propio de esa vía."""
+    if not payload.dia_semana or not payload.franja_horaria:
+        raise HTTPException(status_code=400, detail="dia_semana y franja_horaria son obligatorios para el modelo entrenado")
+    hora_punta = payload.franja_horaria in ("06:00-09:00", "16:00-20:00")
+    resultado = predict_congestion_ml(payload.direccion, payload.dia_semana, payload.franja_horaria, hora_punta)
+    if not resultado.get("is_valid"):
+        raise HTTPException(status_code=500, detail=resultado.get("errors", ["No se pudo predecir"]))
+    return {"success": True, **resultado}
+
+
+@app.get("/analysis/eq1/parking-trafico")
+def eq1_parking_trafico(_policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+    """EQ1: efecto mariposa entre saturación de parking y tráfico circundante
+    (cruce por proximidad geográfica real, no por nombre de vía -- ver plan)."""
+    resultado = get_eq1_parking_trafico()
+    if not resultado.get("is_valid"):
+        raise HTTPException(status_code=500, detail=resultado.get("errors", ["Error calculando el cruce"]))
+    return resultado
+
+
+@app.get("/analysis/eq3/ocupacion-afectaciones")
+def eq3_ocupacion_afectaciones(_policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+    """EQ3: vías donde coinciden terrazas y afectaciones activas, con marca PMR."""
+    resultado = get_eq3_ocupacion_afectaciones()
+    if not resultado.get("is_valid"):
+        raise HTTPException(status_code=500, detail=resultado.get("errors", ["Error calculando el cruce"]))
+    return resultado
+
+
+@app.get("/analysis/eq4/ocupacion-carga-trafico")
+def eq4_ocupacion_carga_trafico(_policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+    """EQ4: vías con alta densidad de terrazas y pocas plazas de carga/descarga."""
+    resultado = get_eq4_ocupacion_carga_trafico()
+    if not resultado.get("is_valid"):
+        raise HTTPException(status_code=500, detail=resultado.get("errors", ["Error calculando el cruce"]))
+    return resultado
+
 
 frontend_root = Path(__file__).resolve().parents[2] / "frontend"
 frontend_dist = frontend_root / "dist"
@@ -535,6 +601,10 @@ def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user), _
     carriles_bici = get_carriles_bici_kpis(municipio_prefix)
     ocupacion_layer5 = build_dimension_layer5("ocupacion_permanente_espacio_publico")
     ocupacion_superficie = get_ocupacion_superficie_por_via(municipio_prefix)
+    eq1_parking_trafico = get_eq1_parking_trafico(trafico_congestion=trafico_congestion)
+    eq3_ocupacion_afectaciones = get_eq3_ocupacion_afectaciones()
+    eq4_ocupacion_carga = get_eq4_ocupacion_carga_trafico(trafico_congestion=trafico_congestion)
+    modelo_ml = get_model_metrics()
 
     errors = [
         result.get("errors", [])
@@ -542,6 +612,7 @@ def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user), _
             afectaciones_resumen, afectaciones_criticidad, trafico_congestion, afectaciones_trafico,
             its_layer5, its_pmr, parking_layer5, parking_por_via, reservadas_layer5,
             carriles_bici, ocupacion_layer5, ocupacion_superficie,
+            eq1_parking_trafico, eq3_ocupacion_afectaciones, eq4_ocupacion_carga, modelo_ml,
         )
         if not result.get("is_valid")
     ]
@@ -625,6 +696,17 @@ def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user), _
         },
         "obras_impacto_trafico": afectaciones_trafico.get("obras", []),
         "priority_zones": priority_zones[:8],
+        "cruces": {
+            "eq1_parking_trafico": eq1_parking_trafico.get("resultados", []),
+            "eq3_ocupacion_afectaciones": eq3_ocupacion_afectaciones.get("vias", []),
+            "eq4_ocupacion_carga_trafico": eq4_ocupacion_carga.get("vias", []),
+        },
+        "modelo_predictivo": {
+            "accuracy": modelo_ml.get("accuracy"),
+            "filas_entrenamiento": modelo_ml.get("filas_entrenamiento"),
+            "filas_test": modelo_ml.get("filas_test"),
+            "importancia_features": modelo_ml.get("importancia_features", []),
+        },
         "errors": [item for sublist in errors for item in sublist],
     }
 

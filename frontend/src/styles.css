@@ -1072,6 +1072,7 @@ td {
 }
 .prediccion-result { display: grid; gap: 0.4rem; padding-top: 0.9rem; border-top: 1px solid var(--line); }
 .prediccion-result p { margin: 0; font-size: 0.88rem; color: #45607e; }
+.prediccion-ml-heading { font-size: 0.85rem; margin: 1.1rem 0 0.3rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
 
 @media (max-width: 760px) {
   .kpi-grid, .dashboard-layout, .dashboard-layout.wide-left, .dashboard-charts, .dashboard-charts.four, .dimension-kpi-strip, .dimension-kpi-strip.compact { grid-template-columns: 1fr; }

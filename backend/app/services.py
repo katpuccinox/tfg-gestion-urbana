@@ -17,6 +17,7 @@ import urllib.error
 import urllib.request
 from collections import Counter
 from datetime import datetime, timezone
+from math import asin, cos, radians, sin, sqrt
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -481,10 +482,157 @@ def build_movilidad_trafico_layer5(table: str = "movilidad_trafico") -> Dict[str
                 "count_alto_critico": count_alto_critico,
                 "pct_alto_critico": round(count_alto_critico / total * 100, 1) if total else 0.0,
             },
-            "prioridades": prioridades[:10],
+            "prioridades": prioridades,  # lista completa (todas las vías); los llamantes deciden si truncan
         }
     except Exception as exc:
         return {"is_valid": False, "source": curated_table, "errors": [str(exc)]}
+
+
+EARTH_RADIUS_M = 6371000
+
+
+def _haversine_m(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
+    lon1, lat1, lon2, lat2 = map(radians, (lon1, lat1, lon2, lat2))
+    d_lon, d_lat = lon2 - lon1, lat2 - lat1
+    a = sin(d_lat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(d_lon / 2) ** 2
+    return 2 * EARTH_RADIUS_M * asin(sqrt(a))
+
+
+def get_eq1_parking_trafico(radio_m: float = 400, trafico_congestion: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    """EQ1 ('efecto mariposa'): satura de aparcamiento y tráfico circundante.
+
+    Los parkings y los puntos de medida de tráfico no comparten nombre de vía (los
+    parkings están en calles concretas, los puntos MOVIMA en grandes avenidas: 0
+    coincidencias de texto comprobado contra el dato real), así que el cruce se hace
+    por proximidad geográfica real -- el punto de tráfico más cercano a cada parking,
+    dentro de un radio de `radio_m` metros.
+
+    trafico_congestion: resultado ya calculado de build_movilidad_trafico_layer5(),
+    para no repetir esa consulta (recorre las 9348 filas de tráfico) si el llamante
+    ya lo tiene, como hace get_cuadro_mando."""
+    try:
+        parkings = run_trino_query_with_columns(
+            "SELECT DISTINCT direccion, nombre, latitud, longitud FROM lake.curated.movilidad_parking WHERE latitud IS NOT NULL"
+        )
+        parking_rows = [dict(zip(parkings["columns"], row)) for row in parkings["rows"]]
+        saturacion = run_trino_query(
+            "SELECT direccion, round(avg(ocupacion_rate) * 100, 1), round(count_if(saturado) * 100.0 / count(*), 1) "
+            "FROM lake.curated.movilidad_parking GROUP BY direccion"
+        )
+        saturacion_por_via = {r[0]: {"ocupacion_media_pct": r[1], "pct_saturacion": r[2]} for r in saturacion}
+
+        if trafico_congestion is None:
+            trafico_congestion = build_movilidad_trafico_layer5()
+        if not trafico_congestion.get("is_valid"):
+            return {"is_valid": False, "errors": trafico_congestion.get("errors", [])}
+        trafico_puntos = run_trino_query_with_columns(
+            "SELECT DISTINCT direccion, latitud, longitud FROM lake.curated.movilidad_trafico WHERE latitud IS NOT NULL"
+        )
+        trafico_coords: Dict[str, tuple] = {}
+        for row in trafico_puntos["rows"]:
+            direccion, lat, lon = row
+            if direccion not in trafico_coords:
+                trafico_coords[direccion] = (lat, lon)
+        congestion_por_via = {p["direccion"]: p["pct_tiempo_alto_critico"] for p in trafico_congestion["prioridades"]}
+
+        resultados = []
+        for parking in parking_rows:
+            p_lat, p_lon = parking.get("latitud"), parking.get("longitud")
+            if p_lat is None or p_lon is None:
+                continue
+            mejor_via, mejor_distancia = None, None
+            for via, (t_lat, t_lon) in trafico_coords.items():
+                distancia = _haversine_m(p_lon, p_lat, t_lon, t_lat)
+                if mejor_distancia is None or distancia < mejor_distancia:
+                    mejor_distancia, mejor_via = distancia, via
+            if mejor_via is None or mejor_distancia > radio_m:
+                continue
+            sat = saturacion_por_via.get(parking["direccion"], {})
+            resultados.append({
+                "parking": parking.get("nombre") or parking["direccion"],
+                "direccion": parking["direccion"],
+                "ocupacion_media_pct": sat.get("ocupacion_media_pct", 0.0),
+                "pct_saturacion": sat.get("pct_saturacion", 0.0),
+                "via_trafico_cercana": mejor_via,
+                "distancia_m": round(mejor_distancia),
+                "pct_congestion_via": congestion_por_via.get(mejor_via, 0.0),
+            })
+        resultados.sort(key=lambda item: (item["pct_saturacion"], item["pct_congestion_via"]), reverse=True)
+        return {"is_valid": True, "radio_m": radio_m, "total_parkings": len(parking_rows), "con_trafico_cercano": len(resultados), "resultados": resultados}
+    except Exception as exc:
+        return {"is_valid": False, "errors": [str(exc)]}
+
+
+def get_eq3_ocupacion_afectaciones(limit: int = 10) -> Dict[str, Any]:
+    """EQ3: vías donde coinciden ocupación permanente (terrazas) y afectaciones
+    urbanas (obras/cortes), con marca de si alguna de esas afectaciones tiene
+    impacto PMR -- presión sobre la red peatonal y accesibilidad."""
+    try:
+        rows = run_trino_query(
+            """
+            SELECT o.direccion,
+                   count(DISTINCT o.id) AS terrazas,
+                   coalesce(sum(o.ocupacion_superficie), 0) AS superficie_m2,
+                   count(DISTINCT a.id) AS afectaciones,
+                   bool_or(a.impacto_pmr) AS alguna_pmr
+            FROM lake.curated.ocupacion_permanente_espacio_publico o
+            JOIN lake.curated.afectaciones_urbanas a ON lower(a.direccion) = lower(o.direccion)
+            GROUP BY o.direccion
+            ORDER BY afectaciones DESC, terrazas DESC
+            LIMIT %d
+            """ % limit
+        )
+        return {
+            "is_valid": True,
+            "vias": [
+                {
+                    "direccion": r[0], "terrazas": r[1], "superficie_m2": round(r[2], 1),
+                    "afectaciones": r[3], "impacto_pmr": bool(r[4]),
+                }
+                for r in rows
+            ],
+        }
+    except Exception as exc:
+        return {"is_valid": False, "errors": [str(exc)]}
+
+
+def get_eq4_ocupacion_carga_trafico(limit: int = 10, trafico_congestion: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    """EQ4: vías con alta densidad de terrazas y pocas plazas de carga/descarga,
+    cruzadas con su nivel de congestión de tráfico si hay dato -- indicio de
+    presión logística (dobles filas, retenciones) donde el espacio está más
+    disputado entre terrazas y reparto."""
+    try:
+        rows = run_trino_query(
+            """
+            SELECT o.direccion,
+                   count(DISTINCT o.id) AS terrazas,
+                   coalesce(sum(o.ocupacion_superficie), 0) AS superficie_m2,
+                   count(DISTINCT r.id) AS plazas_carga_descarga
+            FROM lake.curated.ocupacion_permanente_espacio_publico o
+            JOIN lake.curated.movilidad_plazas_reservadas r
+                ON lower(r.direccion) = lower(o.direccion) AND r.tipo_plaza = 'carga_descarga'
+            GROUP BY o.direccion
+            ORDER BY terrazas DESC, plazas_carga_descarga ASC
+            LIMIT %d
+            """ % limit
+        )
+        if trafico_congestion is None:
+            trafico_congestion = build_movilidad_trafico_layer5()
+        congestion_por_via = {}
+        if trafico_congestion.get("is_valid"):
+            congestion_por_via = {p["direccion"]: p["pct_tiempo_alto_critico"] for p in trafico_congestion["prioridades"]}
+        return {
+            "is_valid": True,
+            "vias": [
+                {
+                    "direccion": r[0], "terrazas": r[1], "superficie_m2": round(r[2], 1),
+                    "plazas_carga_descarga": r[3], "pct_congestion": congestion_por_via.get(r[0], None),
+                }
+                for r in rows
+            ],
+        }
+    except Exception as exc:
+        return {"is_valid": False, "errors": [str(exc)]}
 
 
 def predecir_congestion_via(

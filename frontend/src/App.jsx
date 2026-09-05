@@ -103,6 +103,7 @@ export default function App() {
   const [congestion, setCongestion] = useState({ loading: false, error: "", data: null });
   const [prediccionForm, setPrediccionForm] = useState({ direccion: "", franja_horaria: "", dia_semana: "" });
   const [prediccion, setPrediccion] = useState({ loading: false, error: "", data: null });
+  const [prediccionMl, setPrediccionMl] = useState({ loading: false, error: "", data: null });
   const [statusText, setStatusText] = useState("Comprobando backend...");
   const [statusError, setStatusError] = useState(false);
   const [resultText, setResultText] = useState("Esperando carga...");
@@ -474,6 +475,30 @@ export default function App() {
       setPrediccion({ loading: false, error: "", data });
     } catch (error) {
       setPrediccion({ loading: false, error: error.message || "No se pudo calcular la predicción.", data: null });
+    }
+
+    if (!prediccionForm.dia_semana || !prediccionForm.franja_horaria) {
+      setPrediccionMl({ loading: false, error: "Rellena día de la semana y franja horaria para consultar el modelo entrenado.", data: null });
+      return;
+    }
+    setPrediccionMl({ loading: true, error: "", data: null });
+    try {
+      const response = await fetch("/api/ml/movilidad/predecir-ml", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          direccion: prediccionForm.direccion.trim(),
+          franja_horaria: prediccionForm.franja_horaria,
+          dia_semana: prediccionForm.dia_semana,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.detail?.[0] || data?.detail || "El modelo no pudo predecir.");
+      }
+      setPrediccionMl({ loading: false, error: "", data });
+    } catch (error) {
+      setPrediccionMl({ loading: false, error: error.message || "No se pudo consultar el modelo.", data: null });
     }
   }
 
@@ -1137,7 +1162,7 @@ export default function App() {
             </div>
 
             <div className="dashboard-tabs" role="tablist" aria-label="Vistas del cuadro de mando">
-              {[["global", "Global"], ["movilidad", "Movilidad"], ["congestion", "Congestión"], ["afectaciones", "Afectaciones"], ["its", "Control ITS"], ["ocupacion", "Ocupación permanente"]].map(([key, label]) => (
+              {[["global", "Global"], ["movilidad", "Movilidad"], ["congestion", "Congestión"], ["cruces", "Cruces"], ["afectaciones", "Afectaciones"], ["its", "Control ITS"], ["ocupacion", "Ocupación permanente"]].map(([key, label]) => (
                 <button key={key} className={dashboardView === key ? "selected" : ""} type="button" onClick={() => setDashboardView(key)}>{label}</button>
               ))}
             </div>
@@ -1258,6 +1283,55 @@ export default function App() {
                         <p><strong>Recomendación:</strong> {prediccion.data.recomendacion}</p>
                       </div>
                     )}
+
+                    <h3 className="prediccion-ml-heading">Según el modelo entrenado (Random Forest)</h3>
+                    {prediccionMl.error && <p className="chart-empty">{prediccionMl.error}</p>}
+                    {prediccionMl.data && (
+                      <div className="prediccion-result">
+                        <div className="priority-title">
+                          <strong>{prediccionMl.data.direccion}</strong>
+                          <span className={`risk-badge ${riskClassFromNivel(prediccionMl.data.nivel_congestion_ml)}`}>{prediccionMl.data.nivel_congestion_ml}</span>
+                        </div>
+                        <p>Confianza del modelo: {formatNumber(prediccionMl.data.confianza * 100, "%")}</p>
+                        <p>
+                          {Object.entries(prediccionMl.data.distribucion || {}).map(([nivel, prob]) => `${nivel}: ${formatNumber(prob * 100, "%")}`).join(" · ")}
+                        </p>
+                      </div>
+                    )}
+                  </article>
+
+                  <article className="chart-card">
+                    <h2>Modelo predictivo (Random Forest)</h2>
+                    <p className="chart-empty">
+                      Clasificador entrenado sobre las {formatNumber(dashboard.modelo_predictivo?.filas_entrenamiento)} mediciones reales de
+                      entrenamiento (evaluado sobre {formatNumber(dashboard.modelo_predictivo?.filas_test)} de test, nunca vistas en el
+                      entrenamiento). Accuracy real: <strong>{formatNumber((dashboard.modelo_predictivo?.accuracy || 0) * 100, "%")}</strong>.
+                    </p>
+                    <BarChart
+                      title="Importancia de cada variable"
+                      items={(dashboard.modelo_predictivo?.importancia_features || []).map((f) => ({ feature: f.feature, count: Math.round(f.importancia * 100) }))}
+                      labelKey="feature"
+                      suffix="%"
+                    />
+                  </article>
+
+                  <article className="chart-card">
+                    <h2>Efecto mariposa: parking y tráfico cercano (EQ1)</h2>
+                    {(dashboard.cruces?.eq1_parking_trafico || []).length === 0 ? (
+                      <p className="chart-empty">Sin parkings con un punto de tráfico real a menos de 400 m.</p>
+                    ) : (
+                      dashboard.cruces.eq1_parking_trafico.map((item) => (
+                        <div className="priority-row" key={item.direccion}>
+                          <div>
+                            <div className="priority-title">
+                              <strong>{item.parking}</strong>
+                              <span className="risk-badge risk-alto">{formatNumber(item.pct_saturacion, "%")} saturado</span>
+                            </div>
+                            <p>Vía de tráfico más cercana: {item.via_trafico_cercana} ({formatNumber(item.distancia_m)} m) · {formatNumber(item.pct_congestion_via, "%")} tiempo en alto/crítico</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </article>
 
                   <article className="chart-card">
@@ -1287,7 +1361,52 @@ export default function App() {
                 </div>
               </div>
             )}
-            {dashboardView === "afectaciones" && <div className="dashboard-charts"><BarChart title="Vías con más afectaciones" items={dashboard.summary?.top_vias || []} labelKey="via" /><BarChart title="Afectaciones por tipo" items={dashboard.summary?.por_tipo_afectacion || []} labelKey="tipo_afectacion" /><BarChart title="Actividad por hora" items={dashboard.summary?.por_hora || []} labelKey="hora" /></div>}
+
+            {dashboardView === "cruces" && (
+              <div className="dashboard-layout">
+                <article className="chart-card">
+                  <h2>Ocupación y afectaciones simultáneas (EQ3)</h2>
+                  <p className="chart-empty">Vías donde coinciden terrazas activas y obras/cortes -- presión sobre la red peatonal.</p>
+                  {(dashboard.cruces?.eq3_ocupacion_afectaciones || []).length === 0 ? (
+                    <p className="chart-empty">Sin vías con ambos tipos de registro todavía.</p>
+                  ) : (
+                    dashboard.cruces.eq3_ocupacion_afectaciones.map((via) => (
+                      <div className="priority-row" key={via.direccion}>
+                        <div>
+                          <div className="priority-title">
+                            <strong>{via.direccion}</strong>
+                            {via.impacto_pmr && <span className="risk-badge risk-critico">impacto PMR</span>}
+                          </div>
+                          <p>{via.terrazas} terrazas ({formatNumber(via.superficie_m2, " m²")}) · {via.afectaciones} afectaciones activas</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </article>
+
+                <article className="chart-card">
+                  <h2>Terrazas vs. carga y descarga (EQ4)</h2>
+                  <p className="chart-empty">Vías con más terrazas y menos plazas de carga/descarga disponibles -- presión logística.</p>
+                  {(dashboard.cruces?.eq4_ocupacion_carga_trafico || []).length === 0 ? (
+                    <p className="chart-empty">Sin vías con ambos tipos de registro todavía.</p>
+                  ) : (
+                    dashboard.cruces.eq4_ocupacion_carga_trafico.map((via) => (
+                      <div className="priority-row" key={via.direccion}>
+                        <div>
+                          <div className="priority-title"><strong>{via.direccion}</strong></div>
+                          <p>
+                            {via.terrazas} terrazas ({formatNumber(via.superficie_m2, " m²")}) · {via.plazas_carga_descarga} plazas de carga/descarga
+                            {via.pct_congestion != null ? ` · ${formatNumber(via.pct_congestion, "%")} tiempo en alto/crítico` : ""}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </article>
+              </div>
+            )}
+
+            {dashboardView === "afectaciones" &&<div className="dashboard-charts"><BarChart title="Vías con más afectaciones" items={dashboard.summary?.top_vias || []} labelKey="via" /><BarChart title="Afectaciones por tipo" items={dashboard.summary?.por_tipo_afectacion || []} labelKey="tipo_afectacion" /><BarChart title="Actividad por hora" items={dashboard.summary?.por_hora || []} labelKey="hora" /></div>}
             {dashboardView === "its" && <div className="dashboard-charts"><BarChart title="ITS por categoría" items={dashboard.its?.por_categoria || []} labelKey="categoria" /></div>}
             {dashboardView === "ocupacion" && <div className="dashboard-charts"><BarChart title="Ocupación por tipo" items={dashboard.occupancy?.por_tipo || []} labelKey="tipo_ocupacion" /><BarChart title="Superficie por vía" items={dashboard.occupancy?.superficie_por_via || []} labelKey="via" suffix=" m2" /></div>}
           </section>
