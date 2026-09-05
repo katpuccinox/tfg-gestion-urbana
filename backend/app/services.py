@@ -308,16 +308,18 @@ def ranking_criticidad_por_via(detalle: List[Dict[str, Any]], top_n: int = 10) -
     ]
 
 
-def build_afectaciones_layer5(table: str = "afectaciones_urbanas") -> Dict[str, Any]:
+def build_afectaciones_layer5(table: str = "afectaciones_urbanas", municipio_prefix: str | None = None) -> Dict[str, Any]:
     """Construye reglas descriptivas y rankings reproducibles para la capa 5.
 
     Lee de lake.curated (capa 4), no de hive.raw (capa 2): así las reglas se calculan
     sobre datos ya tipados y depurados (fechas coherentes, catálogos normalizados),
-    no sobre el CSV crudo.
+    no sobre el CSV crudo. municipio_prefix acota a las entregas de ese municipio
+    (dataset_id = 'entity|dimension|dataset|period|version'); None = todos.
     """
     qualified_table = f"lake.curated.{table}"
+    where_clause = f" WHERE lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
     try:
-        result = run_trino_query_with_columns(f"SELECT * FROM {qualified_table}")
+        result = run_trino_query_with_columns(f"SELECT * FROM {qualified_table}{where_clause}")
         rows = [dict(zip(result["columns"], row)) for row in result["rows"]]
         if not rows:
             return {"is_valid": True, "source": qualified_table, "model": "reglas_descriptivas", "total_registros": 0, "reglas": [], "ranking_vias": []}
@@ -369,7 +371,7 @@ RECOMENDACION_CONGESTION = {
 }
 
 
-def build_movilidad_trafico_layer5(table: str = "movilidad_trafico") -> Dict[str, Any]:
+def build_movilidad_trafico_layer5(table: str = "movilidad_trafico", municipio_prefix: str | None = None) -> Dict[str, Any]:
     """Congestión relativa por vía, con recomendación de acción — pensada para decidir dónde
     intervenir primero, no solo para describir el tráfico.
 
@@ -377,10 +379,12 @@ def build_movilidad_trafico_layer5(table: str = "movilidad_trafico") -> Dict[str
     es crítico en una calle residencial y normal en una avenida): se calcula contra los
     percentiles p50/p75/p90 de flujo de esa misma vía. Cada medición se cruza además con
     afectaciones_urbanas para saber si hay una obra activa en la misma vía y momento.
+    municipio_prefix acota ambas fuentes (tráfico y afectaciones) al mismo municipio.
     """
     curated_table = f"lake.curated.{table}"
+    where_clause = f" WHERE lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
     try:
-        result = run_trino_query_with_columns(f"SELECT * FROM {curated_table}")
+        result = run_trino_query_with_columns(f"SELECT * FROM {curated_table}{where_clause}")
         rows = [dict(zip(result["columns"], row)) for row in result["rows"]]
         if not rows:
             return {
@@ -393,7 +397,7 @@ def build_movilidad_trafico_layer5(table: str = "movilidad_trafico") -> Dict[str
         obras_por_via: Dict[str, List[tuple]] = {}
         try:
             afect = run_trino_query_with_columns(
-                "SELECT direccion, fecha_hora_inicio, fecha_hora_fin FROM lake.curated.afectaciones_urbanas"
+                f"SELECT direccion, fecha_hora_inicio, fecha_hora_fin FROM lake.curated.afectaciones_urbanas{where_clause}"
             )
             for direccion, inicio, fin in afect["rows"]:
                 if direccion and inicio and fin:
@@ -498,7 +502,7 @@ def _haversine_m(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
     return 2 * EARTH_RADIUS_M * asin(sqrt(a))
 
 
-def get_eq1_parking_trafico(radio_m: float = 400, trafico_congestion: Dict[str, Any] | None = None) -> Dict[str, Any]:
+def get_eq1_parking_trafico(radio_m: float = 400, trafico_congestion: Dict[str, Any] | None = None, municipio_prefix: str | None = None) -> Dict[str, Any]:
     """EQ1 ('efecto mariposa'): satura de aparcamiento y tráfico circundante.
 
     Los parkings y los puntos de medida de tráfico no comparten nombre de vía (los
@@ -510,23 +514,25 @@ def get_eq1_parking_trafico(radio_m: float = 400, trafico_congestion: Dict[str, 
     trafico_congestion: resultado ya calculado de build_movilidad_trafico_layer5(),
     para no repetir esa consulta (recorre las 9348 filas de tráfico) si el llamante
     ya lo tiene, como hace get_cuadro_mando."""
+    parking_where = f" AND lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
     try:
         parkings = run_trino_query_with_columns(
-            "SELECT DISTINCT direccion, nombre, latitud, longitud FROM lake.curated.movilidad_parking WHERE latitud IS NOT NULL"
+            f"SELECT DISTINCT direccion, nombre, latitud, longitud FROM lake.curated.movilidad_parking WHERE latitud IS NOT NULL{parking_where}"
         )
         parking_rows = [dict(zip(parkings["columns"], row)) for row in parkings["rows"]]
         saturacion = run_trino_query(
-            "SELECT direccion, round(avg(ocupacion_rate) * 100, 1), round(count_if(saturado) * 100.0 / count(*), 1) "
-            "FROM lake.curated.movilidad_parking GROUP BY direccion"
+            f"SELECT direccion, round(avg(ocupacion_rate) * 100, 1), round(count_if(saturado) * 100.0 / count(*), 1) "
+            f"FROM lake.curated.movilidad_parking WHERE 1=1{parking_where} GROUP BY direccion"
         )
         saturacion_por_via = {r[0]: {"ocupacion_media_pct": r[1], "pct_saturacion": r[2]} for r in saturacion}
 
         if trafico_congestion is None:
-            trafico_congestion = build_movilidad_trafico_layer5()
+            trafico_congestion = build_movilidad_trafico_layer5(municipio_prefix=municipio_prefix)
         if not trafico_congestion.get("is_valid"):
             return {"is_valid": False, "errors": trafico_congestion.get("errors", [])}
+        trafico_where = f" AND lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
         trafico_puntos = run_trino_query_with_columns(
-            "SELECT DISTINCT direccion, latitud, longitud FROM lake.curated.movilidad_trafico WHERE latitud IS NOT NULL"
+            f"SELECT DISTINCT direccion, latitud, longitud FROM lake.curated.movilidad_trafico WHERE latitud IS NOT NULL{trafico_where}"
         )
         trafico_coords: Dict[str, tuple] = {}
         for row in trafico_puntos["rows"]:
@@ -563,10 +569,17 @@ def get_eq1_parking_trafico(radio_m: float = 400, trafico_congestion: Dict[str, 
         return {"is_valid": False, "errors": [str(exc)]}
 
 
-def get_eq3_ocupacion_afectaciones(limit: int = 10) -> Dict[str, Any]:
+def get_eq3_ocupacion_afectaciones(limit: int = 10, municipio_prefix: str | None = None) -> Dict[str, Any]:
     """EQ3: vías donde coinciden ocupación permanente (terrazas) y afectaciones
     urbanas (obras/cortes), con marca de si alguna de esas afectaciones tiene
     impacto PMR -- presión sobre la red peatonal y accesibilidad."""
+    municipio_filter = ""
+    if municipio_prefix:
+        escaped = _sql_escape(municipio_prefix)
+        municipio_filter = (
+            f" AND lower(split_part(o.dataset_id, '|', 1)) = lower('{escaped}')"
+            f" AND lower(split_part(a.dataset_id, '|', 1)) = lower('{escaped}')"
+        )
     try:
         rows = run_trino_query(
             """
@@ -577,10 +590,11 @@ def get_eq3_ocupacion_afectaciones(limit: int = 10) -> Dict[str, Any]:
                    bool_or(a.impacto_pmr) AS alguna_pmr
             FROM lake.curated.ocupacion_permanente_espacio_publico o
             JOIN lake.curated.afectaciones_urbanas a ON lower(a.direccion) = lower(o.direccion)
+            WHERE 1=1%s
             GROUP BY o.direccion
             ORDER BY afectaciones DESC, terrazas DESC
             LIMIT %d
-            """ % limit
+            """ % (municipio_filter, limit)
         )
         return {
             "is_valid": True,
@@ -596,11 +610,18 @@ def get_eq3_ocupacion_afectaciones(limit: int = 10) -> Dict[str, Any]:
         return {"is_valid": False, "errors": [str(exc)]}
 
 
-def get_eq4_ocupacion_carga_trafico(limit: int = 10, trafico_congestion: Dict[str, Any] | None = None) -> Dict[str, Any]:
+def get_eq4_ocupacion_carga_trafico(limit: int = 10, trafico_congestion: Dict[str, Any] | None = None, municipio_prefix: str | None = None) -> Dict[str, Any]:
     """EQ4: vías con alta densidad de terrazas y pocas plazas de carga/descarga,
     cruzadas con su nivel de congestión de tráfico si hay dato -- indicio de
     presión logística (dobles filas, retenciones) donde el espacio está más
     disputado entre terrazas y reparto."""
+    municipio_filter = ""
+    if municipio_prefix:
+        escaped = _sql_escape(municipio_prefix)
+        municipio_filter = (
+            f" AND lower(split_part(o.dataset_id, '|', 1)) = lower('{escaped}')"
+            f" AND lower(split_part(r.dataset_id, '|', 1)) = lower('{escaped}')"
+        )
     try:
         rows = run_trino_query(
             """
@@ -611,13 +632,14 @@ def get_eq4_ocupacion_carga_trafico(limit: int = 10, trafico_congestion: Dict[st
             FROM lake.curated.ocupacion_permanente_espacio_publico o
             JOIN lake.curated.movilidad_plazas_reservadas r
                 ON lower(r.direccion) = lower(o.direccion) AND r.tipo_plaza = 'carga_descarga'
+            WHERE 1=1%s
             GROUP BY o.direccion
             ORDER BY terrazas DESC, plazas_carga_descarga ASC
             LIMIT %d
-            """ % limit
+            """ % (municipio_filter, limit)
         )
         if trafico_congestion is None:
-            trafico_congestion = build_movilidad_trafico_layer5()
+            trafico_congestion = build_movilidad_trafico_layer5(municipio_prefix=municipio_prefix)
         congestion_por_via = {}
         if trafico_congestion.get("is_valid"):
             congestion_por_via = {p["direccion"]: p["pct_tiempo_alto_critico"] for p in trafico_congestion["prioridades"]}
@@ -697,7 +719,7 @@ def predecir_congestion_via(
         return {"is_valid": False, "errors": [str(exc)]}
 
 
-def build_dimension_layer5(dataset: str) -> Dict[str, Any]:
+def build_dimension_layer5(dataset: str, municipio_prefix: str | None = None) -> Dict[str, Any]:
     """Construye la capa 5 para cualquier dimensión, generalizando build_afectaciones_layer5.
 
     afectaciones_urbanas conserva su motor de impacto simulado (impacto de tráfico por
@@ -707,11 +729,12 @@ def build_dimension_layer5(dataset: str) -> Dict[str, Any]:
     de las más frecuentes. Ambas se infieren solas del contrato (layer5_group_by usa por
     defecto la primera allowed_values; layer5_location_column, "direccion" si existe) —
     los campos del contrato solo hacen falta para forzar una elección distinta.
+    municipio_prefix acota a las entregas de ese municipio; None = todos.
     """
     if dataset in ("afectaciones_urbanas", "gestion_afectaciones_urbanas"):
-        return build_afectaciones_layer5(dataset)
+        return build_afectaciones_layer5(dataset, municipio_prefix)
     if dataset == "movilidad_trafico":
-        return build_movilidad_trafico_layer5(dataset)
+        return build_movilidad_trafico_layer5(dataset, municipio_prefix)
 
     contract = DATASET_CONTRACTS.get(dataset)
     if contract is None:
@@ -728,8 +751,10 @@ def build_dimension_layer5(dataset: str) -> Dict[str, Any]:
         }
 
     curated_table = f"lake.curated.{dataset}"
+    where_clause = f" WHERE lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
+    where_and = (where_clause + " AND") if where_clause else " WHERE"
     try:
-        total_rows = run_trino_query(f"SELECT count(*) FROM {curated_table}")
+        total_rows = run_trino_query(f"SELECT count(*) FROM {curated_table}{where_clause}")
         total = int(total_rows[0][0]) if total_rows else 0
         if total == 0:
             return {
@@ -742,7 +767,7 @@ def build_dimension_layer5(dataset: str) -> Dict[str, Any]:
             }
 
         grupo_rows = run_trino_query(
-            f"SELECT {group_column}, count(*) FROM {curated_table} GROUP BY {group_column} ORDER BY 2 DESC"
+            f"SELECT {group_column}, count(*) FROM {curated_table}{where_clause} GROUP BY {group_column} ORDER BY 2 DESC"
         )
         reglas = [
             {
@@ -759,8 +784,8 @@ def build_dimension_layer5(dataset: str) -> Dict[str, Any]:
             location_column = "direccion"
         if location_column:
             ubicacion_rows = run_trino_query(
-                f"SELECT {location_column}, count(*) FROM {curated_table} "
-                f"WHERE {location_column} IS NOT NULL GROUP BY {location_column} ORDER BY 2 DESC LIMIT 10"
+                f"SELECT {location_column}, count(*) FROM {curated_table}"
+                f"{where_and} {location_column} IS NOT NULL GROUP BY {location_column} ORDER BY 2 DESC LIMIT 10"
             )
             ranking_ubicaciones = [{"ubicacion": row[0], "registros": row[1]} for row in ubicacion_rows]
 
@@ -777,8 +802,15 @@ def build_dimension_layer5(dataset: str) -> Dict[str, Any]:
         return {"is_valid": False, "source": curated_table, "errors": [str(exc)]}
 
 
-def get_afectaciones_layer4_summary(table: str = "afectaciones_urbanas") -> Dict[str, Any]:
-    """Responde con un resumen operativo de la capa 4 para el frontend y la capa analítica."""
+def get_afectaciones_layer4_summary(table: str = "afectaciones_urbanas", municipio_prefix: str | None = None) -> Dict[str, Any]:
+    """Responde con un resumen operativo de la capa 4 para el frontend y la capa analítica.
+
+    municipio_prefix: la tabla lake.analytics.{table}_resumen no lleva dataset_id (es un
+    agregado ya materializado sin esa columna), así que no se puede filtrar por municipio
+    ahí directamente. Cuando se pasa este parámetro, se calcula el mismo resumen al vuelo
+    desde lake.curated.{table} (que sí lleva dataset_id), filtrado por municipio."""
+    if municipio_prefix:
+        return _get_afectaciones_summary_from_curated(table, municipio_prefix)
     source = f"lake.analytics.{table}_resumen"
     try:
         kpi_rows = run_trino_query(
@@ -817,6 +849,50 @@ def get_afectaciones_layer4_summary(table: str = "afectaciones_urbanas") -> Dict
             "summary": {
                 "top_vias": [{"via": row[0], "count": int(row[1])} for row in top_vias_rows],
                 "por_tipo_afectacion": [{"tipo_afectacion": row[0], "count": int(row[1])} for row in por_tipo_afectacion_rows],
+                "por_hora": [{"hora": row[0], "count": int(row[1])} for row in por_hora_rows],
+            },
+        }
+    except Exception as exc:
+        return {
+            "is_valid": False,
+            "source": source,
+            "errors": [str(exc)],
+            "kpis": {"total_afectaciones": 0, "duracion_media_horas": 0.0, "afectaciones_pmr": 0, "porcentaje_pmr": 0.0},
+            "summary": {"top_vias": [], "por_tipo_afectacion": [], "por_hora": []},
+        }
+
+
+def _get_afectaciones_summary_from_curated(table: str, municipio_prefix: str) -> Dict[str, Any]:
+    source = f"lake.curated.{table}"
+    where_clause = f"WHERE lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')"
+    try:
+        kpi_rows = run_trino_query(
+            f"""
+            SELECT count(*), coalesce(avg(duracion_minutos) / 60.0, 0), coalesce(count_if(impacto_pmr), 0)
+            FROM {source} {where_clause}
+            """
+        )
+        total_afectaciones = int(kpi_rows[0][0]) if kpi_rows else 0
+        duracion_media_horas = float(kpi_rows[0][1]) if kpi_rows else 0.0
+        afectaciones_pmr = int(kpi_rows[0][2]) if kpi_rows else 0
+        porcentaje_pmr = round((afectaciones_pmr / total_afectaciones * 100), 2) if total_afectaciones else 0.0
+
+        top_vias_rows = run_trino_query(f"SELECT direccion, count(*) FROM {source} {where_clause} GROUP BY direccion ORDER BY 2 DESC LIMIT 10")
+        por_tipo_rows = run_trino_query(f"SELECT tipo_afectacion, count(*) FROM {source} {where_clause} GROUP BY tipo_afectacion ORDER BY 2 DESC")
+        por_hora_rows = run_trino_query(f"SELECT hour(hora_inicio), count(*) FROM {source} {where_clause} GROUP BY hour(hora_inicio) ORDER BY 2 DESC LIMIT 12")
+
+        return {
+            "is_valid": True,
+            "source": source,
+            "kpis": {
+                "total_afectaciones": total_afectaciones,
+                "duracion_media_horas": round(duracion_media_horas, 2),
+                "afectaciones_pmr": afectaciones_pmr,
+                "porcentaje_pmr": porcentaje_pmr,
+            },
+            "summary": {
+                "top_vias": [{"via": row[0], "count": int(row[1])} for row in top_vias_rows],
+                "por_tipo_afectacion": [{"tipo_afectacion": row[0], "count": int(row[1])} for row in por_tipo_rows],
                 "por_hora": [{"hora": row[0], "count": int(row[1])} for row in por_hora_rows],
             },
         }
@@ -1106,17 +1182,22 @@ def get_afectaciones_trafico_resumen(limit: int = 10) -> Dict[str, Any]:
         return {"is_valid": False, "source": table, "errors": [str(exc)]}
 
 
-def get_parking_por_via(limit: int = 8) -> Dict[str, Any]:
-    """Ocupación media real por parking, leyendo el resumen ya calculado por
-    _movilidad_parking_exploitation_select_sql (lake.analytics.movilidad_parking_resumen).
-    Esa tabla no lleva dataset_id (es un agregado ya materializado), así que no admite
-    filtro por municipio -- ver limitación conocida en el plan de esta dimensión."""
-    table = "lake.analytics.movilidad_parking_resumen"
+def get_parking_por_via(limit: int = 8, municipio_prefix: str | None = None) -> Dict[str, Any]:
+    """Ocupación media real por parking, calculada directamente desde
+    lake.curated.movilidad_parking (no desde el resumen precalculado
+    lake.analytics.movilidad_parking_resumen, que promedia primero por franja
+    horaria y luego por vía -- una doble media que no coincide con la media
+    ponderada por medición real que da esta consulta). Así el resultado es
+    idéntico con o sin municipio_prefix, salvo por el WHERE."""
+    table = "lake.curated.movilidad_parking"
+    where_clause = ""
+    if municipio_prefix:
+        where_clause = f" WHERE lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')"
     try:
         rows = run_trino_query(
             f"""
-            SELECT direccion, avg(ocupacion_media_pct), max(pct_saturacion)
-            FROM {table}
+            SELECT direccion, round(avg(ocupacion_rate) * 100, 1), round(count_if(saturado) * 100.0 / count(*), 1)
+            FROM {table}{where_clause}
             GROUP BY direccion
             ORDER BY 2 DESC
             LIMIT {limit}

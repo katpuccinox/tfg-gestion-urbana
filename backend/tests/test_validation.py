@@ -86,7 +86,7 @@ def test_layer5_builds_data_driven_rules_from_analytic_rows(monkeypatch):
 
 def test_layer5_endpoint_exposes_service_result(monkeypatch):
     expected = {"is_valid": True, "model": "reglas_descriptivas", "total_registros": 1}
-    monkeypatch.setattr(main_module, "build_afectaciones_layer5", lambda table: expected)
+    monkeypatch.setattr(main_module, "build_afectaciones_layer5", lambda table, municipio_prefix=None: expected)
 
     app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
     try:
@@ -105,7 +105,7 @@ def test_layer4_summary_endpoint_exposes_service_result(monkeypatch):
         "kpis": {"total_afectaciones": 42},
         "summary": {"top_vias": [{"via": "Calle Mayor", "count": 12}]},
     }
-    monkeypatch.setattr(main_module, "get_afectaciones_layer4_summary", lambda table: expected)
+    monkeypatch.setattr(main_module, "get_afectaciones_layer4_summary", lambda table, municipio_prefix=None: expected)
 
     app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
     try:
@@ -1807,7 +1807,7 @@ def test_ml_congestion_rules_endpoint_returns_rules(monkeypatch):
         "metricas": {"count_alto_critico": 3, "pct_alto_critico": 30.0},
         "prioridades": [{"direccion": "gran via", "pct_tiempo_alto_critico": 40.0}],
     }
-    monkeypatch.setattr(main_module, "build_movilidad_trafico_layer5", lambda: expected)
+    monkeypatch.setattr(main_module, "build_movilidad_trafico_layer5", lambda municipio_prefix=None: expected)
 
     app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
     try:

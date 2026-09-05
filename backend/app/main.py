@@ -275,10 +275,11 @@ class CongestionPredictionRequest(BaseModel):
 
 
 @app.get("/api/ml/movilidad/reglas-congestion")
-def reglas_congestion(_policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+def reglas_congestion(current_user: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Capa 5: prioridad de intervención por vía, calculada sobre lake.curated.movilidad_trafico
     (percentiles propios de cada vía, cruzados con obras activas de afectaciones_urbanas)."""
-    resultado = build_movilidad_trafico_layer5()
+    municipio_prefix = current_user["municipio_id"] if current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR) else None
+    resultado = build_movilidad_trafico_layer5(municipio_prefix=municipio_prefix)
     if not resultado.get("is_valid"):
         raise HTTPException(status_code=500, detail=resultado.get("errors", ["Error calculando congestión"]))
     return {
@@ -331,28 +332,31 @@ def predecir_congestion_ml_endpoint(payload: CongestionPredictionRequest, _polic
 
 
 @app.get("/analysis/eq1/parking-trafico")
-def eq1_parking_trafico(_policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+def eq1_parking_trafico(current_user: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """EQ1: efecto mariposa entre saturación de parking y tráfico circundante
     (cruce por proximidad geográfica real, no por nombre de vía -- ver plan)."""
-    resultado = get_eq1_parking_trafico()
+    municipio_prefix = current_user["municipio_id"] if current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR) else None
+    resultado = get_eq1_parking_trafico(municipio_prefix=municipio_prefix)
     if not resultado.get("is_valid"):
         raise HTTPException(status_code=500, detail=resultado.get("errors", ["Error calculando el cruce"]))
     return resultado
 
 
 @app.get("/analysis/eq3/ocupacion-afectaciones")
-def eq3_ocupacion_afectaciones(_policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+def eq3_ocupacion_afectaciones(current_user: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """EQ3: vías donde coinciden terrazas y afectaciones activas, con marca PMR."""
-    resultado = get_eq3_ocupacion_afectaciones()
+    municipio_prefix = current_user["municipio_id"] if current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR) else None
+    resultado = get_eq3_ocupacion_afectaciones(municipio_prefix=municipio_prefix)
     if not resultado.get("is_valid"):
         raise HTTPException(status_code=500, detail=resultado.get("errors", ["Error calculando el cruce"]))
     return resultado
 
 
 @app.get("/analysis/eq4/ocupacion-carga-trafico")
-def eq4_ocupacion_carga_trafico(_policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+def eq4_ocupacion_carga_trafico(current_user: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """EQ4: vías con alta densidad de terrazas y pocas plazas de carga/descarga."""
-    resultado = get_eq4_ocupacion_carga_trafico()
+    municipio_prefix = current_user["municipio_id"] if current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR) else None
+    resultado = get_eq4_ocupacion_carga_trafico(municipio_prefix=municipio_prefix)
     if not resultado.get("is_valid"):
         raise HTTPException(status_code=500, detail=resultado.get("errors", ["Error calculando el cruce"]))
     return resultado
@@ -550,21 +554,24 @@ def construir_capas_gold_afectaciones() -> Dict[str, object]:
 
 
 @app.get("/analysis/layer5/afectaciones")
-def construir_layer5_afectaciones(table: str = "afectaciones_urbanas", _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+def construir_layer5_afectaciones(table: str = "afectaciones_urbanas", current_user: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Construye reglas y rankings reproducibles para la capa 5."""
-    return build_afectaciones_layer5(table)
+    municipio_prefix = current_user["municipio_id"] if current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR) else None
+    return build_afectaciones_layer5(table, municipio_prefix=municipio_prefix)
 
 
 @app.get("/analysis/layer5/{dataset}")
-def construir_layer5_dimension(dataset: str, _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+def construir_layer5_dimension(dataset: str, current_user: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Capa 5 genérica: reglas de frecuencia para cualquier dataset con layer5_group_by en su contrato."""
-    return build_dimension_layer5(dataset)
+    municipio_prefix = current_user["municipio_id"] if current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR) else None
+    return build_dimension_layer5(dataset, municipio_prefix=municipio_prefix)
 
 
 @app.get("/analysis/layer4/afectaciones/resumen")
-def get_layer4_summary(table: str = "afectaciones_urbanas", _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+def get_layer4_summary(table: str = "afectaciones_urbanas", current_user: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Devuelve un resumen operativo de la capa 4 para el frontend y la capa analítica."""
-    return get_afectaciones_layer4_summary(table)
+    municipio_prefix = current_user["municipio_id"] if current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR) else None
+    return get_afectaciones_layer4_summary(table, municipio_prefix=municipio_prefix)
 
 
 def _nivel_zona(nivel: str) -> str:
@@ -589,21 +596,21 @@ def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user), _
     municipio_scoped = current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR)
     municipio_prefix = current_user["municipio_id"] if municipio_scoped else None
 
-    afectaciones_resumen = get_afectaciones_layer4_summary()
-    afectaciones_criticidad = build_afectaciones_layer5()
-    trafico_congestion = build_movilidad_trafico_layer5()
+    afectaciones_resumen = get_afectaciones_layer4_summary(municipio_prefix=municipio_prefix)
+    afectaciones_criticidad = build_afectaciones_layer5(municipio_prefix=municipio_prefix)
+    trafico_congestion = build_movilidad_trafico_layer5(municipio_prefix=municipio_prefix)
     afectaciones_trafico = get_afectaciones_trafico_resumen()
-    its_layer5 = build_dimension_layer5("control_gestion_its")
+    its_layer5 = build_dimension_layer5("control_gestion_its", municipio_prefix=municipio_prefix)
     its_pmr = get_its_pmr_coverage(municipio_prefix)
-    parking_layer5 = build_dimension_layer5("movilidad_parking")
-    parking_por_via = get_parking_por_via()
-    reservadas_layer5 = build_dimension_layer5("movilidad_plazas_reservadas")
+    parking_layer5 = build_dimension_layer5("movilidad_parking", municipio_prefix=municipio_prefix)
+    parking_por_via = get_parking_por_via(municipio_prefix=municipio_prefix)
+    reservadas_layer5 = build_dimension_layer5("movilidad_plazas_reservadas", municipio_prefix=municipio_prefix)
     carriles_bici = get_carriles_bici_kpis(municipio_prefix)
-    ocupacion_layer5 = build_dimension_layer5("ocupacion_permanente_espacio_publico")
+    ocupacion_layer5 = build_dimension_layer5("ocupacion_permanente_espacio_publico", municipio_prefix=municipio_prefix)
     ocupacion_superficie = get_ocupacion_superficie_por_via(municipio_prefix)
-    eq1_parking_trafico = get_eq1_parking_trafico(trafico_congestion=trafico_congestion)
-    eq3_ocupacion_afectaciones = get_eq3_ocupacion_afectaciones()
-    eq4_ocupacion_carga = get_eq4_ocupacion_carga_trafico(trafico_congestion=trafico_congestion)
+    eq1_parking_trafico = get_eq1_parking_trafico(trafico_congestion=trafico_congestion, municipio_prefix=municipio_prefix)
+    eq3_ocupacion_afectaciones = get_eq3_ocupacion_afectaciones(municipio_prefix=municipio_prefix)
+    eq4_ocupacion_carga = get_eq4_ocupacion_carga_trafico(trafico_congestion=trafico_congestion, municipio_prefix=municipio_prefix)
     modelo_ml = get_model_metrics()
 
     errors = [
