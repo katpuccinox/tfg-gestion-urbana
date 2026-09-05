@@ -371,8 +371,11 @@ export default function App() {
     }
   }
 
-  async function handleDeleteUsuario(userId, email) {
-    if (!window.confirm(`¿Borrar la cuenta ${email}? Esta acción no se puede deshacer.`)) return;
+  async function handleDeleteUsuario(userId, email, role) {
+    const mensaje = role === "admin_estatal"
+      ? `⚠️ ${email} es una cuenta de ADMINISTRADOR del espacio de datos. ¿Seguro que quieres borrarla? Esta acción no se puede deshacer.`
+      : `¿Borrar la cuenta ${email}? Esta acción no se puede deshacer.`;
+    if (!window.confirm(mensaje)) return;
     try {
       await adminFetch(`/admin/usuarios/${userId}`, { method: "DELETE" });
       setAdminStatus({ message: `Usuario ${email} borrado.`, type: "success" });
@@ -1546,7 +1549,7 @@ export default function App() {
                           <button className="btn alt" type="button" onClick={() => handleUpdateUsuario(usuario.id, { activo: !usuario.activo })}>
                             {usuario.activo ? "Desactivar" : "Activar"}
                           </button>
-                          <button className="btn danger" type="button" onClick={() => handleDeleteUsuario(usuario.id, usuario.email)}>Borrar</button>
+                          <button className="btn danger" type="button" onClick={() => handleDeleteUsuario(usuario.id, usuario.email, usuario.role)}>Borrar</button>
                         </td>
                       </tr>
                     ))}
