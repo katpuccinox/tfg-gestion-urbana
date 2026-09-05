@@ -206,6 +206,7 @@ export default function App() {
   async function loadRecords() {
     try {
       const response = await fetch("/afectaciones", { headers: { Authorization: `Bearer ${token}` } });
+      if (response.status === 401) return handleUnauthorized();
       const data = await response.json();
       setRows(data.rows || []);
     } catch (error) {
@@ -226,6 +227,7 @@ export default function App() {
   async function loadLayer4Summary() {
     try {
       const response = await fetch("/analysis/layer4/afectaciones/resumen", { headers: { Authorization: `Bearer ${token}` } });
+      if (response.status === 401) return handleUnauthorized();
       const data = await response.json();
       if (data && data.is_valid !== false) {
         setLayer4Summary({
@@ -252,6 +254,7 @@ export default function App() {
   async function loadDashboard() {
     try {
       const response = await fetch("/analysis/cuadro-mando", { headers: { Authorization: `Bearer ${token}` } });
+      if (response.status === 401) return handleUnauthorized();
       const data = await response.json();
       if (response.ok && data) {
         setDashboard((current) => ({ ...current, ...data }));
@@ -265,6 +268,7 @@ export default function App() {
     setCongestion((current) => ({ ...current, loading: true, error: "" }));
     try {
       const response = await fetch("/api/ml/movilidad/reglas-congestion", { headers: { Authorization: `Bearer ${token}` } });
+      if (response.status === 401) return handleUnauthorized();
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data?.detail?.[0] || data?.detail || "No se pudo calcular la congestión.");
@@ -277,6 +281,10 @@ export default function App() {
 
   async function adminFetch(url, options = {}) {
     const response = await fetch(url, { ...options, headers: { ...(options.headers || {}), Authorization: `Bearer ${token}` } });
+    if (response.status === 401) {
+      handleUnauthorized();
+      throw new Error("Sesión caducada.");
+    }
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
       throw new Error(data?.detail?.message || data?.detail || `Código HTTP ${response.status}.`);
@@ -287,11 +295,7 @@ export default function App() {
   async function loadCatalogoEntregas() {
     setCatalogoStatus({ message: "", type: "success" });
     try {
-      const response = await fetch("/catalogo/entregas", { headers: { Authorization: `Bearer ${token}` } });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.detail?.message || data?.detail || "No se pudo cargar el catálogo de datos.");
-      }
+      const data = await adminFetch("/catalogo/entregas");
       setCatalogoEntregas(data.entregas || []);
     } catch (error) {
       setCatalogoStatus({ message: error.message || "No se pudo cargar el catálogo de datos.", type: "error" });
@@ -301,6 +305,7 @@ export default function App() {
   async function handleDescargarEntrega(entrega) {
     try {
       const response = await fetch(`/catalogo/entregas/${entrega.id}/descargar`, { headers: { Authorization: `Bearer ${token}` } });
+      if (response.status === 401) return handleUnauthorized();
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         throw new Error(data?.detail || `No se pudo descargar (HTTP ${response.status}).`);
@@ -425,6 +430,10 @@ export default function App() {
     let policy;
     try {
       response = await fetch("/politicas/vigente", { headers: { Authorization: `Bearer ${token}` } });
+      if (response.status === 401) {
+        handleUnauthorized();
+        return false;
+      }
       policy = await response.json();
     } catch (error) {
       setStatus("No se pudo comprobar las condiciones de uso vigentes. Inténtalo de nuevo.", true);
@@ -443,7 +452,8 @@ export default function App() {
   }
 
   async function handleAcceptPolicy() {
-    await fetch("/politicas/aceptar", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+    const response = await fetch("/politicas/aceptar", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+    if (response.status === 401) return handleUnauthorized();
     setPolicyModal({ open: false, version: "", titulo: "", contenido: "" });
     const pending = pendingPolicyActionRef.current;
     pendingPolicyActionRef.current = null;
@@ -480,6 +490,7 @@ export default function App() {
           dia_semana: prediccionForm.dia_semana || null,
         }),
       });
+      if (response.status === 401) return handleUnauthorized();
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data?.detail?.[0] || data?.detail || "Sin histórico suficiente para esa vía.");
@@ -504,6 +515,7 @@ export default function App() {
           dia_semana: prediccionForm.dia_semana,
         }),
       });
+      if (response.status === 401) return handleUnauthorized();
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data?.detail?.[0] || data?.detail || "El modelo no pudo predecir.");
@@ -555,18 +567,25 @@ export default function App() {
     }
   }
 
-  function handleLogout() {
+  function handleLogout(message) {
     localStorage.removeItem("municipal_token");
     localStorage.removeItem("municipal_user");
     sessionStorage.removeItem("municipal_token");
     setToken("");
     setUser(null);
     setAuthForm({ email: "", password: "" });
-    setAuthError("");
+    setAuthError(message || "");
     setStatus("Comprobando backend...", false);
     setRows([]);
     setQuestions([]);
     resetUpload();
+  }
+
+  // Un token caducado/inválido siempre se traduce en 401: en vez de mostrar
+  // "token no válido" como si fuera un error de la acción en curso, se cierra
+  // la sesión y se explica por qué en la propia pantalla de login.
+  function handleUnauthorized() {
+    handleLogout("Tu sesión ha caducado. Vuelve a iniciar sesión.");
   }
 
   async function detectDatasetKey(file) {
@@ -641,6 +660,7 @@ export default function App() {
 
     try {
       const response = await fetch(targetUrl, { method: "POST", body: formData, headers: { Authorization: `Bearer ${token}` } });
+      if (response.status === 401) return handleUnauthorized();
       const responseText = await response.text();
       let result;
       try {
