@@ -131,6 +131,8 @@ export default function App() {
   const [adminCatalogoHistorial, setAdminCatalogoHistorial] = useState([]);
   const [adminAceptaciones, setAdminAceptaciones] = useState([]);
   const [ingestaDetalle, setIngestaDetalle] = useState(null);
+  const [catalogoEntregas, setCatalogoEntregas] = useState([]);
+  const [catalogoStatus, setCatalogoStatus] = useState({ message: "", type: "success" });
   const [adminPolicyForm, setAdminPolicyForm] = useState({ version: "", titulo: "", contenido: "" });
   const [newUserForm, setNewUserForm] = useState({ name: "", email: "", password: "", municipio_id: "", role: "editor_municipio" });
   const [adminStatus, setAdminStatus] = useState({ message: "", type: "success" });
@@ -175,6 +177,14 @@ export default function App() {
     }
 
     void loadAdminPanel();
+  }, [activeTab, token, user]);
+
+  useEffect(() => {
+    if (!token || !user || activeTab !== "catalogo-datos") {
+      return;
+    }
+
+    void loadCatalogoEntregas();
   }, [activeTab, token, user]);
 
   function setStatus(message, isError = false) {
@@ -271,6 +281,41 @@ export default function App() {
       throw new Error(data?.detail?.message || data?.detail || `Código HTTP ${response.status}.`);
     }
     return data;
+  }
+
+  async function loadCatalogoEntregas() {
+    setCatalogoStatus({ message: "", type: "success" });
+    try {
+      const response = await fetch("/catalogo/entregas", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.detail?.message || data?.detail || "No se pudo cargar el catálogo de datos.");
+      }
+      setCatalogoEntregas(data.entregas || []);
+    } catch (error) {
+      setCatalogoStatus({ message: error.message || "No se pudo cargar el catálogo de datos.", type: "error" });
+    }
+  }
+
+  async function handleDescargarEntrega(entrega) {
+    try {
+      const response = await fetch(`/catalogo/entregas/${entrega.id}/descargar`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.detail || `No se pudo descargar (HTTP ${response.status}).`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${entrega.dataset}_${entrega.municipio_id}_${entrega.id}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      setCatalogoStatus({ message: error.message || "No se pudo descargar el fichero.", type: "error" });
+    }
   }
 
   async function loadAdminPanel() {
@@ -814,6 +859,7 @@ export default function App() {
         <button className={`tab-btn ${activeTab === "dimensiones" ? "active" : ""}`} type="button" onClick={() => setActiveTab("dimensiones")}>Dimensiones</button>
         <button className={`tab-btn ${activeTab === "analisis" ? "active" : ""}`} type="button" onClick={() => setActiveTab("analisis")}>Análisis</button>
         <button className={`tab-btn ${activeTab === "cuadro-mando" ? "active" : ""}`} type="button" onClick={() => setActiveTab("cuadro-mando")}>Cuadro de mando</button>
+        <button className={`tab-btn ${activeTab === "catalogo-datos" ? "active" : ""}`} type="button" onClick={() => setActiveTab("catalogo-datos")}>Catálogo de datos</button>
         {canSeeAdminPanel && (
           <button className={`tab-btn ${activeTab === "administracion" ? "active" : ""}`} type="button" onClick={() => setActiveTab("administracion")}>Administración</button>
         )}
@@ -1244,6 +1290,46 @@ export default function App() {
             {dashboardView === "afectaciones" && <div className="dashboard-charts"><BarChart title="Vías con más afectaciones" items={dashboard.summary?.top_vias || []} labelKey="via" /><BarChart title="Afectaciones por tipo" items={dashboard.summary?.por_tipo_afectacion || []} labelKey="tipo_afectacion" /><BarChart title="Actividad por hora" items={dashboard.summary?.por_hora || []} labelKey="hora" /></div>}
             {dashboardView === "its" && <div className="dashboard-charts"><BarChart title="ITS por categoría" items={dashboard.its?.por_categoria || []} labelKey="categoria" /></div>}
             {dashboardView === "ocupacion" && <div className="dashboard-charts"><BarChart title="Ocupación por tipo" items={dashboard.occupancy?.por_tipo || []} labelKey="tipo_ocupacion" /><BarChart title="Superficie por vía" items={dashboard.occupancy?.superficie_por_via || []} labelKey="via" suffix=" m2" /></div>}
+          </section>
+        )}
+
+        {activeTab === "catalogo-datos" && (
+          <section>
+            <div className="hero">
+              <div>
+                <h1>Catálogo de datos</h1>
+                <p>Entregas reales de todo el espacio de datos: las tuyas propias y las de otros municipios marcadas como compartidas.</p>
+              </div>
+              <button className="btn alt" type="button" onClick={loadCatalogoEntregas}>Actualizar</button>
+            </div>
+
+            {catalogoStatus.message && <p className={`admin-alert ${catalogoStatus.type}`}>{catalogoStatus.message}</p>}
+
+            <div className="card">
+              <table className="admin-table">
+                <thead>
+                  <tr><th>Municipio</th><th>Dataset</th><th>Periodo</th><th>Filas</th><th>Visibilidad</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {catalogoEntregas.length === 0 && !catalogoStatus.message && (
+                    <tr><td colSpan={6}><p className="chart-empty">No hay entregas compartidas disponibles todavía.</p></td></tr>
+                  )}
+                  {catalogoEntregas.map((entrega) => (
+                    <tr key={entrega.id}>
+                      <td>{entrega.municipio_id}</td>
+                      <td>{entrega.dataset}</td>
+                      <td>{entrega.period || "—"} {entrega.anio || ""}</td>
+                      <td>{entrega.row_count ?? "—"}</td>
+                      <td>{entrega.visibilidad === "privado" ? "Privado (tuyo)" : "Compartido"}</td>
+                      <td><button className="btn primary" type="button" onClick={() => handleDescargarEntrega(entrega)}>Descargar CSV</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="chart-empty" style={{ marginTop: "0.8rem" }}>
+                El CSV descargado es el dato ya validado y tipado (Capa 4), no el fichero original subido. Su uso está sujeto a las condiciones de uso vigentes del espacio de datos.
+              </p>
+            </div>
           </section>
         )}
 

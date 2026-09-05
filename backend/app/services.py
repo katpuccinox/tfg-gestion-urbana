@@ -2304,6 +2304,101 @@ def list_ingest_deliveries(
     ]
 
 
+def list_catalog_entries(municipio_id: str | None) -> list[Dict[str, Any]]:
+    """Catálogo de datos navegable: entregas reales (no solo esquema) visibles para
+    el usuario que pregunta -- las suyas propias (cualquier visibilidad) más las de
+    cualquier otro municipio marcadas "compartido" (soberanía del dato). Se apoya en
+    dataset_id = logical_key, la misma clave que ya usan las tablas curated de Trino,
+    para dar el nº de filas real de cada entrega sin adivinar rutas de ficheros."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    if municipio_id:
+        cur.execute(
+            """
+            SELECT id, logical_key, dataset, dimension, municipio_id, entity, period, anio,
+                   visibilidad, status, received_at
+            FROM ingesta_entregas
+            WHERE status IN ('accepted', 'completed', 'completed_with_warnings')
+              AND (visibilidad = 'compartido' OR lower(municipio_id) = lower(%s))
+            ORDER BY received_at DESC
+            """,
+            (municipio_id,),
+        )
+    else:
+        cur.execute(
+            """
+            SELECT id, logical_key, dataset, dimension, municipio_id, entity, period, anio,
+                   visibilidad, status, received_at
+            FROM ingesta_entregas
+            WHERE status IN ('accepted', 'completed', 'completed_with_warnings')
+            ORDER BY received_at DESC
+            """
+        )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    # Una consulta de Trino por dataset distinto (no por entrega): con 7 dimensiones
+    # como mucho son 7 consultas en vez de una por cada fila de ingesta_entregas.
+    counts_by_dataset_and_key: Dict[str, Dict[str, int]] = {}
+    for dataset in {row[2] for row in rows}:
+        try:
+            count_rows = run_trino_query(f"SELECT dataset_id, count(*) FROM lake.curated.{dataset} GROUP BY dataset_id")
+            counts_by_dataset_and_key[dataset] = {key: count for key, count in count_rows}
+        except Exception:
+            counts_by_dataset_and_key[dataset] = {}
+
+    entries = []
+    for row in rows:
+        delivery_id, logical_key, dataset, dimension, m_id, entity, period, anio, visibilidad, status, received_at = row
+        row_count = counts_by_dataset_and_key.get(dataset, {}).get(logical_key)
+        if not row_count:
+            continue  # entrega superada o sin dato ya materializado en curated: no hay nada descargable
+        entries.append({
+            "id": delivery_id, "dataset": dataset, "dimension": dimension,
+            "municipio_id": m_id or entity, "period": period, "anio": anio,
+            "visibilidad": visibilidad, "status": status,
+            "received_at": received_at.isoformat() if received_at else None,
+            "row_count": row_count,
+        })
+    return entries
+
+
+def get_catalog_entry_csv(delivery_id: int, requesting_municipio_id: str | None) -> Dict[str, Any]:
+    """Genera el CSV descargable de una entrega a partir de su dato curated (Capa 4:
+    ya tipado y validado, no el original en bruto), respetando la misma regla de
+    visibilidad que el listado."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT logical_key, dataset, municipio_id, entity, visibilidad FROM ingesta_entregas WHERE id = %s",
+        (delivery_id,),
+    )
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not row:
+        return {"is_valid": False, "errors": [f"Entrega no encontrada: {delivery_id}"]}
+
+    logical_key, dataset, m_id, entity, visibilidad = row
+    owner = (m_id or entity or "").lower()
+    if visibilidad != "compartido" and (not requesting_municipio_id or requesting_municipio_id.lower() != owner):
+        return {"is_valid": False, "errors": ["Esta entrega no está marcada como compartida."], "forbidden": True}
+
+    try:
+        result = run_trino_query_with_columns(
+            f"SELECT * FROM lake.curated.{dataset} WHERE dataset_id = '{_sql_escape(logical_key)}'"
+        )
+    except Exception as exc:
+        return {"is_valid": False, "errors": [str(exc)]}
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(result["columns"])
+    writer.writerows(result["rows"])
+    return {"is_valid": True, "dataset": dataset, "filename": f"{dataset}_{owner}_{delivery_id}.csv", "content": buffer.getvalue()}
+
+
 def get_ingest_delivery_detail(delivery_id: int) -> Dict[str, Any]:
     """Detalle completo de una entrega para el panel de administración: la propia
     entrega (Capa 0), sus eventos de recepción y las incidencias de validación

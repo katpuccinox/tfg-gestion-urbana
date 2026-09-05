@@ -12,7 +12,7 @@ from typing import Any, Dict
 import psycopg2
 from fastapi import Depends, FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -65,7 +65,9 @@ from app.services import (
     get_its_kpis,
     get_its_pmr_coverage,
     get_lake_root,
+    get_catalog_entry_csv,
     get_ingest_delivery_detail,
+    list_catalog_entries,
     get_ocupacion_superficie_por_via,
     get_parking_por_via,
     normalize_catalog_value,
@@ -211,6 +213,32 @@ def catalogo_publico() -> Dict[str, object]:
             "required_columns": payload["required_columns"],
         })
     return {"count": len(catalogo), "catalogo": catalogo}
+
+
+@app.get("/catalogo/entregas")
+def catalogo_entregas(user: dict = Depends(get_current_user), _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+    """Catálogo de datos navegable: entregas reales (no solo esquema), abierto a
+    cualquier rol autenticado. Soberanía del dato: cada usuario ve las suyas propias
+    (cualquiera que sea su visibilidad) más las de cualquier otro municipio marcadas
+    "compartido" -- admin_estatal/consumidor ven además el conjunto completo."""
+    municipio_scope = None if user["role"] in (ROLE_ADMIN, ROLE_CONSUMIDOR) else user["municipio_id"]
+    return {"entregas": list_catalog_entries(municipio_scope)}
+
+
+@app.get("/catalogo/entregas/{delivery_id}/descargar")
+def catalogo_descargar(delivery_id: int, user: dict = Depends(get_current_user), _policy: dict = Depends(require_policy_accepted)) -> Response:
+    """Descarga el CSV real (dato curated, ya tipado y validado) de una entrega,
+    respetando la misma regla de visibilidad que /catalogo/entregas."""
+    municipio_scope = None if user["role"] in (ROLE_ADMIN, ROLE_CONSUMIDOR) else user["municipio_id"]
+    result = get_catalog_entry_csv(delivery_id, municipio_scope)
+    if not result.get("is_valid"):
+        status_code = 403 if result.get("forbidden") else 404
+        raise HTTPException(status_code=status_code, detail=result.get("errors", ["No se pudo generar la descarga"]))
+    return Response(
+        content=result["content"],
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{result["filename"]}"'},
+    )
 
 
 @app.get("/admin/catalogo")
