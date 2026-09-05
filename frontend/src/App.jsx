@@ -130,9 +130,10 @@ export default function App() {
   const [adminCatalogo, setAdminCatalogo] = useState([]);
   const [adminCatalogoHistorial, setAdminCatalogoHistorial] = useState([]);
   const [adminAceptaciones, setAdminAceptaciones] = useState([]);
+  const [ingestaDetalle, setIngestaDetalle] = useState(null);
   const [adminPolicyForm, setAdminPolicyForm] = useState({ version: "", titulo: "", contenido: "" });
   const [newUserForm, setNewUserForm] = useState({ name: "", email: "", password: "", municipio_id: "", role: "editor_municipio" });
-  const [adminStatus, setAdminStatus] = useState("");
+  const [adminStatus, setAdminStatus] = useState({ message: "", type: "success" });
   const [policyModal, setPolicyModal] = useState({ open: false, version: "", titulo: "", contenido: "" });
   const pendingPolicyActionRef = useRef(null);
   const canUpload = user?.role === "admin_estatal" || user?.role === "editor_municipio";
@@ -273,7 +274,7 @@ export default function App() {
   }
 
   async function loadAdminPanel() {
-    setAdminStatus("");
+    setAdminStatus({ message: "", type: "success" });
     try {
       if (isAdmin) {
         const usuarios = await adminFetch("/admin/usuarios");
@@ -288,17 +289,17 @@ export default function App() {
       const aceptaciones = await adminFetch("/admin/politicas/aceptaciones");
       setAdminAceptaciones(aceptaciones.aceptaciones || []);
     } catch (error) {
-      setAdminStatus(error.message || "No se pudo cargar el panel de administración.");
+      setAdminStatus({ message: error.message || "No se pudo cargar el panel de administración.", type: "error" });
     }
   }
 
   async function handleUpdateUsuario(userId, patch) {
     try {
       await adminFetch(`/admin/usuarios/${userId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
-      setAdminStatus("Usuario actualizado.");
+      setAdminStatus({ message: "Usuario actualizado.", type: "success" });
       await loadAdminPanel();
     } catch (error) {
-      setAdminStatus(error.message || "No se pudo actualizar el usuario.");
+      setAdminStatus({ message: error.message || "No se pudo actualizar el usuario.", type: "error" });
     }
   }
 
@@ -311,11 +312,11 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...newUserForm, municipio_id: newUserForm.municipio_id.trim().toUpperCase() }),
       });
-      setAdminStatus(`Usuario ${newUserForm.email} creado.`);
+      setAdminStatus({ message: `Usuario ${newUserForm.email} creado.`, type: "success" });
       setNewUserForm({ name: "", email: "", password: "", municipio_id: "", role: "editor_municipio" });
       await loadAdminPanel();
     } catch (error) {
-      setAdminStatus(error.message || "No se pudo crear el usuario.");
+      setAdminStatus({ message: error.message || "No se pudo crear el usuario.", type: "error" });
     }
   }
 
@@ -323,10 +324,10 @@ export default function App() {
     if (!window.confirm(`¿Borrar la cuenta ${email}? Esta acción no se puede deshacer.`)) return;
     try {
       await adminFetch(`/admin/usuarios/${userId}`, { method: "DELETE" });
-      setAdminStatus(`Usuario ${email} borrado.`);
+      setAdminStatus({ message: `Usuario ${email} borrado.`, type: "success" });
       await loadAdminPanel();
     } catch (error) {
-      setAdminStatus(error.message || "No se pudo borrar el usuario.");
+      setAdminStatus({ message: error.message || "No se pudo borrar el usuario.", type: "error" });
     }
   }
 
@@ -334,10 +335,29 @@ export default function App() {
     const nextStatus = currentStatus === "active" ? "inactive" : "active";
     try {
       await adminFetch(`/admin/catalogo/${datasetId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: nextStatus }) });
-      setAdminStatus(`Dataset ${datasetId} marcado como ${nextStatus === "active" ? "activo" : "inactivo"}.`);
+      setAdminStatus({ message: `Dataset ${datasetId} marcado como ${nextStatus === "active" ? "activo" : "inactivo"}.`, type: "success" });
       await loadAdminPanel();
     } catch (error) {
-      setAdminStatus(error.message || "No se pudo actualizar el catálogo.");
+      setAdminStatus({ message: error.message || "No se pudo actualizar el catálogo.", type: "error" });
+    }
+  }
+
+  async function handleVerDetalleIngesta(deliveryId) {
+    try {
+      const detail = await adminFetch(`/admin/ingestas/${deliveryId}`);
+      setIngestaDetalle(detail);
+    } catch (error) {
+      setAdminStatus({ message: error.message || "No se pudo cargar el detalle de la entrega.", type: "error" });
+    }
+  }
+
+  async function handleResincronizarCatalogo() {
+    try {
+      await adminFetch("/gobierno/contratos/sincronizar", { method: "POST" });
+      setAdminStatus({ message: "Catálogo resincronizado.", type: "success" });
+      await loadAdminPanel();
+    } catch (error) {
+      setAdminStatus({ message: error.message || "No se pudo resincronizar el catálogo.", type: "error" });
     }
   }
 
@@ -346,11 +366,11 @@ export default function App() {
     if (!adminPolicyForm.version.trim() || !adminPolicyForm.titulo.trim() || !adminPolicyForm.contenido.trim()) return;
     try {
       await adminFetch("/admin/politicas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(adminPolicyForm) });
-      setAdminStatus(`Política ${adminPolicyForm.version} publicada. Los usuarios deberán volver a aceptarla.`);
+      setAdminStatus({ message: `Política ${adminPolicyForm.version} publicada. Los usuarios deberán volver a aceptarla.`, type: "success" });
       setAdminPolicyForm({ version: "", titulo: "", contenido: "" });
       await loadAdminPanel();
     } catch (error) {
-      setAdminStatus(error.message || "No se pudo publicar la política.");
+      setAdminStatus({ message: error.message || "No se pudo publicar la política.", type: "error" });
     }
   }
 
@@ -370,6 +390,12 @@ export default function App() {
     const pending = pendingPolicyActionRef.current;
     pendingPolicyActionRef.current = null;
     if (pending) await pending();
+  }
+
+  function handleCancelPolicy() {
+    pendingPolicyActionRef.current = null;
+    setPolicyModal({ open: false, version: "", titulo: "", contenido: "" });
+    setStatus("No puedes subir ni consultar datos hasta aceptar las condiciones de uso vigentes.", true);
   }
 
   async function initializeSession() {
@@ -801,6 +827,10 @@ export default function App() {
         </div>
       </header>
 
+      {statusText && statusError && (
+        <div className="status-banner error" role="alert">{statusText}</div>
+      )}
+
       <main className="page">
         {activeTab === "dimensiones" && (
           <section>
@@ -1227,7 +1257,7 @@ export default function App() {
               <button className="btn alt" type="button" onClick={loadAdminPanel}>Actualizar</button>
             </div>
 
-            {adminStatus && <p className="chart-empty">{adminStatus}</p>}
+            {adminStatus.message && <p className={`admin-alert ${adminStatus.type}`}>{adminStatus.message}</p>}
 
             <div className="dashboard-tabs" role="tablist" aria-label="Secciones de administración">
               {[["usuarios", "Usuarios"], ["ingestas", "Ingestas"], ["catalogo", "Catálogo"], ["politicas", "Políticas"]]
@@ -1293,7 +1323,7 @@ export default function App() {
                 <div className="panel-heading"><h2>Supervisión de ingestas</h2></div>
                 <table className="admin-table">
                   <thead>
-                    <tr><th>Recibida</th><th>Municipio</th><th>Dataset</th><th>Periodo</th><th>Visibilidad</th><th>Estado</th><th>Validación</th><th>Incidencias</th></tr>
+                    <tr><th>Recibida</th><th>Municipio</th><th>Dataset</th><th>Estado</th><th>Validación</th><th></th></tr>
                   </thead>
                   <tbody>
                     {adminIngestas.map((entrega) => (
@@ -1301,11 +1331,9 @@ export default function App() {
                         <td>{entrega.received_at ? new Date(entrega.received_at).toLocaleString("es-ES") : "—"}</td>
                         <td>{entrega.municipio_id || entrega.entity}</td>
                         <td>{entrega.dataset}</td>
-                        <td>{entrega.period || "—"}</td>
-                        <td>{entrega.visibilidad === "privado" ? "Privado" : "Compartido"}</td>
                         <td>{entrega.status}{entrega.indicador_conflicto ? " · conflicto" : ""}</td>
-                        <td>{entrega.resultado_validacion || "—"}</td>
-                        <td>{entrega.numero_registros_con_incidencia ?? "—"}</td>
+                        <td>{entrega.resultado_validacion || "—"}{entrega.numero_registros_con_incidencia ? ` (${entrega.numero_registros_con_incidencia} incidencias)` : ""}</td>
+                        <td><button className="btn alt" type="button" onClick={() => handleVerDetalleIngesta(entrega.id)}>Ver detalle</button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -1317,7 +1345,7 @@ export default function App() {
               <div className="card">
                 <div className="panel-heading">
                   <h2>Catálogo de contratos</h2>
-                  <button className="btn" type="button" onClick={() => adminFetch("/gobierno/contratos/sincronizar", { method: "POST" }).then(loadAdminPanel).catch((error) => setAdminStatus(error.message))}>
+                  <button className="btn" type="button" onClick={handleResincronizarCatalogo}>
                     Resincronizar catálogo
                   </button>
                 </div>
@@ -1402,9 +1430,65 @@ export default function App() {
             <p className="chart-empty">Versión {policyModal.version}</p>
             <p>{policyModal.contenido}</p>
             <div className="modal-actions">
-              <button className="btn alt" type="button" onClick={() => setPolicyModal({ open: false, version: "", titulo: "", contenido: "" })}>Cancelar</button>
+              <button className="btn alt" type="button" onClick={handleCancelPolicy}>Cancelar</button>
               <button className="btn primary" type="button" onClick={handleAcceptPolicy}>Acepto y continúo</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {ingestaDetalle && (
+        <div className="modal-overlay">
+          <div className="card modal-card modal-wide">
+            <div className="panel-heading">
+              <h2>Entrega #{ingestaDetalle.entrega.id} · {ingestaDetalle.entrega.dataset}</h2>
+              <button className="btn alt" type="button" onClick={() => setIngestaDetalle(null)}>Cerrar</button>
+            </div>
+            <dl className="detail-grid">
+              <div><dt>Municipio</dt><dd>{ingestaDetalle.entrega.municipio_id || ingestaDetalle.entrega.entity}</dd></div>
+              <div><dt>Periodo</dt><dd>{ingestaDetalle.entrega.period || "—"} {ingestaDetalle.entrega.anio || ""}</dd></div>
+              <div><dt>Visibilidad</dt><dd>{ingestaDetalle.entrega.visibilidad === "privado" ? "Privado" : "Compartido"}</dd></div>
+              <div><dt>Estado</dt><dd>{ingestaDetalle.entrega.status}</dd></div>
+              <div><dt>Canal de entrada</dt><dd>{ingestaDetalle.entrega.entry_channel}</dd></div>
+              <div><dt>Remitente</dt><dd>{ingestaDetalle.entrega.sender}</dd></div>
+              <div><dt>Fichero</dt><dd>{ingestaDetalle.entrega.filename}</dd></div>
+              <div><dt>Conflicto</dt><dd>{ingestaDetalle.entrega.indicador_conflicto ? `Sí (${ingestaDetalle.entrega.decision_sobre_conflicto || "sin decisión"})` : "No"}</dd></div>
+            </dl>
+
+            <h3>Eventos de recepción</h3>
+            {ingestaDetalle.eventos.length === 0 ? <p className="chart-empty">Sin eventos registrados.</p> : (
+              <table className="admin-table">
+                <thead><tr><th>Fecha</th><th>Evento</th><th>Actor</th><th>Observación</th></tr></thead>
+                <tbody>
+                  {ingestaDetalle.eventos.map((evento, index) => (
+                    <tr key={index}>
+                      <td>{evento.created_at ? new Date(evento.created_at).toLocaleString("es-ES") : "—"}</td>
+                      <td>{evento.event_type}</td>
+                      <td>{evento.actor}</td>
+                      <td>{evento.observation}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <h3>Incidencias de validación {ingestaDetalle.incidencias.length > 0 ? `(${ingestaDetalle.incidencias.length})` : ""}</h3>
+            {ingestaDetalle.incidencias.length === 0 ? <p className="chart-empty">Sin incidencias registradas.</p> : (
+              <table className="admin-table">
+                <thead><tr><th>Fila</th><th>Campo</th><th>Regla</th><th>Severidad</th><th>Descripción</th></tr></thead>
+                <tbody>
+                  {ingestaDetalle.incidencias.map((incidencia, index) => (
+                    <tr key={index}>
+                      <td>{incidencia.row_number_origen ?? "—"}</td>
+                      <td>{incidencia.campo_afectado || "—"}</td>
+                      <td>{incidencia.codigo_regla}</td>
+                      <td>{incidencia.severidad}</td>
+                      <td>{incidencia.descripcion_incidencia}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}

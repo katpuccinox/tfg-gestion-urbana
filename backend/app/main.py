@@ -65,6 +65,7 @@ from app.services import (
     get_its_kpis,
     get_its_pmr_coverage,
     get_lake_root,
+    get_ingest_delivery_detail,
     get_ocupacion_superficie_por_via,
     get_parking_por_via,
     normalize_catalog_value,
@@ -174,6 +175,18 @@ def admin_supervision_ingestas(
     # municipio ha marcado explícitamente como "compartido" al subirlo.
     only_shared = user["role"] == ROLE_CONSUMIDOR
     return {"entregas": list_ingest_deliveries(municipio_id=municipio_id, dataset=dataset, status_filter=status, limit=limit, only_shared=only_shared)}
+
+
+@app.get("/admin/ingestas/{delivery_id}")
+def admin_detalle_ingesta(delivery_id: int, user: dict = Depends(require_roles(ROLE_ADMIN, ROLE_AUDITOR, ROLE_CONSUMIDOR))) -> Dict[str, object]:
+    """Detalle de una entrega: eventos de recepción e incidencias de validación
+    fila a fila (metadatos de Capa 0-2 que la tabla resumen no puede mostrar)."""
+    detail = get_ingest_delivery_detail(delivery_id)
+    if not detail.get("is_valid"):
+        raise HTTPException(status_code=404, detail=detail.get("errors", ["No encontrado"]))
+    if user["role"] == ROLE_CONSUMIDOR and detail["entrega"].get("visibilidad") != "compartido":
+        raise HTTPException(status_code=403, detail="Esta entrega no está marcada como compartida.")
+    return detail
 
 
 @app.get("/catalogo/publico")

@@ -2304,6 +2304,71 @@ def list_ingest_deliveries(
     ]
 
 
+def get_ingest_delivery_detail(delivery_id: int) -> Dict[str, Any]:
+    """Detalle completo de una entrega para el panel de administración: la propia
+    entrega (Capa 0), sus eventos de recepción y las incidencias de validación
+    (Capa 2) fila a fila -- todo el metadato que ya se produce en el pipeline pero
+    que la tabla resumen de /admin/ingestas no puede mostrar sin saturarse."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT id, logical_key, entity, dimension, dataset, period, schema_version,
+               filename, content_sha256, status, entry_channel, sender, received_at,
+               replaced_at, municipio_id, anio, visibilidad, indicador_conflicto,
+               decision_sobre_conflicto
+        FROM ingesta_entregas WHERE id = %s
+        """,
+        (delivery_id,),
+    )
+    entrega_row = cur.fetchone()
+    if not entrega_row:
+        cur.close()
+        conn.close()
+        return {"is_valid": False, "errors": [f"Entrega no encontrada: {delivery_id}"]}
+    columns = [desc[0] for desc in cur.description]
+    entrega = dict(zip(columns, entrega_row))
+    for key in ("received_at", "replaced_at"):
+        if entrega.get(key) is not None:
+            entrega[key] = entrega[key].isoformat()
+
+    cur.execute(
+        """
+        SELECT event_type, actor, entry_channel, observation, created_at
+        FROM ingesta_eventos_recepcion WHERE delivery_id = %s ORDER BY created_at
+        """,
+        (delivery_id,),
+    )
+    eventos = [
+        {"event_type": r[0], "actor": r[1], "entry_channel": r[2], "observation": r[3], "created_at": r[4].isoformat() if r[4] else None}
+        for r in cur.fetchall()
+    ]
+
+    incidencias: list[Dict[str, Any]] = []
+    try:
+        cur.execute(
+            """
+            SELECT codigo_regla, descripcion_regla, severidad, campo_afectado,
+                   row_number_origen, descripcion_incidencia, accion_requerida
+            FROM ingesta_incidencias WHERE delivery_id = %s ORDER BY row_number_origen NULLS LAST LIMIT 50
+            """,
+            (delivery_id,),
+        )
+        incidencias = [
+            {
+                "codigo_regla": r[0], "descripcion_regla": r[1], "severidad": r[2], "campo_afectado": r[3],
+                "row_number_origen": r[4], "descripcion_incidencia": r[5], "accion_requerida": r[6],
+            }
+            for r in cur.fetchall()
+        ]
+    except Exception:
+        pass  # la tabla puede no existir todavía si nunca hubo una entrega con incidencias
+
+    cur.close()
+    conn.close()
+    return {"is_valid": True, "entrega": entrega, "eventos": eventos, "incidencias": incidencias}
+
+
 def mark_dataset_ingested(validacion_id: str | None) -> None:
     """Transiciona el ciclo de vida de la validación a 'ingestado' una vez la entrega
     completa la Capa 4 con éxito (hasta entonces se queda en 'en_consolidacion')."""

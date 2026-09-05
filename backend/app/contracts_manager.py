@@ -199,7 +199,6 @@ class ContractsManager:
                     description = EXCLUDED.description,
                     columns_json = EXCLUDED.columns_json,
                     contract_json = EXCLUDED.contract_json,
-                    status = 'active',
                     updated_at = NOW()
             """, (
                 contract_id,

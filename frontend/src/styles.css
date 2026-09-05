@@ -470,6 +470,37 @@ body {
   color: var(--danger);
 }
 
+.status-banner {
+  margin: 0.7rem 2rem 0;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.status-banner.error {
+  background: #fdeceb;
+  color: var(--danger);
+  border: 1px solid #f3b9b3;
+}
+
+.admin-alert {
+  margin-bottom: 1rem;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: #fdeceb;
+  color: var(--danger);
+  border: 1px solid #f3b9b3;
+}
+
+.admin-alert.success {
+  background: #eafaf0;
+  color: var(--ok);
+  border-color: #bfe8cf;
+}
+
 .success {
   color: var(--ok);
   font-weight: 700;
@@ -1893,6 +1924,37 @@ td {
 .modal-card {
   max-width: 560px;
   width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-card.modal-wide {
+  max-width: 820px;
+}
+
+.modal-card h3 {
+  font-size: 0.95rem;
+  margin: 1.2rem 0 0.5rem;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem 1.2rem;
+  margin: 0 0 0.4rem;
+}
+
+.detail-grid dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.detail-grid dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
 }
 
 .modal-actions {
