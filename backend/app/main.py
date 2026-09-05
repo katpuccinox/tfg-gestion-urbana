@@ -226,7 +226,7 @@ class CongestionPredictionRequest(BaseModel):
 
 
 @app.get("/api/ml/movilidad/reglas-congestion")
-def reglas_congestion() -> Dict[str, object]:
+def reglas_congestion(_policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Capa 5: prioridad de intervención por vía, calculada sobre lake.curated.movilidad_trafico
     (percentiles propios de cada vía, cruzados con obras activas de afectaciones_urbanas)."""
     resultado = build_movilidad_trafico_layer5()
@@ -243,7 +243,7 @@ def reglas_congestion() -> Dict[str, object]:
 
 
 @app.post("/api/ml/movilidad/predecir")
-def predecir_congestion(payload: CongestionPredictionRequest) -> Dict[str, object]:
+def predecir_congestion(payload: CongestionPredictionRequest, _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Estima la congestión esperada en una vía a partir de su propio histórico de tráfico
     (percentiles reales, no un umbral fijo) y si hay una obra activa en ese momento."""
     resultado = predecir_congestion_via(payload.direccion, payload.franja_horaria, payload.dia_semana)
@@ -425,7 +425,7 @@ def mover_lake(filename: str, dataset: str = "afectaciones_urbanas") -> Dict[str
 
 
 @app.get("/analysis/sql/afectaciones-kpis")
-def afectaciones_kpis_sql(table: str = "afectaciones_urbanas") -> Dict[str, object]:
+def afectaciones_kpis_sql(table: str = "afectaciones_urbanas", _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     # KPI Q3 de afectaciones urbanas calculado con Trino sobre la tabla Hive/SeaweedFS.
     return get_afectaciones_kpis(table)
 
@@ -443,19 +443,19 @@ def construir_capas_gold_afectaciones() -> Dict[str, object]:
 
 
 @app.get("/analysis/layer5/afectaciones")
-def construir_layer5_afectaciones(table: str = "afectaciones_urbanas") -> Dict[str, object]:
+def construir_layer5_afectaciones(table: str = "afectaciones_urbanas", _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Construye reglas y rankings reproducibles para la capa 5."""
     return build_afectaciones_layer5(table)
 
 
 @app.get("/analysis/layer5/{dataset}")
-def construir_layer5_dimension(dataset: str) -> Dict[str, object]:
+def construir_layer5_dimension(dataset: str, _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Capa 5 genérica: reglas de frecuencia para cualquier dataset con layer5_group_by en su contrato."""
     return build_dimension_layer5(dataset)
 
 
 @app.get("/analysis/layer4/afectaciones/resumen")
-def get_layer4_summary(table: str = "afectaciones_urbanas") -> Dict[str, object]:
+def get_layer4_summary(table: str = "afectaciones_urbanas", _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Devuelve un resumen operativo de la capa 4 para el frontend y la capa analítica."""
     return get_afectaciones_layer4_summary(table)
 
@@ -467,7 +467,7 @@ def _nivel_zona(nivel: str) -> str:
 
 
 @app.get("/analysis/cuadro-mando")
-def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, object]:
+def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user), _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Cuadro de mando construido sobre las tablas reales de Trino (lake.curated/
     lake.analytics), las mismas que ya usan los endpoints de Capa 4/5. Reemplaza la
     versión anterior, que leía de una tabla Postgres (`dimension_records`) que ningún
@@ -788,13 +788,13 @@ def registrar_ocupacion_capa0(file: UploadFile = File(...), entity: str = "munic
 
 
 @app.get("/analysis/sql/its-kpis")
-def its_kpis_sql(table: str = "control_gestion_its") -> Dict[str, object]:
+def its_kpis_sql(table: str = "control_gestion_its", _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     # KPIs simples de inventario ITS (total por categoría/titularidad) calculados con Trino.
     return get_its_kpis(table)
 
 
 @app.get("/its")
-def obtener_its(limit: int = 10) -> Dict[str, object]:
+def obtener_its(limit: int = 10, _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     result = list_its(limit=limit)
     return {
         "is_valid": result["is_valid"],
@@ -804,7 +804,7 @@ def obtener_its(limit: int = 10) -> Dict[str, object]:
 
 
 @app.get("/afectaciones")
-def obtener_afectaciones(limit: int = 10) -> Dict[str, object]:
+def obtener_afectaciones(limit: int = 10, _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     result = list_affectaciones(limit=limit)
     return {
         "is_valid": result["is_valid"],

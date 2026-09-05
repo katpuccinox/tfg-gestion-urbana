@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const DIMENSION_CHIPS = [
   { key: "afectaciones_urbanas", label: "Afectaciones Urbanas" },
@@ -134,6 +134,7 @@ export default function App() {
   const [newUserForm, setNewUserForm] = useState({ name: "", email: "", password: "", municipio_id: "", role: "editor_municipio" });
   const [adminStatus, setAdminStatus] = useState("");
   const [policyModal, setPolicyModal] = useState({ open: false, version: "", titulo: "", contenido: "" });
+  const pendingPolicyActionRef = useRef(null);
   const canUpload = user?.role === "admin_estatal" || user?.role === "editor_municipio";
   const isAdmin = user?.role === "admin_estatal";
   const canSeeAdminPanel = isAdmin || user?.role === "auditor";
@@ -156,10 +157,7 @@ export default function App() {
       return;
     }
 
-    void checkBackend();
-    void loadRecords();
-    void loadDashboard();
-    void loadCongestion();
+    void initializeSession();
   }, [token, user]);
 
   useEffect(() => {
@@ -195,7 +193,7 @@ export default function App() {
 
   async function loadRecords() {
     try {
-      const response = await fetch("/afectaciones");
+      const response = await fetch("/afectaciones", { headers: { Authorization: `Bearer ${token}` } });
       const data = await response.json();
       setRows(data.rows || []);
     } catch (error) {
@@ -215,7 +213,7 @@ export default function App() {
 
   async function loadLayer4Summary() {
     try {
-      const response = await fetch("/analysis/layer4/afectaciones/resumen");
+      const response = await fetch("/analysis/layer4/afectaciones/resumen", { headers: { Authorization: `Bearer ${token}` } });
       const data = await response.json();
       if (data && data.is_valid !== false) {
         setLayer4Summary({
@@ -254,7 +252,7 @@ export default function App() {
   async function loadCongestion() {
     setCongestion((current) => ({ ...current, loading: true, error: "" }));
     try {
-      const response = await fetch("/api/ml/movilidad/reglas-congestion");
+      const response = await fetch("/api/ml/movilidad/reglas-congestion", { headers: { Authorization: `Bearer ${token}` } });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data?.detail?.[0] || data?.detail || "No se pudo calcular la congestión.");
@@ -356,9 +354,10 @@ export default function App() {
     }
   }
 
-  async function ensurePolicyAccepted() {
+  async function ensurePolicyAccepted(onAccepted) {
     const policy = await fetch("/politicas/vigente", { headers: { Authorization: `Bearer ${token}` } }).then((response) => response.json());
     if (!policy.ya_aceptada) {
+      pendingPolicyActionRef.current = onAccepted || null;
       setPolicyModal({ open: true, version: policy.version, titulo: policy.titulo, contenido: policy.contenido });
       return false;
     }
@@ -368,7 +367,19 @@ export default function App() {
   async function handleAcceptPolicy() {
     await fetch("/politicas/aceptar", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
     setPolicyModal({ open: false, version: "", titulo: "", contenido: "" });
-    await confirmUpload();
+    const pending = pendingPolicyActionRef.current;
+    pendingPolicyActionRef.current = null;
+    if (pending) await pending();
+  }
+
+  async function initializeSession() {
+    const accepted = await ensurePolicyAccepted(() => initializeSession());
+    if (!accepted) return; // el modal reintentará esta misma función tras aceptar
+
+    void checkBackend();
+    void loadRecords();
+    void loadDashboard();
+    void loadCongestion();
   }
 
   async function submitPrediccion(event) {
@@ -378,7 +389,7 @@ export default function App() {
     try {
       const response = await fetch("/api/ml/movilidad/predecir", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           direccion: prediccionForm.direccion.trim(),
           franja_horaria: prediccionForm.franja_horaria || null,
@@ -508,7 +519,7 @@ export default function App() {
   async function confirmUpload() {
     if (!selectedFile || !uploadForm.dataset) return;
 
-    const accepted = await ensurePolicyAccepted();
+    const accepted = await ensurePolicyAccepted(() => confirmUpload());
     if (!accepted) return; // se reintenta automáticamente tras aceptar en el modal
 
     setUploadStep("uploading");

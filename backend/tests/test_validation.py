@@ -88,7 +88,11 @@ def test_layer5_endpoint_exposes_service_result(monkeypatch):
     expected = {"is_valid": True, "model": "reglas_descriptivas", "total_registros": 1}
     monkeypatch.setattr(main_module, "build_afectaciones_layer5", lambda table: expected)
 
-    response = TestClient(app).get("/analysis/layer5/afectaciones")
+    app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
+    try:
+        response = TestClient(app).get("/analysis/layer5/afectaciones")
+    finally:
+        app.dependency_overrides.clear()
 
     assert response.status_code == 200
     assert response.json() == expected
@@ -103,7 +107,11 @@ def test_layer4_summary_endpoint_exposes_service_result(monkeypatch):
     }
     monkeypatch.setattr(main_module, "get_afectaciones_layer4_summary", lambda table: expected)
 
-    response = TestClient(app).get("/analysis/layer4/afectaciones/resumen")
+    app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
+    try:
+        response = TestClient(app).get("/analysis/layer4/afectaciones/resumen")
+    finally:
+        app.dependency_overrides.clear()
 
     assert response.status_code == 200
     assert response.json() == expected
@@ -1801,7 +1809,11 @@ def test_ml_congestion_rules_endpoint_returns_rules(monkeypatch):
     }
     monkeypatch.setattr(main_module, "build_movilidad_trafico_layer5", lambda: expected)
 
-    response = TestClient(app).get("/api/ml/movilidad/reglas-congestion")
+    app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
+    try:
+        response = TestClient(app).get("/api/ml/movilidad/reglas-congestion")
+    finally:
+        app.dependency_overrides.clear()
 
     assert response.status_code == 200
     body = response.json()
@@ -1820,10 +1832,14 @@ def test_ml_prediction_endpoint_returns_level(monkeypatch):
     }
     monkeypatch.setattr(main_module, "predecir_congestion_via", lambda direccion, franja_horaria=None, dia_semana=None: expected)
 
-    response = TestClient(app).post(
-        "/api/ml/movilidad/predecir",
-        json={"direccion": "Gran Via"},
-    )
+    app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
+    try:
+        response = TestClient(app).post(
+            "/api/ml/movilidad/predecir",
+            json={"direccion": "Gran Via"},
+        )
+    finally:
+        app.dependency_overrides.clear()
 
     assert response.status_code == 200
     body = response.json()
@@ -2071,8 +2087,12 @@ def test_its_kpis_endpoint_returns_summary(monkeypatch):
         },
     )
 
-    client = TestClient(app)
-    response = client.get("/analysis/sql/its-kpis")
+    app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
+    try:
+        client = TestClient(app)
+        response = client.get("/analysis/sql/its-kpis")
+    finally:
+        app.dependency_overrides.clear()
 
     assert response.status_code == 200
     body = response.json()
