@@ -5,7 +5,6 @@
 
 import os
 import json
-from collections import Counter
 from pathlib import Path
 from datetime import datetime
 from typing import Any, Dict
@@ -61,8 +60,14 @@ from app.services import (
     call_ollama_analysis,
     get_afectaciones_kpis,
     get_afectaciones_layer4_summary,
+    get_afectaciones_trafico_resumen,
+    get_carriles_bici_kpis,
     get_its_kpis,
+    get_its_pmr_coverage,
     get_lake_root,
+    get_ocupacion_superficie_por_via,
+    get_parking_por_via,
+    normalize_catalog_value,
     ingest_affectaciones,
     ingest_its,
     inspect_s3_lake_object,
@@ -455,123 +460,131 @@ def get_layer4_summary(table: str = "afectaciones_urbanas") -> Dict[str, object]
     return get_afectaciones_layer4_summary(table)
 
 
-def _number(value: Any) -> float:
-    try:
-        if value in (None, ""):
-            return 0.0
-        return float(str(value).replace(",", "."))
-    except (TypeError, ValueError):
-        return 0.0
-
-
-def _counter(counter: Counter, label: str, limit: int = 8) -> list[Dict[str, object]]:
-    return [{label: key, "count": value} for key, value in counter.most_common(limit)]
-
-
-def _sum_by(rows: list[Dict[str, Any]], group_key: str, value_key: str, label: str, limit: int = 8) -> list[Dict[str, object]]:
-    totals: Dict[str, float] = {}
-    for row in rows:
-        group = str(row.get(group_key) or "Sin dato")
-        totals[group] = totals.get(group, 0.0) + _number(row.get(value_key))
-    return [{label: key, "count": round(value, 1)} for key, value in sorted(totals.items(), key=lambda item: item[1], reverse=True)[:limit]]
-
-
-def _list_dimension_records(dataset: str, municipio_id: str | None, limit: int = 500) -> Dict[str, Any]:
-    # municipio_id=None => sin filtrar (vista agregada de todos los municipios, para
-    # los roles admin_estatal/consumidor del cuadro de mando).
-    try:
-        host = os.getenv("POSTGRES_HOST", "postgres")
-        port = os.getenv("POSTGRES_PORT", "5432")
-        db = os.getenv("POSTGRES_DB", "datalake")
-        user = os.getenv("POSTGRES_USER", "datalake")
-        password = os.getenv("POSTGRES_PASSWORD", "datalake_local")
-        conn = psycopg2.connect(host=host, port=port, dbname=db, user=user, password=password)
-        cur = conn.cursor()
-        if municipio_id:
-            cur.execute(
-                "SELECT id, data FROM dimension_records WHERE dataset = %s AND municipio_id = %s ORDER BY id DESC LIMIT %s",
-                (dataset, municipio_id, limit),
-            )
-        else:
-            cur.execute(
-                "SELECT id, data FROM dimension_records WHERE dataset = %s ORDER BY id DESC LIMIT %s",
-                (dataset, limit),
-            )
-        rows = []
-        for row_id, data in cur.fetchall():
-            payload = data if isinstance(data, dict) else json.loads(data)
-            rows.append({"id": row_id, **payload})
-        cur.close()
-        conn.close()
-        return {"is_valid": True, "errors": [], "rows": rows}
-    except Exception as exc:
-        return {"is_valid": False, "errors": [str(exc)], "rows": []}
+def _nivel_zona(nivel: str) -> str:
+    """Normaliza un nivel de riesgo ('Crítico'/'Alto'...) a la clave usada por el CSS
+    del frontend (risk-alto, risk-critico...): minúsculas y sin tildes."""
+    return normalize_catalog_value(nivel) or "bajo"
 
 
 @app.get("/analysis/cuadro-mando")
 def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, object]:
-    """Devuelve KPIs agregados para el cuadro de mando, sin alterar la pantalla de dimensiones.
+    """Cuadro de mando construido sobre las tablas reales de Trino (lake.curated/
+    lake.analytics), las mismas que ya usan los endpoints de Capa 4/5. Reemplaza la
+    versión anterior, que leía de una tabla Postgres (`dimension_records`) que ningún
+    código de este backend escribe -- sus datos eran de una fuente externa (NiFi),
+    desconectados por completo del pipeline real de esta plataforma.
 
-    admin_estatal y consumidor ven la vista agregada de todos los municipios
-    (sin filtro); editor_municipio/lector_municipio quedan acotados al suyo."""
-    municipio_id = None if current_user["role"] in (ROLE_ADMIN, ROLE_CONSUMIDOR) else current_user["municipio_id"]
-    affectations = list_affectaciones(limit=500, municipio_id=municipio_id)
-    its = list_its(limit=500, municipio_id=municipio_id)
-    traffic = _list_dimension_records("movilidad_trafico", municipio_id, 500)
-    parking = _list_dimension_records("movilidad_parking", municipio_id, 500)
-    reserved = _list_dimension_records("movilidad_plazas_reservadas", municipio_id, 500)
-    bike = _list_dimension_records("movilidad_carriles_bici", municipio_id, 500)
-    occupancy = _list_dimension_records("ocupacion_permanente_espacio_publico", municipio_id, 500)
+    admin_estatal y consumidor ven la vista agregada de todos los municipios;
+    editor_municipio/lector_municipio filtran por su propio municipio en las
+    consultas nuevas (ver limitación conocida: las funciones de Capa 5 reutilizadas
+    -- build_afectaciones_layer5, build_movilidad_trafico_layer5,
+    build_dimension_layer5 -- todavía no filtran por municipio)."""
+    municipio_scoped = current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR)
+    municipio_prefix = current_user["municipio_id"] if municipio_scoped else None
 
-    affectation_rows = affectations.get("rows", [])
-    its_rows = its.get("rows", [])
-    traffic_rows = traffic.get("rows", [])
-    parking_rows = parking.get("rows", [])
-    reserved_rows = reserved.get("rows", [])
-    bike_rows = bike.get("rows", [])
-    occupancy_rows = occupancy.get("rows", [])
-    parking_entries = []
-    for row in parking_rows:
-        total = _number(row.get("ocupacion_total"))
-        if total > 0:
-            parking_entries.append({"row": row, "rate": round((total - _number(row.get("ocupacion_libres"))) / total * 100, 1)})
+    afectaciones_resumen = get_afectaciones_layer4_summary()
+    afectaciones_criticidad = build_afectaciones_layer5()
+    trafico_congestion = build_movilidad_trafico_layer5()
+    afectaciones_trafico = get_afectaciones_trafico_resumen()
+    its_layer5 = build_dimension_layer5("control_gestion_its")
+    its_pmr = get_its_pmr_coverage(municipio_prefix)
+    parking_layer5 = build_dimension_layer5("movilidad_parking")
+    parking_por_via = get_parking_por_via()
+    reservadas_layer5 = build_dimension_layer5("movilidad_plazas_reservadas")
+    carriles_bici = get_carriles_bici_kpis(municipio_prefix)
+    ocupacion_layer5 = build_dimension_layer5("ocupacion_permanente_espacio_publico")
+    ocupacion_superficie = get_ocupacion_superficie_por_via(municipio_prefix)
 
-    crossed = [*affectation_rows, *traffic_rows, *parking_rows, *occupancy_rows]
-    priority_zones = [
-        {"via": via, "score": min(count * 18, 100), "nivel": "alto" if count >= 3 else "medio", "reasons": [f"{count} registros cruzados"]}
-        for via, count in Counter(row.get("direccion") or "Sin vía" for row in crossed).most_common(6)
+    errors = [
+        result.get("errors", [])
+        for result in (
+            afectaciones_resumen, afectaciones_criticidad, trafico_congestion, afectaciones_trafico,
+            its_layer5, its_pmr, parking_layer5, parking_por_via, reservadas_layer5,
+            carriles_bici, ocupacion_layer5, ocupacion_superficie,
+        )
+        if not result.get("is_valid")
     ]
+
+    priority_zones = []
+    for entrada in (afectaciones_criticidad.get("ranking_vias") or [])[:5]:
+        priority_zones.append({
+            "via": entrada.get("nombre") or entrada.get("via") or "Sin vía",
+            "score": round(entrada.get("pct_impacto", 0)),
+            "nivel": _nivel_zona(entrada.get("nivel", "")),
+            "reasons": [f"Obra ({entrada.get('tipo_intervencion') or 'sin dato'}): {entrada.get('pct_impacto', 0)}% de variación de tráfico"],
+        })
+    for entrada in (trafico_congestion.get("prioridades") or [])[:5]:
+        pct = entrada.get("pct_tiempo_alto_critico", 0)
+        nivel = "critico" if pct >= 50 else "alto" if pct >= 25 else "medio" if pct >= 10 else "bajo"
+        priority_zones.append({
+            "via": entrada.get("direccion") or "Sin vía",
+            "score": round(pct),
+            "nivel": nivel,
+            "reasons": entrada.get("recomendaciones") or [],
+        })
+    priority_zones.sort(key=lambda zone: zone["score"], reverse=True)
+
+    parking_saturado_pct = next(
+        (regla["porcentaje"] for regla in parking_layer5.get("reglas", []) if regla.get("categoria") is True),
+        0.0,
+    )
+    parking_ocupacion_media = (
+        round(sum(entry["count"] for entry in parking_por_via.get("por_via", [])) / len(parking_por_via["por_via"]), 1)
+        if parking_por_via.get("por_via") else 0.0
+    )
 
     return {
         "is_valid": True,
-        "municipio_id": municipio_id,
+        "municipio_id": municipio_prefix,
         "kpis": {
-            "total_afectaciones": len(affectation_rows),
-            "total_dispositivos_its": len(its_rows),
-            "total_registros_movilidad": len(traffic_rows) + len(parking_rows) + len(reserved_rows) + len(bike_rows),
-            "total_ocupaciones": len(occupancy_rows),
-            "trafico_total": round(sum(_number(row.get("trafico_flujo")) for row in traffic_rows)),
-            "ocupacion_parking_media": round(sum(entry["rate"] for entry in parking_entries) / len(parking_entries), 1) if parking_entries else 0,
-            "superficie_ocupada_m2": round(sum(_number(row.get("ocupacion_superficie")) for row in occupancy_rows), 1),
-            "plazas_reservadas": round(sum(_number(row.get("plaza_numero")) for row in reserved_rows)),
+            "total_afectaciones": afectaciones_resumen.get("kpis", {}).get("total_afectaciones", 0),
+            "total_dispositivos_its": its_layer5.get("total_registros", 0),
+            "total_registros_movilidad": (
+                trafico_congestion.get("total_registros", 0)
+                + parking_layer5.get("total_registros", 0)
+                + reservadas_layer5.get("total_registros", 0)
+                + carriles_bici.get("kpis", {}).get("total_segmentos", 0)
+            ),
+            "total_ocupaciones": ocupacion_layer5.get("total_registros", 0),
+            "trafico_pct_alto_critico": trafico_congestion.get("metricas", {}).get("pct_alto_critico", 0.0),
+            "ocupacion_parking_media": parking_ocupacion_media,
+            "parking_pct_saturado": parking_saturado_pct,
+            "superficie_ocupada_m2": ocupacion_superficie.get("total_m2", 0.0),
+            "plazas_reservadas": reservadas_layer5.get("total_registros", 0),
+            "carriles_bici_longitud_m": carriles_bici.get("kpis", {}).get("longitud_total_m", 0.0),
+            "its_pct_accesibilidad_pmr": its_pmr.get("kpis", {}).get("pct_accesibilidad_pmr", 0.0),
         },
-        "summary": {
-            "top_vias": _counter(Counter(row.get("direccion") or "Sin vía" for row in affectation_rows), "via"),
-            "por_tipo_afectacion": _counter(Counter(row.get("tipo_afectacion") or "Sin tipo" for row in affectation_rows), "tipo_afectacion"),
-            "por_hora": _counter(Counter(row.get("hora_inicio") or "Sin hora" for row in affectation_rows), "hora"),
-        },
+        "summary": afectaciones_resumen.get("summary", {"top_vias": [], "por_tipo_afectacion": [], "por_hora": []}),
         "mobility": {
-            "trafico_por_via": _sum_by(traffic_rows, "direccion", "trafico_flujo", "via"),
-            "plazas_por_tipo": _sum_by(reserved_rows, "tipo_plaza", "plaza_numero", "tipo_plaza"),
-            "parking_ocupacion": [{"parking": entry["row"].get("nombre") or entry["row"].get("direccion") or "Parking", "count": entry["rate"]} for entry in parking_entries[:8]],
+            "trafico_por_via": [
+                {"via": p.get("direccion"), "count": p.get("pct_tiempo_alto_critico", 0)}
+                for p in (trafico_congestion.get("prioridades") or [])
+            ],
+            "plazas_por_tipo": [
+                {"tipo_plaza": r.get("categoria"), "count": r.get("registros")}
+                for r in reservadas_layer5.get("reglas", [])
+            ],
+            "parking_ocupacion": [
+                {"parking": p.get("parking"), "count": p.get("count")}
+                for p in parking_por_via.get("por_via", [])
+            ],
         },
-        "its": {"por_categoria": _counter(Counter(row.get("categoria") or "Sin categoría" for row in its_rows), "categoria")},
+        "its": {
+            "por_categoria": [
+                {"categoria": r.get("categoria"), "count": r.get("registros")}
+                for r in its_layer5.get("reglas", [])
+            ],
+        },
         "occupancy": {
-            "por_tipo": _counter(Counter(row.get("tipo_ocupacion") or "Sin tipo" for row in occupancy_rows), "tipo_ocupacion"),
-            "superficie_por_via": _sum_by(occupancy_rows, "direccion", "ocupacion_superficie", "via"),
+            "por_tipo": [
+                {"tipo_ocupacion": r.get("categoria"), "count": r.get("registros")}
+                for r in ocupacion_layer5.get("reglas", [])
+            ],
+            "superficie_por_via": ocupacion_superficie.get("por_via", []),
         },
-        "priority_zones": priority_zones,
-        "errors": [*affectations.get("errors", []), *its.get("errors", []), *traffic.get("errors", []), *parking.get("errors", []), *reserved.get("errors", []), *bike.get("errors", []), *occupancy.get("errors", [])],
+        "obras_impacto_trafico": afectaciones_trafico.get("obras", []),
+        "priority_zones": priority_zones[:8],
+        "errors": [item for sublist in errors for item in sublist],
     }
 
 

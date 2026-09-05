@@ -1042,10 +1042,11 @@ export default function App() {
             </div>
 
             <div className="kpi-grid">
-              <KpiCard label="Flujo de tráfico" value={formatNumber(dashboard.kpis?.trafico_total)} detail="Vehículos medidos" accent="blue" />
+              <KpiCard label="Tráfico en alto/crítico" value={formatNumber(dashboard.kpis?.trafico_pct_alto_critico, "%")} detail="Tiempo medido en niveles alto o crítico" accent="blue" />
               <KpiCard label="Parking ocupado" value={formatNumber(dashboard.kpis?.ocupacion_parking_media, "%")} detail={`${formatNumber(dashboard.kpis?.plazas_reservadas)} plazas reservadas`} accent="green" />
               <KpiCard label="Afectaciones" value={formatNumber(dashboard.kpis?.total_afectaciones)} detail="Registros urbanos" accent="amber" />
               <KpiCard label="Espacio ocupado" value={formatNumber(dashboard.kpis?.superficie_ocupada_m2, " m2")} detail={`${formatNumber(dashboard.kpis?.total_ocupaciones)} ocupaciones`} accent="red" />
+              <KpiCard label="Cobertura PMR (ITS)" value={formatNumber(dashboard.kpis?.its_pct_accesibilidad_pmr, "%")} detail="Dispositivos ITS con accesibilidad PMR" accent="green" />
             </div>
 
             <div className="dashboard-tabs" role="tablist" aria-label="Vistas del cuadro de mando">
@@ -1066,13 +1067,13 @@ export default function App() {
                   ))}
                 </div>
                 <div className="dashboard-charts single-column">
-                  <BarChart title="Tráfico por vía" items={dashboard.mobility?.trafico_por_via || []} labelKey="via" />
+                  <BarChart title="Vías más congestionadas (% tiempo alto/crítico)" items={dashboard.mobility?.trafico_por_via || []} labelKey="via" suffix="%" />
                   <BarChart title="Superficie ocupada por vía" items={dashboard.occupancy?.superficie_por_via || []} labelKey="via" suffix=" m2" />
                 </div>
               </div>
             )}
 
-            {dashboardView === "movilidad" && <div className="dashboard-charts"><BarChart title="Tráfico por vía" items={dashboard.mobility?.trafico_por_via || []} labelKey="via" /><BarChart title="Parking más ocupado" items={dashboard.mobility?.parking_ocupacion || []} labelKey="parking" suffix="%" /><BarChart title="Plazas reservadas por tipo" items={dashboard.mobility?.plazas_por_tipo || []} labelKey="tipo_plaza" /></div>}
+            {dashboardView === "movilidad" && <div className="dashboard-charts"><BarChart title="Vías más congestionadas (% tiempo alto/crítico)" items={dashboard.mobility?.trafico_por_via || []} labelKey="via" suffix="%" /><BarChart title="Parking más ocupado" items={dashboard.mobility?.parking_ocupacion || []} labelKey="parking" suffix="%" /><BarChart title="Plazas reservadas por tipo" items={dashboard.mobility?.plazas_por_tipo || []} labelKey="tipo_plaza" /></div>}
 
             {dashboardView === "congestion" && (
               <div className="dashboard-layout wide-left">
@@ -1169,6 +1170,31 @@ export default function App() {
                         </p>
                         <p><strong>Recomendación:</strong> {prediccion.data.recomendacion}</p>
                       </div>
+                    )}
+                  </article>
+
+                  <article className="chart-card">
+                    <h2>Impacto de obras en el tráfico (EQ2)</h2>
+                    {(dashboard.obras_impacto_trafico || []).length === 0 ? (
+                      <p className="chart-empty">
+                        Sin obras con mediciones de tráfico solapadas todavía: los datos reales de
+                        tráfico solo cubren 3 fechas (feb-2026) mientras que las afectaciones se
+                        reparten por todo el año, así que casi nunca coinciden en el tiempo.
+                      </p>
+                    ) : (
+                      dashboard.obras_impacto_trafico.map((obra) => (
+                        <div className="priority-row" key={`${obra.nombre}-${obra.direccion}`}>
+                          <div>
+                            <div className="priority-title">
+                              <strong>{obra.nombre}</strong>
+                              <span className={`risk-badge ${riskClassFromNivel(obra.impacto_estimado)}`}>{obra.impacto_estimado}</span>
+                            </div>
+                            <p>{obra.direccion} · {obra.tipo_intervencion}</p>
+                            <p>Flujo antes: {formatNumber(obra.flujo_antes)} veh/h · durante: {formatNumber(obra.flujo_durante)} veh/h</p>
+                          </div>
+                          <strong className="priority-score">{formatNumber(obra.variacion_trafico_pct, "%")}</strong>
+                        </div>
+                      ))
                     )}
                   </article>
                 </div>

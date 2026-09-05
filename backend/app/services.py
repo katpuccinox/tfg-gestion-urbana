@@ -919,6 +919,149 @@ def build_afectaciones_trafico_mart() -> Dict[str, Any]:
         return {"is_valid": False, "errors": [str(exc)]}
 
 
+def get_afectaciones_trafico_resumen(limit: int = 10) -> Dict[str, Any]:
+    """EQ2 (parcial): impacto real medido de cada obra sobre el flujo de tráfico de su
+    propia vía, leyendo el mart ya materializado por build_afectaciones_trafico_mart()
+    (flujo antes/durante/después, % de variación, nivel de impacto estimado)."""
+    table = "lake.analytics.afectaciones_trafico"
+    try:
+        total_rows = run_trino_query(f"SELECT count(*) FROM {table}")
+        total = total_rows[0][0] if total_rows else 0
+        if total == 0:
+            return {"is_valid": True, "source": table, "total_registros": 0, "obras": []}
+
+        rows = run_trino_query(
+            f"""
+            SELECT nombre, direccion, tipo_intervencion, flujo_antes, flujo_durante,
+                   variacion_trafico_pct, impacto_estimado
+            FROM {table}
+            WHERE flujo_antes IS NOT NULL AND flujo_durante IS NOT NULL
+            ORDER BY variacion_trafico_pct DESC
+            LIMIT %d
+            """ % limit
+        )
+        return {
+            "is_valid": True,
+            "source": table,
+            "total_registros": total,
+            "obras": [
+                {
+                    "nombre": r[0], "direccion": r[1], "tipo_intervencion": r[2],
+                    "flujo_antes": round(r[3], 1) if r[3] is not None else None,
+                    "flujo_durante": round(r[4], 1) if r[4] is not None else None,
+                    "variacion_trafico_pct": r[5], "impacto_estimado": r[6],
+                }
+                for r in rows
+            ],
+        }
+    except Exception as exc:
+        return {"is_valid": False, "source": table, "errors": [str(exc)]}
+
+
+def get_parking_por_via(limit: int = 8) -> Dict[str, Any]:
+    """Ocupación media real por parking, leyendo el resumen ya calculado por
+    _movilidad_parking_exploitation_select_sql (lake.analytics.movilidad_parking_resumen).
+    Esa tabla no lleva dataset_id (es un agregado ya materializado), así que no admite
+    filtro por municipio -- ver limitación conocida en el plan de esta dimensión."""
+    table = "lake.analytics.movilidad_parking_resumen"
+    try:
+        rows = run_trino_query(
+            f"""
+            SELECT direccion, avg(ocupacion_media_pct), max(pct_saturacion)
+            FROM {table}
+            GROUP BY direccion
+            ORDER BY 2 DESC
+            LIMIT {limit}
+            """
+        )
+        return {
+            "is_valid": True,
+            "source": table,
+            "por_via": [
+                {"parking": r[0], "count": round(r[1], 1) if r[1] is not None else 0.0, "pct_saturacion_max": r[2]}
+                for r in rows
+            ],
+        }
+    except Exception as exc:
+        return {"is_valid": False, "source": table, "errors": [str(exc)]}
+
+
+def get_ocupacion_superficie_por_via(municipio_prefix: str | None = None, limit: int = 8) -> Dict[str, Any]:
+    """Superficie ocupada real (m2) agregada por vía, para el cuadro de mando."""
+    table = "lake.curated.ocupacion_permanente_espacio_publico"
+    where_clause = ""
+    if municipio_prefix:
+        where_clause = f" WHERE lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')"
+    try:
+        rows = run_trino_query(
+            f"""
+            SELECT direccion, sum(ocupacion_superficie)
+            FROM {table}{where_clause}
+            GROUP BY direccion
+            ORDER BY 2 DESC
+            LIMIT {limit}
+            """
+        )
+        total_rows = run_trino_query(f"SELECT coalesce(sum(ocupacion_superficie), 0) FROM {table}{where_clause}")
+        return {
+            "is_valid": True,
+            "source": table,
+            "total_m2": round(total_rows[0][0], 1) if total_rows else 0.0,
+            "por_via": [{"via": r[0], "count": round(r[1], 1) if r[1] is not None else 0.0} for r in rows],
+        }
+    except Exception as exc:
+        return {"is_valid": False, "source": table, "errors": [str(exc)]}
+
+
+def get_its_pmr_coverage(municipio_prefix: str | None = None) -> Dict[str, Any]:
+    """AQ6 desde el lado ITS: accesibilidad_pmr es un booleano real (no una columna de
+    allowed_values), así que build_dimension_layer5 no lo agrega -- se cuenta aparte."""
+    table = "lake.curated.control_gestion_its"
+    where_clause = ""
+    if municipio_prefix:
+        where_clause = f" WHERE lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')"
+    try:
+        rows = run_trino_query(f"SELECT count(*), count_if(accesibilidad_pmr) FROM {table}{where_clause}")
+        total, con_pmr = rows[0] if rows else (0, 0)
+        return {
+            "is_valid": True,
+            "source": table,
+            "kpis": {
+                "total_dispositivos": total,
+                "con_accesibilidad_pmr": con_pmr,
+                "pct_accesibilidad_pmr": round(con_pmr / total * 100, 1) if total else 0.0,
+            },
+        }
+    except Exception as exc:
+        return {"is_valid": False, "source": table, "errors": [str(exc)]}
+
+
+def get_carriles_bici_kpis(municipio_prefix: str | None = None) -> Dict[str, Any]:
+    """movilidad_carriles_bici no tiene columna categórica (solo id/dirección/
+    coordenadas/longitud), así que no encaja en build_dimension_layer5: aquí se da
+    el resumen numérico que sí tiene sentido para esta dimensión."""
+    table = "lake.curated.movilidad_carriles_bici"
+    where_clause = ""
+    if municipio_prefix:
+        where_clause = f" WHERE lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')"
+    try:
+        rows = run_trino_query(
+            f"SELECT count(*), coalesce(sum(carril_bici_longitud), 0), coalesce(avg(carril_bici_longitud), 0) FROM {table}{where_clause}"
+        )
+        total, longitud_total, longitud_media = rows[0] if rows else (0, 0, 0)
+        return {
+            "is_valid": True,
+            "source": table,
+            "kpis": {
+                "total_segmentos": total,
+                "longitud_total_m": round(longitud_total, 1),
+                "longitud_media_m": round(longitud_media, 1),
+            },
+        }
+    except Exception as exc:
+        return {"is_valid": False, "source": table, "errors": [str(exc)]}
+
+
 def build_afectaciones_layers() -> Dict[str, Any]:
     """Crea las capas Iceberg tipada y descriptiva a partir de raw."""
     try:
