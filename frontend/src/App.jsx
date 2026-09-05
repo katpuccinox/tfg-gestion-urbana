@@ -421,7 +421,19 @@ export default function App() {
   }
 
   async function ensurePolicyAccepted(onAccepted) {
-    const policy = await fetch("/politicas/vigente", { headers: { Authorization: `Bearer ${token}` } }).then((response) => response.json());
+    let response;
+    let policy;
+    try {
+      response = await fetch("/politicas/vigente", { headers: { Authorization: `Bearer ${token}` } });
+      policy = await response.json();
+    } catch (error) {
+      setStatus("No se pudo comprobar las condiciones de uso vigentes. Inténtalo de nuevo.", true);
+      return false;
+    }
+    if (!response.ok || !policy.version) {
+      setStatus(policy?.detail || "No se pudo comprobar las condiciones de uso vigentes. Inténtalo de nuevo.", true);
+      return false;
+    }
     if (!policy.ya_aceptada) {
       pendingPolicyActionRef.current = onAccepted || null;
       setPolicyModal({ open: true, version: policy.version, titulo: policy.titulo, contenido: policy.contenido });
