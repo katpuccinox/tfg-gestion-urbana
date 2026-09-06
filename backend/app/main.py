@@ -532,7 +532,11 @@ def admin_historial_catalogo(user: dict = Depends(require_audit_access)) -> Dict
 
 
 @app.post("/ingesta/validar")
-def validar_archivo(file: UploadFile = File(...)) -> Dict[str, object]:
+def validar_archivo(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_write_access),
+    _policy: dict = Depends(require_policy_accepted),
+) -> Dict[str, object]:
     # Revisa que el archivo sea un CSV y lo valida con la lógica del servicio.
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="El archivo debe ser un CSV")
@@ -637,7 +641,12 @@ def verificar_lake(filename: str | None = None, dataset: str = "afectaciones_urb
 
 
 @app.post("/ingesta/lake/mover")
-def mover_lake(filename: str, dataset: str = "afectaciones_urbanas") -> Dict[str, object]:
+def mover_lake(
+    filename: str,
+    dataset: str = "afectaciones_urbanas",
+    current_user: dict = Depends(require_write_access),
+    _policy: dict = Depends(require_policy_accepted),
+) -> Dict[str, object]:
     result = move_staged_file_to_raw(filename, dataset_name=dataset)
     return {
         "filename": filename,
@@ -656,13 +665,19 @@ def afectaciones_kpis_sql(table: str = "afectaciones_urbanas", _policy: dict = D
 
 
 @app.post("/analysis/layers/afectaciones")
-def construir_capas_afectaciones() -> Dict[str, object]:
+def construir_capas_afectaciones(
+    current_user: dict = Depends(require_write_access),
+    _policy: dict = Depends(require_policy_accepted),
+) -> Dict[str, object]:
     # Construye únicamente las capas tipada y descriptiva; no resuelve preguntas ni impacto avanzado.
     return build_afectaciones_layers()
 
 
 @app.post("/iceberg/gold/afectaciones/construir")
-def construir_capas_gold_afectaciones() -> Dict[str, object]:
+def construir_capas_gold_afectaciones(
+    current_user: dict = Depends(require_write_access),
+    _policy: dict = Depends(require_policy_accepted),
+) -> Dict[str, object]:
     """Materializa las capas Iceberg Curated y Analytics de afectaciones."""
     return build_afectaciones_layers()
 
@@ -958,7 +973,12 @@ def _get_dataset_contract(dataset: str) -> dict:
 
 
 @app.post("/hive/bronze/validar")
-def validar_capa2(file: UploadFile = File(...), dataset: str = "gestion_afectaciones_urbanas") -> Dict[str, object]:
+def validar_capa2(
+    file: UploadFile = File(...),
+    dataset: str = "gestion_afectaciones_urbanas",
+    current_user: dict = Depends(require_write_access),
+    _policy: dict = Depends(require_policy_accepted),
+) -> Dict[str, object]:
     """Capa 2: valida la admisibilidad completa del fichero sin modificarlo."""
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="El archivo debe ser un CSV")
@@ -977,6 +997,8 @@ def normalizar_capa3(
     dataset: str = "gestion_afectaciones_urbanas",
     entity: str = "municipio_demo",
     period: str = "",
+    current_user: dict = Depends(require_write_access),
+    _policy: dict = Depends(require_policy_accepted),
 ) -> Dict[str, object]:
     """Capa 3: normaliza solo ficheros previamente admisibles en Capa 2."""
     if not file.filename or not file.filename.lower().endswith(".csv"):
@@ -995,6 +1017,8 @@ def preservar_bronze(
     dataset: str = "movilidad_trafico",
     entity: str = "municipio_demo",
     period: str = "",
+    current_user: dict = Depends(require_write_access),
+    _policy: dict = Depends(require_policy_accepted),
 ) -> Dict[str, object]:
     """Capa 1: registra y preserva el original antes de la validación de Capa 2."""
     if not file.filename or not file.filename.lower().endswith(".csv"):
@@ -1004,21 +1028,29 @@ def preservar_bronze(
 
 
 @app.post("/ingesta/recepciones/its")
-def registrar_recepcion_its(file: UploadFile = File(...)) -> Dict[str, object]:
+def registrar_recepcion_its(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_write_access),
+    _policy: dict = Depends(require_policy_accepted),
+) -> Dict[str, object]:
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="El archivo debe ser un CSV")
     return {"filename": file.filename, **register_dimension_delivery(file.filename, file.file.read(), "control_gestion_its")}
 
 
 @app.post("/ingesta/recepciones/ocupacion")
-def registrar_recepcion_ocupacion(file: UploadFile = File(...)) -> Dict[str, object]:
+def registrar_recepcion_ocupacion(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_write_access),
+    _policy: dict = Depends(require_policy_accepted),
+) -> Dict[str, object]:
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="El archivo debe ser un CSV")
     return {"filename": file.filename, **register_dimension_delivery(file.filename, file.file.read(), "ocupacion_permanente_espacio_publico")}
 
 
 @app.post("/ingesta/its/capa0")
-def registrar_its_capa0(file: UploadFile = File(...), entity: str = "municipio_demo", period: str = "", schema_version: str = "v1", municipio_id: str | None = None, anio: int | None = None, fecha_hora_inicio_remision: datetime | None = None, numero_intento_carga: int = 1) -> Dict[str, object]:
+def registrar_its_capa0(file: UploadFile = File(...), entity: str = "municipio_demo", period: str = "", schema_version: str = "v1", municipio_id: str | None = None, anio: int | None = None, fecha_hora_inicio_remision: datetime | None = None, numero_intento_carga: int = 1, current_user: dict = Depends(require_write_access), _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Capa 0: registra la recepción de control_gestion_its sin ingerir filas."""
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="El archivo debe ser un CSV")
@@ -1027,7 +1059,7 @@ def registrar_its_capa0(file: UploadFile = File(...), entity: str = "municipio_d
 
 
 @app.post("/ingesta/ocupacion/capa0")
-def registrar_ocupacion_capa0(file: UploadFile = File(...), entity: str = "municipio_demo", period: str = "", schema_version: str = "v1", municipio_id: str | None = None, anio: int | None = None, fecha_hora_inicio_remision: datetime | None = None, numero_intento_carga: int = 1) -> Dict[str, object]:
+def registrar_ocupacion_capa0(file: UploadFile = File(...), entity: str = "municipio_demo", period: str = "", schema_version: str = "v1", municipio_id: str | None = None, anio: int | None = None, fecha_hora_inicio_remision: datetime | None = None, numero_intento_carga: int = 1, current_user: dict = Depends(require_write_access), _policy: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
     """Capa 0: registra la recepción de ocupación permanente sin ingerir filas."""
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="El archivo debe ser un CSV")
@@ -1111,7 +1143,7 @@ def interpretar_ollama(dimension: str, limit: int = 200, question_id: str = "AQ1
 
 
 @app.post("/db/init")
-def init_db() -> Dict[str, str]:
+def init_db(admin: dict = Depends(require_admin)) -> Dict[str, str]:
     # Crea la tabla inicial de datasets si aún no existe.
     host = os.getenv("POSTGRES_HOST", "postgres")
     port = os.getenv("POSTGRES_PORT", "5432")
