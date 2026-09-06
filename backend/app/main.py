@@ -102,10 +102,30 @@ from app.services import (
     validate_csv_text,
 )
 
+
+def _allowed_cors_origins() -> list[str]:
+    # En uso normal el navegador nunca llama a esto entre orígenes: Caddy/nginx/Vite
+    # reenvían la API bajo el mismo origen que sirve el frontend (ver Caddyfile,
+    # frontend/nginx.conf, frontend/vite.config.js). Esta lista es solo para quien
+    # acceda al backend directamente (127.0.0.1:8000) desde el navegador.
+    origins = {
+        "http://localhost",
+        "https://localhost",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    }
+    domain = os.getenv("DOMAIN", "localhost")
+    if domain and domain != "localhost":
+        origins.update({f"https://{domain}", f"http://{domain}"})
+    return sorted(origins)
+
+
 app = FastAPI(title="Plataforma de datos municipales")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
