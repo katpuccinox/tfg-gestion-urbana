@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: datalake_local
       POSTGRES_DB: datalake
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -39,7 +39,7 @@ services:
       - postgres
       - nifi
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
 
   frontend:
     build: ./frontend
@@ -77,7 +77,7 @@ services:
       SINGLE_USER_CREDENTIALS_USERNAME: "admin"
       SINGLE_USER_CREDENTIALS_PASSWORD: "Admin1234!Secure"
     ports:
-      - "8443:8443"
+      - "127.0.0.1:8443:8443"
     volumes:
       - nifi_conf:/opt/nifi/nifi-current/conf
       - nifi_flow:/opt/nifi/nifi-current/flowfile_repository
@@ -90,7 +90,7 @@ services:
     restart: unless-stopped
     command: master -ip=seaweedfs-master -port=9333
     ports:
-      - "9333:9333"
+      - "127.0.0.1:9333:9333"
     volumes:
       - seaweedfs_master_data:/data
 
@@ -122,7 +122,7 @@ services:
     depends_on:
       - seaweedfs-filer
     ports:
-      - "9100:8333"
+      - "127.0.0.1:9100:8333"
     volumes:
       - ./infra/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
 
@@ -166,7 +166,7 @@ services:
       HIVE_AUX_JARS_PATH: /opt/hive/lib/postgresql-42.7.4.jar,/opt/hive/lib/aws-java-sdk-bundle-1.11.1026.jar
       SERVICE_OPTS: "-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://hive-metastore-db:5432/metastore_db -Djavax.jdo.option.ConnectionUserName=hive -Djavax.jdo.option.ConnectionPassword=hive"
     ports:
-      - "9083:9083"
+      - "127.0.0.1:9083:9083"
 
   trino:
     image: trinodb/trino:435
@@ -176,7 +176,7 @@ services:
       - seaweedfs-s3
       - hive-metastore
     ports:
-      - "9110:8080"
+      - "127.0.0.1:9110:8080"
     volumes:
       - ./infra/trino/catalog:/etc/trino/catalog:ro
 
