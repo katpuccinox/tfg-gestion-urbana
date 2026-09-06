@@ -1501,6 +1501,20 @@ def _dimension_curated_select_sql(contract: Dict[str, Any], source_table: str) -
     return f"SELECT {', '.join(selected_columns)} FROM {source_table}"
 
 
+# Algunas entregas históricas de afectaciones guardan "gestion_afectaciones_urbanas"
+# como dataset (nombre del contrato original), pero la tabla curated real siempre
+# se llama "afectaciones_urbanas". Cualquier consulta que construya
+# lake.curated.{dataset} a partir de ingesta_entregas.dataset debe resolver el
+# alias aquí, o falla con TABLE_NOT_FOUND (bug real encontrado en list_catalog_entries
+# y get_catalog_entry_csv: la entrega de afectaciones de MALAGA usa ese alias y
+# quedaba invisible en el catálogo de datos).
+CURATED_TABLE_ALIASES = {"gestion_afectaciones_urbanas": "afectaciones_urbanas"}
+
+
+def resolve_curated_table_name(dataset: str) -> str:
+    return CURATED_TABLE_ALIASES.get(dataset, dataset)
+
+
 def build_dimension_layer4(dataset: str, contract: Dict[str, Any], normalized_table: str) -> Dict[str, Any]:
     """Materializa Capa 4 en Iceberg desde la representación normalizada de Capa 3.
 
@@ -1515,9 +1529,9 @@ def build_dimension_layer4(dataset: str, contract: Dict[str, Any], normalized_ta
     dataset_id, p. ej. una corrección), sus filas anteriores se sustituyen para no
     duplicar, pero el resto de periodos no se ve afectado.
     """
-    curated_table = f"lake.curated.{dataset}" if dataset != "gestion_afectaciones_urbanas" else "lake.curated.afectaciones_urbanas"
-    location_name = "afectaciones_urbanas" if dataset in ("afectaciones_urbanas", "gestion_afectaciones_urbanas") else dataset
-    analytics_table = f"lake.analytics.{location_name}_resumen"
+    resolved_table_name = resolve_curated_table_name(dataset)
+    curated_table = f"lake.curated.{resolved_table_name}"
+    analytics_table = f"lake.analytics.{resolved_table_name}_resumen"
 
     curated_select_sql = _dimension_curated_select_sql(contract, normalized_table)
 
@@ -1527,7 +1541,7 @@ def build_dimension_layer4(dataset: str, contract: Dict[str, Any], normalized_ta
     )
     analytics_sql = f"""
         CREATE TABLE {analytics_table}
-        WITH (format = 'PARQUET', location = 's3://analytics/iceberg/{location_name}_resumen/') AS
+        WITH (format = 'PARQUET', location = 's3://analytics/iceberg/{resolved_table_name}_resumen/') AS
         {aggregation_select}
     """
 
@@ -1535,7 +1549,7 @@ def build_dimension_layer4(dataset: str, contract: Dict[str, Any], normalized_ta
         run_trino_statement(f"DROP TABLE IF EXISTS {curated_table}")
         run_trino_statement(
             f"CREATE TABLE {curated_table} "
-            f"WITH (format = 'PARQUET', location = 's3://curated/iceberg/{location_name}/') AS "
+            f"WITH (format = 'PARQUET', location = 's3://curated/iceberg/{resolved_table_name}/') AS "
             f"{curated_select_sql}"
         )
 
@@ -2343,7 +2357,8 @@ def run_automatic_dimension_pipeline(
             "pipeline": pipeline,
         }
 
-    normalized = normalize_dimension_dataset(content_bytes, dataset, contract, effective_entity, period, schema_version)
+    identity_period = compute_identity_period(anio, period)
+    normalized = normalize_dimension_dataset(content_bytes, dataset, contract, effective_entity, identity_period, schema_version)
     if not normalized["is_valid"]:
         pipeline.append({"layer": 3, "stage": "normalization", "status": "error"})
         record_pipeline_stage(delivery_id, 3, "normalization", "error", {"errors": normalized.get("errors", [])})
@@ -2618,7 +2633,8 @@ def list_catalog_entries(municipio_id: str | None) -> list[Dict[str, Any]]:
     counts_by_dataset_and_key: Dict[str, Dict[str, int]] = {}
     for dataset in {row[2] for row in rows}:
         try:
-            count_rows = run_trino_query(f"SELECT dataset_id, count(*) FROM lake.curated.{dataset} GROUP BY dataset_id")
+            table = resolve_curated_table_name(dataset)
+            count_rows = run_trino_query(f"SELECT dataset_id, count(*) FROM lake.curated.{table} GROUP BY dataset_id")
             counts_by_dataset_and_key[dataset] = {key: count for key, count in count_rows}
         except Exception:
             counts_by_dataset_and_key[dataset] = {}
@@ -2661,8 +2677,9 @@ def get_catalog_entry_csv(delivery_id: int, requesting_municipio_id: str | None)
         return {"is_valid": False, "errors": ["Esta entrega no está marcada como compartida."], "forbidden": True}
 
     try:
+        table = resolve_curated_table_name(dataset)
         result = run_trino_query_with_columns(
-            f"SELECT * FROM lake.curated.{dataset} WHERE dataset_id = '{_sql_escape(logical_key)}'"
+            f"SELECT * FROM lake.curated.{table} WHERE dataset_id = '{_sql_escape(logical_key)}'"
         )
     except Exception as exc:
         return {"is_valid": False, "errors": [str(exc)]}
@@ -2737,6 +2754,76 @@ def get_ingest_delivery_detail(delivery_id: int) -> Dict[str, Any]:
     cur.close()
     conn.close()
     return {"is_valid": True, "entrega": entrega, "eventos": eventos, "incidencias": incidencias}
+
+
+def delete_ingest_delivery(delivery_id: int) -> Dict[str, Any]:
+    """Borra por completo una entrega: sus filas ya materializadas en
+    lake.curated (los Iceberg de este proyecto son format_version=2, con soporte
+    real de DELETE por fila) y todo su rastro de seguimiento en Postgres.
+
+    Pensada como herramienta de administración para deshacer entregas de prueba
+    (p. ej. subir un CSV bajo un municipio de prueba para comprobar el flujo de
+    ingesta) sin dejar residuo permanente en las vistas agregadas de
+    admin_estatal/consumidor -- no forma parte del flujo normal de producción,
+    donde una entrega no debería borrarse nunca.
+
+    Limitación conocida: no reconstruye los marts de lake.analytics.*_resumen
+    (agregados ya materializados, sin dataset_id, no derivables por filtro) --
+    si la entrega borrada había contribuido a alguno, ese resumen queda
+    temporalmente por encima del dato real hasta el próximo build_dimension_layer4
+    de esa dimensión."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT logical_key, dataset FROM ingesta_entregas WHERE id = %s", (delivery_id,))
+    row = cur.fetchone()
+    if not row:
+        cur.close()
+        conn.close()
+        return {"is_valid": False, "errors": [f"Entrega no encontrada: {delivery_id}"]}
+    logical_key, dataset = row
+    table = resolve_curated_table_name(dataset)
+
+    curated_rows_deleted = 0
+    try:
+        delete_result = run_trino_query(
+            f"DELETE FROM lake.curated.{table} WHERE dataset_id = '{_sql_escape(logical_key)}'"
+        )
+        curated_rows_deleted = int(delete_result[0][0]) if delete_result and delete_result[0] else 0
+    except Exception as exc:
+        cur.close()
+        conn.close()
+        return {"is_valid": False, "errors": [f"No se pudo borrar de lake.curated.{table}: {exc}"]}
+
+    try:
+        cur.execute("DELETE FROM ingesta_incidencias WHERE delivery_id = %s", (delivery_id,))
+        cur.execute("DELETE FROM ingesta_eventos_recepcion WHERE delivery_id = %s", (delivery_id,))
+        cur.execute("DELETE FROM ingesta_objetos_preservados WHERE delivery_id = %s", (delivery_id,))
+        cur.execute("DELETE FROM ingesta_progreso_capas WHERE delivery_id = %s", (delivery_id,))
+        cur.execute("DELETE FROM capa2_validaciones WHERE delivery_id = %s", (delivery_id,))
+        cur.execute("DELETE FROM capa3_control_dataset WHERE dataset_id = %s", (logical_key,))
+        cur.execute("DELETE FROM ingesta_entregas WHERE id = %s", (delivery_id,))
+        conn.commit()
+    except Exception as exc:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return {
+            "is_valid": False,
+            "errors": [
+                f"Se borraron {curated_rows_deleted} filas de lake.curated.{table} pero falló el "
+                f"borrado del rastro en Postgres (quedó huérfano, no reintentable automáticamente): {exc}"
+            ],
+        }
+    cur.close()
+    conn.close()
+
+    return {
+        "is_valid": True,
+        "delivery_id": delivery_id,
+        "logical_key": logical_key,
+        "table": table,
+        "curated_rows_deleted": curated_rows_deleted,
+    }
 
 
 def mark_dataset_ingested(validacion_id: str | None) -> None:
@@ -2872,6 +2959,23 @@ def build_delivery_key(
     return "|".join((str(part).strip() or "_" for part in parts))
 
 
+def compute_identity_period(anio: int | None, period: str | None) -> str:
+    """Antepone el año al periodo cuando no está ya contenido en su texto (p. ej.
+    "PruebaBorrado2" + anio=2026 -> "2026:PruebaBorrado2"; "Anual" + anio=2026 igual,
+    pero "2026" o "Anual 2026" se quedan tal cual).
+
+    Debe ser la ÚNICA función que decide esto: tanto register_delivery (Capa 0,
+    construye ingesta_entregas.logical_key) como run_automatic_dimension_pipeline
+    (Capa 3, construye el dataset_id que se materializa en lake.curated) tienen que
+    llamarla con los mismos anio/period para que logical_key y dataset_id coincidan
+    -- antes cada uno reimplementaba esta lógica por su cuenta y divergían en cuanto
+    se pasaba anio (el caso normal: el formulario de subida del frontend siempre
+    manda anio y periodo por separado), dejando la entrega invisible en el catálogo
+    de datos y sin poder borrarla por dataset_id."""
+    period_contains_year = bool(anio and re.search(rf"(?<!\d){anio}(?!\d)", period or ""))
+    return period if not anio or period_contains_year else f"{anio}:{period or '_'}"
+
+
 def register_delivery(
     filename: str,
     content_bytes: bytes,
@@ -2897,8 +3001,7 @@ def register_delivery(
     "privado" la deja visible solo para su propio municipio y para admin/auditor."""
     if visibilidad not in ("compartido", "privado"):
         visibilidad = "compartido"
-    period_contains_year = bool(anio and re.search(rf"(?<!\d){anio}(?!\d)", period or ""))
-    identity_period = period if not anio or period_contains_year else f"{anio}:{period or '_'}"
+    identity_period = compute_identity_period(anio, period)
     logical_key = build_delivery_key(entity, dimension, dataset, identity_period, schema_version)
     content_sha256 = hashlib.sha256(content_bytes).hexdigest()
     entry_channel = entry_channel.strip() or "web_manual"

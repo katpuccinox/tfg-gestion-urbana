@@ -71,6 +71,7 @@ from app.services import (
     get_eq2_afectaciones_its,
     get_eq3_ocupacion_afectaciones,
     get_eq4_ocupacion_carga_trafico,
+    delete_ingest_delivery,
     get_ingest_delivery_detail,
     list_catalog_entries,
     get_ocupacion_superficie_por_via,
@@ -198,6 +199,16 @@ def admin_detalle_ingesta(delivery_id: int, user: dict = Depends(require_roles(R
     if user["role"] == ROLE_CONSUMIDOR and detail["entrega"].get("visibilidad") != "compartido":
         raise HTTPException(status_code=403, detail="Esta entrega no está marcada como compartida.")
     return detail
+
+
+@app.delete("/admin/ingestas/{delivery_id}")
+def admin_borrar_ingesta(delivery_id: int, admin: dict = Depends(require_admin)) -> Dict[str, object]:
+    """Borra por completo una entrega (lake.curated + rastro en Postgres). Pensada
+    para deshacer entregas de prueba, no para el flujo normal de producción."""
+    result = delete_ingest_delivery(delivery_id)
+    if not result.get("is_valid"):
+        raise HTTPException(status_code=400, detail=result.get("errors", ["No se pudo borrar la entrega"]))
+    return result
 
 
 @app.get("/catalogo/publico")

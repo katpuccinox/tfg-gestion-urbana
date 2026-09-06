@@ -1975,6 +1975,19 @@ td {
   max-width: 820px;
 }
 
+.modal-card .panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-heading-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .modal-card h3 {
   font-size: 0.95rem;
   margin: 1.2rem 0 0.5rem;

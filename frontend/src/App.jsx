@@ -482,6 +482,26 @@ export default function App() {
     }
   }
 
+  async function handleBorrarIngesta(deliveryId, dataset, municipio) {
+    const confirmado = window.confirm(
+      `⚠️ Vas a borrar PERMANENTEMENTE la entrega #${deliveryId} (${dataset} · ${municipio}).\n\n` +
+      "Esto elimina sus filas de lake.curated y todo su rastro de seguimiento. No se puede deshacer. " +
+      "Pensado solo para deshacer entregas de prueba, no para producción.\n\n¿Continuar?"
+    );
+    if (!confirmado) return;
+    try {
+      const result = await adminFetch(`/admin/ingestas/${deliveryId}`, { method: "DELETE" });
+      setAdminStatus({
+        message: `Entrega #${deliveryId} borrada: ${result.curated_rows_deleted} filas eliminadas de lake.curated.${result.table}.`,
+        type: "success",
+      });
+      setIngestaDetalle(null);
+      await loadAdminPanel();
+    } catch (error) {
+      setAdminStatus({ message: error.message || "No se pudo borrar la entrega.", type: "error" });
+    }
+  }
+
   async function handleResincronizarCatalogo() {
     try {
       await adminFetch("/gobierno/contratos/sincronizar", { method: "POST" });
@@ -1823,7 +1843,20 @@ export default function App() {
           <div className="card modal-card modal-wide">
             <div className="panel-heading">
               <h2>Entrega #{ingestaDetalle.entrega.id} · {ingestaDetalle.entrega.dataset}</h2>
-              <button className="btn alt" type="button" onClick={() => setIngestaDetalle(null)}>Cerrar</button>
+              <div className="modal-heading-actions">
+                <button
+                  className="btn danger"
+                  type="button"
+                  onClick={() => handleBorrarIngesta(
+                    ingestaDetalle.entrega.id,
+                    ingestaDetalle.entrega.dataset,
+                    ingestaDetalle.entrega.municipio_id || ingestaDetalle.entrega.entity,
+                  )}
+                >
+                  Borrar entrega
+                </button>
+                <button className="btn alt" type="button" onClick={() => setIngestaDetalle(null)}>Cerrar</button>
+              </div>
             </div>
             <dl className="detail-grid">
               <div><dt>Municipio</dt><dd>{ingestaDetalle.entrega.municipio_id || ingestaDetalle.entrega.entity}</dd></div>
