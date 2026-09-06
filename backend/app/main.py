@@ -644,6 +644,8 @@ def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user), _
             "score": round(entrada.get("pct_impacto", 0)),
             "nivel": _nivel_zona(entrada.get("nivel", "")),
             "reasons": [f"Obra ({entrada.get('tipo_intervencion') or 'sin dato'}): {entrada.get('pct_impacto', 0)}% de variación de tráfico"],
+            "lat": entrada.get("latitud"),
+            "lon": entrada.get("longitud"),
         })
     for entrada in (trafico_congestion.get("prioridades") or [])[:5]:
         pct = entrada.get("pct_tiempo_alto_critico", 0)

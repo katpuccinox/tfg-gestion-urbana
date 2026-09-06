@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+const MALAGA_CENTER = [36.7213, -4.4214];
+const RISK_COLORS = { critico: "#b91c1c", alto: "#d97706", medio: "#0f4dbf", bajo: "#15803d" };
 
 const DIMENSION_CHIPS = [
   { key: "afectaciones_urbanas", label: "Afectaciones Urbanas" },
@@ -104,6 +109,59 @@ function BarChart({ title, items, labelKey, suffix = "" }) {
 
 function KpiCard({ label, value, detail, accent = "blue" }) {
   return <article className={`kpi-card accent-${accent}`}><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>;
+}
+
+function CityMap({ points }) {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const layerRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+    const map = L.map(containerRef.current, { scrollWheelZoom: false }).setView(MALAGA_CENTER, 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(map);
+    layerRef.current = L.layerGroup().addTo(map);
+    mapRef.current = map;
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const layer = layerRef.current;
+    if (!map || !layer) return;
+    layer.clearLayers();
+
+    const valid = (points || [])
+      .map((point) => ({ ...point, lat: Number(point.lat), lon: Number(point.lon) }))
+      .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lon));
+
+    if (valid.length === 0) {
+      map.setView(MALAGA_CENTER, 13);
+      return;
+    }
+
+    valid.forEach((point) => {
+      L.circleMarker([point.lat, point.lon], {
+        radius: 9,
+        color: "#ffffff",
+        weight: 2,
+        fillColor: RISK_COLORS[point.nivel] || RISK_COLORS.bajo,
+        fillOpacity: 0.9,
+      })
+        .bindPopup(`<strong>${point.via}</strong><br />${(point.reasons || []).join("<br />")}`)
+        .addTo(layer);
+    });
+
+    map.fitBounds(L.latLngBounds(valid.map((point) => [point.lat, point.lon])), { padding: [30, 30], maxZoom: 16 });
+  }, [points]);
+
+  return <div className="city-map" ref={containerRef} />;
 }
 
 export default function App() {
@@ -1266,6 +1324,20 @@ export default function App() {
                   <BarChart title="Vías más congestionadas (% tiempo alto/crítico)" items={dashboard.mobility?.trafico_por_via || []} labelKey="via" suffix="%" />
                   <BarChart title="Superficie ocupada por vía" items={dashboard.occupancy?.superficie_por_via || []} labelKey="via" suffix=" m2" />
                 </div>
+
+                <article className="card city-map-panel">
+                  <div className="panel-heading">
+                    <span className="eyebrow">GEOLOCALIZACIÓN REAL</span>
+                    <h2>Afectaciones más críticas en el mapa</h2>
+                  </div>
+                  <CityMap points={(dashboard.priority_zones || []).filter((zone) => zone.lat != null && zone.lon != null)} />
+                  <div className="map-legend">
+                    <span><i style={{ background: RISK_COLORS.critico }} />Crítico</span>
+                    <span><i style={{ background: RISK_COLORS.alto }} />Alto</span>
+                    <span><i style={{ background: RISK_COLORS.medio }} />Medio</span>
+                    <span><i style={{ background: RISK_COLORS.bajo }} />Bajo</span>
+                  </div>
+                </article>
               </div>
             )}
 

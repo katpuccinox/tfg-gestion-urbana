@@ -257,6 +257,8 @@ def calcular_variacion_impacto(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
             "tipo_afectacion": row.get("tipo_afectacion"),
             "pct_impacto": pct_impacto,
             "nivel": nivel,
+            "latitud": row.get("latitud"),
+            "longitud": row.get("longitud"),
         })
 
     total = len(detalle)
@@ -303,6 +305,8 @@ def ranking_criticidad_por_via(detalle: List[Dict[str, Any]], top_n: int = 10) -
             "pct_impacto": d["pct_impacto"],
             "nivel": d["nivel"],
             "count": conteo_por_via.get(d.get("via") or "sin_dato", 1),
+            "latitud": d.get("latitud"),
+            "longitud": d.get("longitud"),
         }
         for d in ranking
     ]
