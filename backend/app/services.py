@@ -516,6 +516,9 @@ def build_movilidad_trafico_layer5(table: str = "movilidad_trafico", municipio_p
                 "pct_alto_critico": round(count_alto_critico / total * 100, 1) if total else 0.0,
             },
             "prioridades": prioridades,  # lista completa (todas las vías); los llamantes deciden si truncan
+            # Fuente única de los percentiles p50/p75/p90 por vía: predecir_congestion_via
+            # los reutiliza en vez de recalcularlos con su propia consulta a movilidad_trafico.
+            "percentiles_por_via": percentiles_por_via,
         }
     except Exception as exc:
         return {"is_valid": False, "source": curated_table, "errors": [str(exc)]}
@@ -806,21 +809,30 @@ def predecir_congestion_via(
     direccion: str,
     franja_horaria: str | None = None,
     dia_semana: str | None = None,
+    trafico_layer5: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Estima la congestión esperada en una vía a partir de su propio histórico — no es un
     modelo entrenado (con ~150 filas sintéticas no merece la pena todavía, ver memoria),
-    es una consulta a los mismos percentiles y reglas que ya calcula la capa 5 de tráfico."""
+    es una consulta al mismo percentil p50/p75/p90 por vía que ya calcula
+    build_movilidad_trafico_layer5 -- fuente única: antes esta función volvía a leer
+    movilidad_trafico entera y recalculaba su propio percentil por separado, pudiendo
+    divergir del que ya usa el resto de la Capa 5 de tráfico.
+
+    trafico_layer5: resultado ya calculado de build_movilidad_trafico_layer5(), para no
+    repetirlo si el llamante ya lo tiene."""
     # direccion en curated solo se pasa a minúsculas (no se le quitan tildes, a diferencia
     # de las columnas de catálogo) — normalizar igual aquí, no con normalize_catalog_value.
     direccion_normalizada = _sql_escape(direccion.strip().lower())
     curated_table = "lake.curated.movilidad_trafico"
     try:
-        result = run_trino_query_with_columns(
-            f"SELECT trafico_flujo, fecha_hora_inicio FROM {curated_table} WHERE direccion = '{direccion_normalizada}'"
-        )
-        historico = [row[0] for row in result["rows"] if row[0] is not None]
-        if not historico:
+        if trafico_layer5 is None:
+            trafico_layer5 = build_movilidad_trafico_layer5()
+        if not trafico_layer5.get("is_valid"):
+            return {"is_valid": False, "errors": trafico_layer5.get("errors", ["No se pudo calcular la congestión de tráfico."])}
+        percentiles = trafico_layer5.get("percentiles_por_via", {}).get(direccion_normalizada)
+        if not percentiles:
             return {"is_valid": False, "errors": [f"No hay histórico de tráfico para '{direccion}'."]}
+        p50, p75, p90 = percentiles["p50"], percentiles["p75"], percentiles["p90"]
 
         filtro_sql = f"direccion = '{direccion_normalizada}'"
         if franja_horaria:
@@ -828,13 +840,14 @@ def predecir_congestion_via(
         if dia_semana:
             filtro_sql += f" AND dia_semana = '{_sql_escape(normalize_catalog_value(dia_semana))}'"
         filtrado = run_trino_query_with_columns(f"SELECT trafico_flujo FROM {curated_table} WHERE {filtro_sql}")
-        muestra = [row[0] for row in filtrado["rows"] if row[0] is not None] or historico
+        muestra = [row[0] for row in filtrado["rows"] if row[0] is not None]
+        if not muestra:
+            # Sin datos para ese filtro exacto (franja/día concretos): usa el histórico
+            # completo de la vía como respaldo, igual que antes.
+            historico = run_trino_query_with_columns(f"SELECT trafico_flujo FROM {curated_table} WHERE direccion = '{direccion_normalizada}'")
+            muestra = [row[0] for row in historico["rows"] if row[0] is not None]
         flujo_esperado = sum(muestra) / len(muestra)
 
-        ordenados = sorted(historico)
-        def pct(p: float) -> float:
-            return ordenados[min(len(ordenados) - 1, int(len(ordenados) * p))]
-        p50, p75, p90 = pct(0.50), pct(0.75), pct(0.90)
         nivel = "Crítico" if flujo_esperado >= p90 else "Alto" if flujo_esperado >= p75 else "Medio" if flujo_esperado >= p50 else "Bajo"
 
         obra_activa = False
