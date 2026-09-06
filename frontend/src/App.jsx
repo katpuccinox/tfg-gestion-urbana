@@ -840,23 +840,24 @@ export default function App() {
   }
 
   async function resolveQuestionWithOllama(question) {
-    setOpenQuestion({ id: question.id, text: "Generando interpretación con Ollama..." });
+    setOpenQuestion({ id: question.id, loading: true, error: false, text: "", model: "" });
     try {
       const response = await fetch(`/analysis/interpretar/ollama/${encodeURIComponent(question.dimension)}?question_id=${encodeURIComponent(question.id)}`, { method: "POST" });
       const data = await response.json();
       if (!response.ok || data.is_valid === false) {
         const message = data.errors?.join(" ") || data.detail || `Código HTTP ${response.status}`;
-        setOpenQuestion({ id: question.id, text: `No se pudo generar la interpretación.\n${message}` });
+        setOpenQuestion({ id: question.id, loading: false, error: true, text: `No se pudo generar la interpretación.\n${message}`, model: "" });
         return;
       }
-      const answer = [
-        `Modelo: ${data.model || "ollama"}`,
-        "",
-        data.response || "Sin respuesta generada.",
-      ].join("\n");
-      setOpenQuestion({ id: question.id, text: answer });
+      setOpenQuestion({
+        id: question.id,
+        loading: false,
+        error: false,
+        text: data.response || "Sin respuesta generada.",
+        model: data.model || "",
+      });
     } catch (error) {
-      setOpenQuestion({ id: question.id, text: "No se pudo contactar con el servicio de interpretación." });
+      setOpenQuestion({ id: question.id, loading: false, error: true, text: "No se pudo contactar con el servicio de interpretación por IA.", model: "" });
     }
   }
 
@@ -1158,22 +1159,51 @@ export default function App() {
 
             <div className="questions-grid">
               {questions.length === 0 && <div className="q-card"><p>No hay preguntas definidas para esta dimensión.</p></div>}
-              {questions.map((question) => (
-                <article className="q-card" key={question.id}>
-                  <div className="q-head">
-                    <div>
-                      <h3 className="q-title">{question.title}</h3>
-                      <p className="q-meta">ID {question.id} · {question.dimension}</p>
+              {questions.map((question) => {
+                const state = openQuestion?.id === question.id ? openQuestion : null;
+                return (
+                  <article className="q-card" key={question.id}>
+                    <div className="q-head">
+                      <span className="type-badge unidim">{question.id}</span>
                     </div>
-                  </div>
-                  {openQuestion?.id === question.id && (
-                    <pre className="q-body open">{openQuestion.text}</pre>
-                  )}
-                  <div className="q-actions">
-                    <button className="btn primary" type="button" onClick={() => resolveQuestionWithOllama(question)}>Resolver con Ollama</button>
-                  </div>
-                </article>
-              ))}
+                    <h3 className="q-title">{question.title}</h3>
+                    {question.description && <p className="q-desc">{question.description}</p>}
+
+                    {state && (
+                      <div className={`q-answer ${state.error ? "error" : ""}`}>
+                        {state.loading ? (
+                          <div className="q-answer-loading">
+                            <span className="spinner" aria-hidden="true" />
+                            Generando interpretación con IA…
+                          </div>
+                        ) : (
+                          <>
+                            {state.model && <span className="q-answer-model">Modelo: {state.model}</span>}
+                            <p className="q-answer-text">{state.text}</p>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="q-actions">
+                      <button
+                        className="btn ai-btn"
+                        type="button"
+                        disabled={state?.loading}
+                        onClick={() => resolveQuestionWithOllama(question)}
+                      >
+                        {state?.loading ? (
+                          <>
+                            <span className="spinner" aria-hidden="true" /> Interpretando…
+                          </>
+                        ) : (
+                          <>✨ Interpretar con IA</>
+                        )}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </section>
         )}
