@@ -610,6 +610,48 @@ def get_eq3_ocupacion_afectaciones(limit: int = 10, municipio_prefix: str | None
         return {"is_valid": False, "errors": [str(exc)]}
 
 
+def get_eq2_afectaciones_its(limit: int = 10, municipio_prefix: str | None = None) -> Dict[str, Any]:
+    """EQ2: vías con obras/cortes activos (afectaciones_urbanas) cruzadas con la
+    cobertura real de dispositivos ITS (control_gestion_its) en esa misma vía --
+    LEFT JOIN a propósito, para que las vías con afectaciones pero SIN ningún
+    dispositivo ITS (puntos ciegos, sin cámara ni panel PMV para desviar tráfico)
+    aparezcan con dispositivos_its = 0 en vez de desaparecer del resultado."""
+    municipio_filter_a = ""
+    municipio_filter_i = ""
+    if municipio_prefix:
+        escaped = _sql_escape(municipio_prefix)
+        municipio_filter_a = f" AND lower(split_part(a.dataset_id, '|', 1)) = lower('{escaped}')"
+        municipio_filter_i = f" AND lower(split_part(i.dataset_id, '|', 1)) = lower('{escaped}')"
+    try:
+        rows = run_trino_query(
+            """
+            SELECT a.direccion,
+                   count(DISTINCT a.id) AS afectaciones,
+                   count(DISTINCT CASE WHEN a.tipo_afectacion = 'corte_trafico' THEN a.id END) AS cortes_trafico,
+                   count(DISTINCT i.id) AS dispositivos_its
+            FROM lake.curated.afectaciones_urbanas a
+            LEFT JOIN lake.curated.control_gestion_its i
+                ON lower(a.direccion) = lower(i.direccion)%s
+            WHERE 1=1%s
+            GROUP BY a.direccion
+            ORDER BY dispositivos_its ASC, afectaciones DESC
+            LIMIT %d
+            """ % (municipio_filter_i, municipio_filter_a, limit)
+        )
+        return {
+            "is_valid": True,
+            "vias": [
+                {
+                    "direccion": r[0], "afectaciones": r[1], "cortes_trafico": r[2],
+                    "dispositivos_its": r[3], "punto_ciego": r[3] == 0,
+                }
+                for r in rows
+            ],
+        }
+    except Exception as exc:
+        return {"is_valid": False, "errors": [str(exc)]}
+
+
 def get_eq4_ocupacion_carga_trafico(limit: int = 10, trafico_congestion: Dict[str, Any] | None = None, municipio_prefix: str | None = None) -> Dict[str, Any]:
     """EQ4: vías con alta densidad de terrazas y pocas plazas de carga/descarga,
     cruzadas con su nivel de congestión de tráfico si hay dato -- indicio de
@@ -3939,6 +3981,61 @@ def _control_gestion_its_ollama_summary(limit: int) -> Dict[str, Any]:
     }
 
 
+def _eq1_parking_trafico_ollama_summary(limit: int) -> Dict[str, Any]:
+    result = get_eq1_parking_trafico()
+    if not result.get("is_valid", False):
+        return {"is_valid": False, "errors": result.get("errors", ["No se pudo calcular el cruce parking-tráfico."])}
+    return {
+        "is_valid": True,
+        "summary": {
+            "radio_m": result.get("radio_m"),
+            "total_parkings": result.get("total_parkings", 0),
+            "con_trafico_cercano": result.get("con_trafico_cercano", 0),
+        },
+        # Cada fila ya es un caso real y concreto (un parking con su vía de tráfico
+        # más cercana): dárselas al modelo como sample_rows, igual que hace
+        # _afectaciones_ollama_summary con incidencias individuales, en vez de
+        # enterrarlas dentro de "summary" -- eso es lo que evita que divague
+        # describiendo el JSON en lugar de analizar los casos.
+        "sample_rows": result.get("resultados", [])[:10],
+    }
+
+
+def _eq2_afectaciones_its_ollama_summary(limit: int) -> Dict[str, Any]:
+    result = get_eq2_afectaciones_its(limit=limit)
+    if not result.get("is_valid", False):
+        return {"is_valid": False, "errors": result.get("errors", ["No se pudo cruzar afectaciones con cobertura ITS."])}
+    vias = result.get("vias", [])
+    return {
+        "is_valid": True,
+        "summary": {
+            "vias_analizadas": len(vias),
+            "total_puntos_ciegos": sum(1 for v in vias if v.get("punto_ciego")),
+        },
+        "sample_rows": vias[:10],
+    }
+
+
+def _eq3_ocupacion_afectaciones_ollama_summary(limit: int) -> Dict[str, Any]:
+    result = get_eq3_ocupacion_afectaciones(limit=limit)
+    if not result.get("is_valid", False):
+        return {"is_valid": False, "errors": result.get("errors", ["No se pudo cruzar ocupación con afectaciones."])}
+    vias = result.get("vias", [])
+    return {
+        "is_valid": True,
+        "summary": {"vias_analizadas": len(vias), "con_impacto_pmr": sum(1 for v in vias if v.get("impacto_pmr"))},
+        "sample_rows": vias[:10],
+    }
+
+
+def _eq4_ocupacion_carga_trafico_ollama_summary(limit: int) -> Dict[str, Any]:
+    result = get_eq4_ocupacion_carga_trafico(limit=limit)
+    if not result.get("is_valid", False):
+        return {"is_valid": False, "errors": result.get("errors", ["No se pudo cruzar ocupación con carga/descarga."])}
+    vias = result.get("vias", [])
+    return {"is_valid": True, "summary": {"vias_analizadas": len(vias)}, "sample_rows": vias[:10]}
+
+
 # Cada dimensión con preguntas analíticas registra aquí cómo construir su resumen para Ollama.
 # afectaciones_urbanas conserva su lectura de negocio a medida; el resto reutiliza capa 4/5
 # ya genéricas (build_dimension_layer5, get_dimension_analytics_summary) — añadir una nueva
@@ -3949,6 +4046,10 @@ DIMENSION_OLLAMA_SUMMARY_BUILDERS: Dict[str, Any] = {
     "movilidad_trafico": _movilidad_trafico_ollama_summary,
     "movilidad_parking": _movilidad_parking_ollama_summary,
     "control_gestion_its": _control_gestion_its_ollama_summary,
+    "movilidad_parking_y_trafico": _eq1_parking_trafico_ollama_summary,
+    "afectaciones_its_y_trafico": _eq2_afectaciones_its_ollama_summary,
+    "ocupacion_afectaciones_y_pmr": _eq3_ocupacion_afectaciones_ollama_summary,
+    "ocupacion_carga_y_trafico": _eq4_ocupacion_carga_trafico_ollama_summary,
 }
 
 FOCUS_INSTRUCTIONS = {
@@ -3960,6 +4061,10 @@ FOCUS_INSTRUCTIONS = {
     "accesibilidad_pmr": "Analiza el impacto potencial en accesibilidad peatonal y movilidad PMR.",
     "nodos_congestion": "Prioriza vías y franjas con mayor riesgo de congestión, apoyándote en las recomendaciones ya calculadas para cada vía.",
     "saturacion_parking": "Señala qué parkings y franjas horarias concentran mayor saturación (por encima del 80% de ocupación).",
+    "efecto_mariposa": "Relaciona la saturación de cada parking con el nivel de congestión de la vía de tráfico más cercana (dato real por proximidad geográfica, no por nombre de calle).",
+    "obras_its": "Señala qué vías con afectaciones activas carecen de dispositivos ITS (puntos ciegos, dispositivos_its = 0) frente a las que sí tienen cobertura.",
+    "peatonal_pmr": "Prioriza vías donde coinciden terrazas y afectaciones activas, destacando las que además tienen impacto_pmr confirmado.",
+    "logistica_terrazas": "Compara la densidad de terrazas frente a las plazas de carga/descarga disponibles en cada vía, y su nivel de congestión si lo hay.",
     "cobertura_its": "Evalúa la cobertura de dispositivos ITS por categoría y vía, señalando posibles carencias de cobertura.",
 }
 
@@ -3997,10 +4102,16 @@ def build_ollama_analysis_context(
             "question_id": selected_question.get("id", "AQ1"),
             "focus": selected_question.get("focus", "general"),
             "instruction": (
-                "Actúa como analista urbano local y usa este payload como contexto para Ollama. "
-                "Responde en español con un resumen ejecutivo breve, el punto crítico más relevante y 3 "
-                f"recomendaciones operativas. {focus_instruction} Usa únicamente los datos del payload. "
-                "No inventes hechos ni desconozcas el contexto proporcionado."
+                "Actúa como analista urbano local y usa este payload como contexto para Ollama. El campo "
+                "'summary' trae datos YA "
+                "AGREGADOS (recuentos, porcentajes, rankings de vías) sobre la ciudad: interpreta esos "
+                "valores para el ayuntamiento. No describas el formato ni los nombres de los campos del "
+                "JSON, no expliques cómo consultar una API y no escribas código: eso no es lo que se pide. "
+                "Responde en español, en un máximo de 120 palabras, con tres secciones cortas: "
+                "Resumen ejecutivo (1-2 frases), Punto crítico más relevante (1 frase) y 3 recomendaciones "
+                f"operativas (una frase corta cada una). {focus_instruction} Usa únicamente los datos del "
+                "payload. No inventes hechos ni desconozcas el contexto proporcionado. Sé conciso: no "
+                "seguirás escribiendo una vez completadas las tres secciones."
             ),
             "summary": built["summary"],
             "sample_rows": built.get("sample_rows", []),
@@ -4008,8 +4119,16 @@ def build_ollama_analysis_context(
     }
 
 
+OLLAMA_RESPONSE_CACHE: Dict[str, Dict[str, Any]] = {}
+
+
 def call_ollama_analysis(context_payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Envía un contexto analítico al endpoint local de generación de Ollama."""
+    """Envía un contexto analítico al endpoint local de generación de Ollama.
+
+    Cachea la respuesta en memoria por hash del prompt completo (pregunta + resumen
+    de datos): si nadie ha vuelto a cargar datos nuevos desde la última vez que se
+    interpretó esta misma pregunta, se devuelve al instante en vez de esperar otra
+    vez los 15-40s de inferencia local."""
     base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
     model = os.getenv("OLLAMA_MODEL", "llama3.2")
     prompt = (
@@ -4017,11 +4136,16 @@ def call_ollama_analysis(context_payload: Dict[str, Any]) -> Dict[str, Any]:
         f"Pregunta: {context_payload['question']}\n"
         f"Contexto JSON:\n{json.dumps(context_payload, ensure_ascii=False, default=str)}"
     )
+    cache_key = hashlib.sha256(f"{model}|{prompt}".encode("utf-8")).hexdigest()
+    cached = OLLAMA_RESPONSE_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     request_body = json.dumps({
         "model": model,
         "prompt": prompt,
         "stream": False,
-        "options": {"num_predict": 120, "temperature": 0.2},
+        "options": {"num_predict": 400, "temperature": 0.2},
     }).encode("utf-8")
     request = urllib.request.Request(
         f"{base_url}/api/generate",
@@ -4037,7 +4161,9 @@ def call_ollama_analysis(context_payload: Dict[str, Any]) -> Dict[str, Any]:
         generated_text = result.get("response")
         if not generated_text:
             return {"is_valid": False, "errors": ["Ollama no devolvió texto en la respuesta."], "response": None}
-        return {"is_valid": True, "errors": [], "model": model, "response": generated_text}
+        success = {"is_valid": True, "errors": [], "model": model, "response": generated_text}
+        OLLAMA_RESPONSE_CACHE[cache_key] = success
+        return success
     except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
         return {
             "is_valid": False,

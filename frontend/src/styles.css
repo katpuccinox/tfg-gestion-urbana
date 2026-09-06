@@ -724,10 +724,16 @@ td {
 }
 
 .q-answer-text {
-  margin: 0;
-  white-space: pre-wrap;
   color: #1f2a44;
   line-height: 1.5;
+}
+
+.q-answer-line {
+  margin: 0 0 0.5rem;
+}
+
+.q-answer-line:last-child {
+  margin-bottom: 0;
 }
 
 .filter-bar {

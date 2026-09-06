@@ -68,6 +68,7 @@ from app.services import (
     get_lake_root,
     get_catalog_entry_csv,
     get_eq1_parking_trafico,
+    get_eq2_afectaciones_its,
     get_eq3_ocupacion_afectaciones,
     get_eq4_ocupacion_carga_trafico,
     get_ingest_delivery_detail,
@@ -337,6 +338,17 @@ def eq1_parking_trafico(current_user: dict = Depends(require_policy_accepted)) -
     (cruce por proximidad geográfica real, no por nombre de vía -- ver plan)."""
     municipio_prefix = current_user["municipio_id"] if current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR) else None
     resultado = get_eq1_parking_trafico(municipio_prefix=municipio_prefix)
+    if not resultado.get("is_valid"):
+        raise HTTPException(status_code=500, detail=resultado.get("errors", ["Error calculando el cruce"]))
+    return resultado
+
+
+@app.get("/analysis/eq2/afectaciones-its")
+def eq2_afectaciones_its(current_user: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+    """EQ2: vías con afectaciones activas cruzadas con su cobertura real de ITS
+    (puntos ciegos: afectaciones sin ningún dispositivo en la misma vía)."""
+    municipio_prefix = current_user["municipio_id"] if current_user["role"] not in (ROLE_ADMIN, ROLE_CONSUMIDOR) else None
+    resultado = get_eq2_afectaciones_its(municipio_prefix=municipio_prefix)
     if not resultado.get("is_valid"):
         raise HTTPException(status_code=500, detail=resultado.get("errors", ["Error calculando el cruce"]))
     return resultado

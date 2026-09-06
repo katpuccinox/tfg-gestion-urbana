@@ -622,7 +622,7 @@ def test_call_ollama_analysis_posts_standard_generate_payload(monkeypatch):
     assert captured["url"] == "http://ollama:11434/api/generate"
     assert services_module.json.loads(captured["body"])["model"] == "qwen2.5:7b"
     assert services_module.json.loads(captured["body"])["stream"] is False
-    assert services_module.json.loads(captured["body"])["options"]["num_predict"] == 120
+    assert services_module.json.loads(captured["body"])["options"]["num_predict"] == 400
 
 
 def test_validate_csv_rejects_missing_required_columns():

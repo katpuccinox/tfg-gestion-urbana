@@ -5,6 +5,10 @@ const DIMENSION_CHIPS = [
   { key: "movilidad_trafico", label: "Movilidad · Tráfico" },
   { key: "movilidad_parking", label: "Movilidad · Parking" },
   { key: "control_gestion_its", label: "Control ITS" },
+  { key: "movilidad_parking_y_trafico", label: "Cruce · Parking × Tráfico" },
+  { key: "afectaciones_its_y_trafico", label: "Cruce · Afectaciones × ITS" },
+  { key: "ocupacion_afectaciones_y_pmr", label: "Cruce · Ocupación × Afectaciones" },
+  { key: "ocupacion_carga_y_trafico", label: "Cruce · Ocupación × Carga/Descarga" },
 ];
 
 const DATASET_OPTIONS = [
@@ -59,6 +63,20 @@ function formatNumber(value, suffix = "") {
   const numeric = Number(value || 0);
   const formatted = Number.isInteger(numeric) ? numeric.toLocaleString("es-ES") : numeric.toLocaleString("es-ES", { maximumFractionDigits: 1 });
   return `${formatted}${suffix}`;
+}
+
+function renderLiteBold(line, lineKey) {
+  const parts = line.split(/\*\*(.+?)\*\*/g);
+  return (
+    <p className="q-answer-line" key={lineKey}>
+      {parts.map((part, index) => (index % 2 === 1 ? <strong key={index}>{part}</strong> : part))}
+    </p>
+  );
+}
+
+function AnswerText({ text }) {
+  const lines = (text || "").split("\n").filter((line) => line.trim().length > 0);
+  return <>{lines.map((line, index) => renderLiteBold(line, index))}</>;
 }
 
 function BarChart({ title, items, labelKey, suffix = "" }) {
@@ -1164,7 +1182,7 @@ export default function App() {
                 return (
                   <article className="q-card" key={question.id}>
                     <div className="q-head">
-                      <span className="type-badge unidim">{question.id}</span>
+                      <span className={`type-badge ${question.type === "multidimension" ? "multidim" : "unidim"}`}>{question.id}</span>
                     </div>
                     <h3 className="q-title">{question.title}</h3>
                     {question.description && <p className="q-desc">{question.description}</p>}
@@ -1179,7 +1197,7 @@ export default function App() {
                         ) : (
                           <>
                             {state.model && <span className="q-answer-model">Modelo: {state.model}</span>}
-                            <p className="q-answer-text">{state.text}</p>
+                            <div className="q-answer-text"><AnswerText text={state.text} /></div>
                           </>
                         )}
                       </div>
