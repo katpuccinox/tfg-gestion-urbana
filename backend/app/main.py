@@ -355,6 +355,7 @@ class CongestionPredictionRequest(BaseModel):
     direccion: str
     franja_horaria: str | None = None
     dia_semana: str | None = None
+    trafico_vehiculo: str | None = None
 
 
 @app.get("/api/ml/movilidad/reglas-congestion")
@@ -407,8 +408,12 @@ def predecir_congestion_ml_endpoint(payload: CongestionPredictionRequest, _polic
     diferencia de /predecir que solo mira el histórico propio de esa vía."""
     if not payload.dia_semana or not payload.franja_horaria:
         raise HTTPException(status_code=400, detail="dia_semana y franja_horaria son obligatorios para el modelo entrenado")
+    tipos_vehiculo_validos = DATASET_CONTRACTS["movilidad_trafico"]["allowed_values"]["trafico_vehiculo"]
+    trafico_vehiculo = (payload.trafico_vehiculo or "general").strip().lower()
+    if trafico_vehiculo not in tipos_vehiculo_validos:
+        raise HTTPException(status_code=400, detail=f"trafico_vehiculo debe ser uno de: {', '.join(tipos_vehiculo_validos)}")
     hora_punta = payload.franja_horaria in ("06:00-09:00", "16:00-20:00")
-    resultado = predict_congestion_ml(payload.direccion, payload.dia_semana, payload.franja_horaria, hora_punta)
+    resultado = predict_congestion_ml(payload.direccion, payload.dia_semana, payload.franja_horaria, hora_punta, trafico_vehiculo)
     if not resultado.get("is_valid"):
         raise HTTPException(status_code=500, detail=resultado.get("errors", ["No se pudo predecir"]))
     return {"success": True, **resultado}

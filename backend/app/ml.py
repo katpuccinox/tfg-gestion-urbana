@@ -159,7 +159,13 @@ def get_model_metrics() -> Dict[str, Any]:
     return _modelo_cache["metrics"]
 
 
-def predict_congestion_ml(direccion: str, dia_semana: str, franja_horaria: str, hora_punta: bool) -> Dict[str, Any]:
+def predict_congestion_ml(
+    direccion: str,
+    dia_semana: str,
+    franja_horaria: str,
+    hora_punta: bool,
+    trafico_vehiculo: str = "general",
+) -> Dict[str, Any]:
     if _modelo_cache["pipeline"] is None:
         train_congestion_model()
     pipeline = _modelo_cache["pipeline"]
@@ -167,7 +173,7 @@ def predict_congestion_ml(direccion: str, dia_semana: str, franja_horaria: str, 
         return {"is_valid": False, "errors": ["El modelo no se pudo entrenar."]}
 
     es_fin_de_semana = dia_semana.strip().lower() in ("sabado", "sábado", "domingo")
-    fila = [[direccion.strip().lower(), dia_semana.strip().lower(), franja_horaria, hora_punta, es_fin_de_semana, "general"]]
+    fila = [[direccion.strip().lower(), dia_semana.strip().lower(), franja_horaria, hora_punta, es_fin_de_semana, trafico_vehiculo]]
     prediccion = pipeline.predict(fila)[0]
     probabilidades = pipeline.predict_proba(fila)[0]
     clases = pipeline.named_steps["model"].classes_

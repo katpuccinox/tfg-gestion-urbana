@@ -31,6 +31,7 @@ const PERIODOS = ["Anual", "Trimestre 1", "Trimestre 2", "Trimestre 3", "Trimest
 
 const FRANJAS_HORARIAS = ["00:00-06:00", "06:00-09:00", "09:00-13:00", "13:00-16:00", "16:00-20:00", "20:00-24:00"];
 const DIAS_SEMANA = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+const TIPOS_VEHICULO = ["general", "moto", "ligero", "pesado"];
 
 function riskClassFromPct(pct) {
   const value = Number(pct || 0);
@@ -178,7 +179,7 @@ export default function App() {
     priority_zones: [],
   });
   const [congestion, setCongestion] = useState({ loading: false, error: "", data: null });
-  const [prediccionForm, setPrediccionForm] = useState({ direccion: "", franja_horaria: "", dia_semana: "" });
+  const [prediccionForm, setPrediccionForm] = useState({ direccion: "", franja_horaria: "", dia_semana: "", trafico_vehiculo: "general" });
   const [prediccion, setPrediccion] = useState({ loading: false, error: "", data: null });
   const [prediccionMl, setPrediccionMl] = useState({ loading: false, error: "", data: null });
   const [statusText, setStatusText] = useState("Comprobando backend...");
@@ -701,6 +702,7 @@ export default function App() {
           direccion: prediccionForm.direccion.trim(),
           franja_horaria: prediccionForm.franja_horaria,
           dia_semana: prediccionForm.dia_semana,
+          trafico_vehiculo: prediccionForm.trafico_vehiculo || "general",
         }),
       });
       if (response.status === 401) return handleUnauthorized();
@@ -1523,6 +1525,15 @@ export default function App() {
                         >
                           <option value="">Todos</option>
                           {DIAS_SEMANA.map((dia) => <option key={dia} value={dia}>{dia}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        Tipo de vehículo (solo modelo entrenado)
+                        <select
+                          value={prediccionForm.trafico_vehiculo}
+                          onChange={(event) => setPrediccionForm((current) => ({ ...current, trafico_vehiculo: event.target.value }))}
+                        >
+                          {TIPOS_VEHICULO.map((tipo) => <option key={tipo} value={tipo}>{tipo}</option>)}
                         </select>
                       </label>
                       <button className="btn" type="submit" disabled={prediccion.loading}>
