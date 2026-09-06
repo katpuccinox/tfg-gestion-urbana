@@ -208,6 +208,14 @@ export default function App() {
   const [adminCatalogo, setAdminCatalogo] = useState([]);
   const [adminCatalogoHistorial, setAdminCatalogoHistorial] = useState([]);
   const [adminAceptaciones, setAdminAceptaciones] = useState([]);
+  const [adminContratos, setAdminContratos] = useState([]);
+  const [customDatasets, setCustomDatasets] = useState([]);
+  const [nuevoContratoForm, setNuevoContratoForm] = useState({
+    dataset_id: "",
+    dimension: "",
+    display_name: "",
+    columnas: [{ nombre: "", tipo: "texto", obligatoria: false, valores_permitidos: "" }],
+  });
   const [ingestaDetalle, setIngestaDetalle] = useState(null);
   const [catalogoEntregas, setCatalogoEntregas] = useState([]);
   const [catalogoStatus, setCatalogoStatus] = useState({ message: "", type: "success" });
@@ -217,6 +225,14 @@ export default function App() {
   const [policyModal, setPolicyModal] = useState({ open: false, version: "", titulo: "", contenido: "" });
   const pendingPolicyActionRef = useRef(null);
   const canUpload = user?.role === "admin_estatal" || user?.role === "editor_municipio";
+  const datasetOptions = [
+    ...DATASET_OPTIONS,
+    ...customDatasets.map((c) => ({
+      value: c.dataset_id,
+      label: c.display_name,
+      url: `/ingesta/capa1/preservar?dataset=${c.dataset_id}`,
+    })),
+  ];
   const isAdmin = user?.role === "admin_estatal";
   const canSeeAdminPanel = isAdmin || user?.role === "auditor";
   const userMunicipio = user?.municipio_id || "";
@@ -411,6 +427,8 @@ export default function App() {
         setAdminCatalogo(catalogo.catalogo || []);
         const historial = await adminFetch("/admin/catalogo/historial");
         setAdminCatalogoHistorial(historial.historial || []);
+        const contratos = await adminFetch("/admin/contratos");
+        setAdminContratos(contratos.contratos || []);
       }
       const ingestas = await adminFetch("/admin/ingestas?limit=100");
       setAdminIngestas(ingestas.entregas || []);
@@ -512,6 +530,64 @@ export default function App() {
     }
   }
 
+  function handleContratoColumnaChange(index, patch) {
+    setNuevoContratoForm((current) => ({
+      ...current,
+      columnas: current.columnas.map((columna, i) => (i === index ? { ...columna, ...patch } : columna)),
+    }));
+  }
+
+  function handleAddContratoColumna() {
+    setNuevoContratoForm((current) => ({
+      ...current,
+      columnas: [...current.columnas, { nombre: "", tipo: "texto", obligatoria: false, valores_permitidos: "" }],
+    }));
+  }
+
+  function handleRemoveContratoColumna(index) {
+    setNuevoContratoForm((current) => ({
+      ...current,
+      columnas: current.columnas.filter((_, i) => i !== index),
+    }));
+  }
+
+  async function handleCrearContrato(event) {
+    event.preventDefault();
+    const payload = {
+      dataset_id: nuevoContratoForm.dataset_id.trim(),
+      dimension: nuevoContratoForm.dimension.trim(),
+      display_name: nuevoContratoForm.display_name.trim(),
+      columnas: nuevoContratoForm.columnas
+        .filter((columna) => columna.nombre.trim())
+        .map((columna) => ({
+          nombre: columna.nombre.trim(),
+          tipo: columna.tipo,
+          obligatoria: columna.obligatoria,
+          valores_permitidos: columna.valores_permitidos
+            ? columna.valores_permitidos.split(",").map((valor) => valor.trim()).filter(Boolean)
+            : [],
+        })),
+    };
+    try {
+      const result = await adminFetch("/admin/contratos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      setAdminStatus({ message: `Contrato '${result.dataset_id}' creado. Ya está disponible para subir datos.`, type: "success" });
+      setNuevoContratoForm({
+        dataset_id: "",
+        dimension: "",
+        display_name: "",
+        columnas: [{ nombre: "", tipo: "texto", obligatoria: false, valores_permitidos: "" }],
+      });
+      await loadAdminPanel();
+      await loadCustomDatasets();
+    } catch (error) {
+      setAdminStatus({ message: error.message || "No se pudo crear el contrato.", type: "error" });
+    }
+  }
+
   async function handlePublishPolicy(event) {
     event.preventDefault();
     if (!adminPolicyForm.version.trim() || !adminPolicyForm.titulo.trim() || !adminPolicyForm.contenido.trim()) return;
@@ -566,6 +642,17 @@ export default function App() {
     setStatus("No puedes subir ni consultar datos hasta aceptar las condiciones de uso vigentes.", true);
   }
 
+  async function loadCustomDatasets() {
+    try {
+      const response = await fetch("/contratos/disponibles", { headers: { Authorization: `Bearer ${token}` } });
+      if (response.status === 401) return handleUnauthorized();
+      const data = await response.json();
+      setCustomDatasets(data.personalizados || []);
+    } catch (error) {
+      setCustomDatasets([]);
+    }
+  }
+
   async function initializeSession() {
     const accepted = await ensurePolicyAccepted(() => initializeSession());
     if (!accepted) return; // el modal reintentará esta misma función tras aceptar
@@ -574,6 +661,7 @@ export default function App() {
     void loadRecords();
     void loadDashboard();
     void loadCongestion();
+    void loadCustomDatasets();
   }
 
   async function submitPrediccion(event) {
@@ -752,7 +840,7 @@ export default function App() {
     setUploadStep("uploading");
     setStatus("Subiendo archivo...", false);
 
-    const target = DATASET_OPTIONS.find((option) => option.value === uploadForm.dataset) || DATASET_OPTIONS[0];
+    const target = datasetOptions.find((option) => option.value === uploadForm.dataset) || datasetOptions[0];
     const separator = target.url.includes("?") ? "&" : "?";
     const targetUrl = `${target.url}${separator}municipio_id=${encodeURIComponent(user?.municipio_id || "")}&anio=${encodeURIComponent(uploadForm.anio)}&period=${encodeURIComponent(uploadForm.periodo)}&visibilidad=${encodeURIComponent(uploadForm.visibilidad)}`;
     const formData = new FormData();
@@ -1143,7 +1231,7 @@ export default function App() {
                         <label>
                           <span>Dimensión</span>
                           <select value={uploadForm.dataset} onChange={(event) => setUploadForm((current) => ({ ...current, dataset: event.target.value }))}>
-                            {DATASET_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                            {datasetOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                           </select>
                         </label>
                         <label>
@@ -1222,7 +1310,7 @@ export default function App() {
                   <h4>Resumen de la carga</h4>
                   <dl>
                     <div><dt>Ayuntamiento</dt><dd>{user?.municipio_id}</dd></div>
-                    <div><dt>Dimensión</dt><dd>{DATASET_OPTIONS.find((option) => option.value === uploadForm.dataset)?.label || "—"}</dd></div>
+                    <div><dt>Dimensión</dt><dd>{datasetOptions.find((option) => option.value === uploadForm.dataset)?.label || "—"}</dd></div>
                     <div><dt>Periodo</dt><dd>{uploadForm.dataset ? `${uploadForm.periodo} ${uploadForm.anio}` : "—"}</dd></div>
                     <div><dt>Archivo</dt><dd>{selectedFile?.name || "—"}</dd></div>
                   </dl>
@@ -1661,7 +1749,7 @@ export default function App() {
             {adminStatus.message && <p className={`admin-alert ${adminStatus.type}`}>{adminStatus.message}</p>}
 
             <div className="dashboard-tabs" role="tablist" aria-label="Secciones de administración">
-              {[["usuarios", "Usuarios"], ["ingestas", "Ingestas"], ["catalogo", "Catálogo"], ["politicas", "Políticas"]]
+              {[["usuarios", "Usuarios"], ["ingestas", "Ingestas"], ["catalogo", "Catálogo"], ["contratos", "Contratos"], ["politicas", "Políticas"]]
                 .filter(([key]) => isAdmin || key === "ingestas" || key === "politicas")
                 .map(([key, label]) => (
                   <button key={key} className={adminSubTab === key ? "selected" : ""} type="button" onClick={() => setAdminSubTab(key)}>{label}</button>
@@ -1787,6 +1875,123 @@ export default function App() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {adminSubTab === "contratos" && isAdmin && (
+              <div className="card">
+                <div className="panel-heading">
+                  <h2>Crear contrato de datos</h2>
+                </div>
+                <p className="chart-empty">
+                  Da de alta un dataset nuevo sin tocar código: define sus columnas y a partir de
+                  ahora aparecerá en el selector de subida, con la misma validación, tipado y
+                  cuadro de mando genéricos que cualquier dimensión existente. Las columnas
+                  calculadas (fórmulas) no están disponibles aquí — si una dimensión nueva las
+                  necesita, sigue siendo trabajo de desarrollo.
+                </p>
+
+                <form className="admin-form" onSubmit={handleCrearContrato}>
+                  <label>
+                    Identificador del dataset
+                    <input
+                      value={nuevoContratoForm.dataset_id}
+                      onChange={(event) => setNuevoContratoForm((current) => ({ ...current, dataset_id: event.target.value }))}
+                      placeholder="arbolado_urbano"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Dimensión
+                    <input
+                      value={nuevoContratoForm.dimension}
+                      onChange={(event) => setNuevoContratoForm((current) => ({ ...current, dimension: event.target.value }))}
+                      placeholder="arbolado_urbano"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Nombre visible
+                    <input
+                      value={nuevoContratoForm.display_name}
+                      onChange={(event) => setNuevoContratoForm((current) => ({ ...current, display_name: event.target.value }))}
+                      placeholder="Arbolado urbano"
+                      required
+                    />
+                  </label>
+
+                  <div className="contrato-columnas">
+                    <div className="panel-heading mt-16"><h3>Columnas</h3></div>
+                    {nuevoContratoForm.columnas.map((columna, index) => (
+                      <div className="contrato-columna-row" key={index}>
+                        <input
+                          className="contrato-columna-nombre"
+                          value={columna.nombre}
+                          onChange={(event) => handleContratoColumnaChange(index, { nombre: event.target.value })}
+                          placeholder="nombre_columna"
+                        />
+                        <select
+                          value={columna.tipo}
+                          onChange={(event) => handleContratoColumnaChange(index, { tipo: event.target.value })}
+                        >
+                          <option value="texto">Texto</option>
+                          <option value="numero_entero">Número entero (≥0)</option>
+                          <option value="numero_decimal">Número decimal</option>
+                          <option value="fecha">Fecha</option>
+                          <option value="hora">Hora</option>
+                          <option value="coordenada">Coordenada (latitud/longitud)</option>
+                          <option value="booleano">Booleano (sí/no)</option>
+                        </select>
+                        <label className="contrato-columna-obligatoria">
+                          <input
+                            type="checkbox"
+                            checked={columna.obligatoria}
+                            onChange={(event) => handleContratoColumnaChange(index, { obligatoria: event.target.checked })}
+                          />
+                          Obligatoria
+                        </label>
+                        <input
+                          className="contrato-columna-valores"
+                          value={columna.valores_permitidos}
+                          onChange={(event) => handleContratoColumnaChange(index, { valores_permitidos: event.target.value })}
+                          placeholder="valores permitidos, separados por coma (opcional)"
+                        />
+                        <button
+                          className="btn danger"
+                          type="button"
+                          onClick={() => handleRemoveContratoColumna(index)}
+                          disabled={nuevoContratoForm.columnas.length === 1}
+                        >
+                          Quitar
+                        </button>
+                      </div>
+                    ))}
+                    <button className="btn alt" type="button" onClick={handleAddContratoColumna}>+ Añadir columna</button>
+                  </div>
+
+                  <button className="btn primary" type="submit">Crear contrato</button>
+                </form>
+
+                <div className="panel-heading mt-16"><h2>Contratos personalizados</h2></div>
+                {adminContratos.length === 0 ? (
+                  <p className="chart-empty">Todavía no se ha creado ningún contrato desde este panel.</p>
+                ) : (
+                  <table className="admin-table">
+                    <thead>
+                      <tr><th>Dataset</th><th>Dimensión</th><th>Nombre visible</th><th>Creado</th></tr>
+                    </thead>
+                    <tbody>
+                      {adminContratos.map((item) => (
+                        <tr key={item.dataset_id}>
+                          <td>{item.dataset_id}</td>
+                          <td>{item.dimension}</td>
+                          <td>{item.display_name}</td>
+                          <td>{item.creado_en ? new Date(item.creado_en).toLocaleString("es-ES") : "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             )}
 

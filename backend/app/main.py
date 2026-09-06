@@ -71,8 +71,11 @@ from app.services import (
     get_eq2_afectaciones_its,
     get_eq3_ocupacion_afectaciones,
     get_eq4_ocupacion_carga_trafico,
+    create_custom_contract,
     delete_ingest_delivery,
+    get_dataset_contract,
     get_ingest_delivery_detail,
+    list_custom_contracts,
     list_catalog_entries,
     get_ocupacion_superficie_por_via,
     get_parking_por_via,
@@ -278,6 +281,57 @@ def admin_actualizar_catalogo(dataset_id: str, request: CatalogStatusRequest, ad
         raise HTTPException(status_code=400, detail=str(exc))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+
+
+class ContratoColumnaRequest(BaseModel):
+    nombre: str
+    tipo: str
+    obligatoria: bool = False
+    valores_permitidos: list[str] = []
+
+
+class ContratoRequest(BaseModel):
+    dataset_id: str
+    dimension: str
+    display_name: str
+    columnas: list[ContratoColumnaRequest]
+
+
+@app.get("/admin/contratos")
+def admin_listar_contratos_personalizados(admin: dict = Depends(require_admin)) -> Dict[str, object]:
+    """Contratos dados de alta desde el panel de administración (no los definidos en
+    contracts.py). Los hardcodeados ya se listan en GET /admin/catalogo."""
+    return {"contratos": list_custom_contracts()}
+
+
+@app.post("/admin/contratos")
+def admin_crear_contrato_personalizado(request: ContratoRequest, admin: dict = Depends(require_admin)) -> Dict[str, object]:
+    """Da de alta un contrato de datos nuevo sin tocar código: a partir de la
+    siguiente subida, el dataset_id elegido queda disponible en el formulario de
+    subida y se valida, tipa y materializa igual que cualquier dimensión
+    hardcodeada, a través del mismo motor genérico de Capa 4."""
+    result = create_custom_contract(
+        dataset_id=request.dataset_id,
+        dimension=request.dimension,
+        display_name=request.display_name,
+        columnas=[c.model_dump() for c in request.columnas],
+        creado_por=admin["id"],
+    )
+    if not result.get("is_valid"):
+        raise HTTPException(status_code=400, detail=result.get("errors", ["No se pudo crear el contrato"]))
+    return result
+
+
+@app.get("/contratos/disponibles")
+def listar_contratos_disponibles(current_user: dict = Depends(require_policy_accepted)) -> Dict[str, object]:
+    """Todos los datasets a los que se puede subir un CSV: los hardcodeados en
+    contracts.py más los contratos personalizados dados de alta desde el panel de
+    administración. Alimenta el selector de dataset del formulario de subida."""
+    personalizados = [
+        {"dataset_id": c["dataset_id"], "dimension": c["dimension"], "display_name": c["display_name"]}
+        for c in list_custom_contracts()
+    ]
+    return {"personalizados": personalizados}
 
 
 class CongestionPredictionRequest(BaseModel):
@@ -860,7 +914,7 @@ def preservar_capa1(
 
 
 def _get_dataset_contract(dataset: str) -> dict:
-    contract = DATASET_CONTRACTS.get(dataset)
+    contract = get_dataset_contract(dataset)
     if contract is None:
         raise HTTPException(status_code=400, detail="Dataset no permitido")
     return contract

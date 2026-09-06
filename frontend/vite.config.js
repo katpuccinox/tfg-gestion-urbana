@@ -10,7 +10,7 @@ export default defineConfig({
     proxy: Object.fromEntries(
       [
         "auth", "health", "afectaciones", "ingesta", "analysis", "hive", "iceberg",
-        "api", "admin", "politicas", "gobierno", "catalogo", "its", "db", "db-check",
+        "api", "admin", "politicas", "gobierno", "catalogo", "contratos", "its", "db", "db-check",
       ].map((prefix) => [`/${prefix}`, "http://127.0.0.1:8000"]),
     ),
   },

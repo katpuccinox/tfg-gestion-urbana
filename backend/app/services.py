@@ -782,7 +782,7 @@ def build_dimension_layer5(dataset: str, municipio_prefix: str | None = None) ->
     if dataset == "movilidad_trafico":
         return build_movilidad_trafico_layer5(dataset, municipio_prefix)
 
-    contract = DATASET_CONTRACTS.get(dataset)
+    contract = get_dataset_contract(dataset)
     if contract is None:
         return {"is_valid": False, "errors": [f"Dataset no permitido: {dataset}"]}
 
@@ -1646,7 +1646,7 @@ def publish_upload_to_lake(
     staging_dir = paths["staging_dir"]
     raw_dir = paths["raw_dir"]
     payload = content_bytes if content_bytes is not None else b""
-    dimension = dimension or DATASET_CONTRACTS.get(dataset_name, {}).get("dimension", dataset_name)
+    dimension = dimension or (get_dataset_contract(dataset_name) or {}).get("dimension", dataset_name)
     bronze_key = f"{dimension}/{entity}/{dataset_name}/{Path(filename).stem}_csv"
     s3_result: Dict[str, Any] = {"enabled": False}
     if os.getenv("S3_ENDPOINT"):
@@ -2293,7 +2293,7 @@ def run_automatic_dimension_pipeline(
     visibilidad: str = "compartido",
 ) -> Dict[str, Any]:
     """Ejecuta secuencialmente las capas 0 a 4 y detiene el flujo ante bloqueos."""
-    contract = DATASET_CONTRACTS.get(dataset)
+    contract = get_dataset_contract(dataset)
     if contract is None:
         return {"is_valid": False, "status": "rejected", "errors": ["Dataset no permitido"], "pipeline": []}
     effective_entity = municipio_id or entity
@@ -2936,6 +2936,193 @@ def _sql_escape(value: str) -> str:
     return value.replace("'", "''")
 
 
+_SQL_IDENTIFIER_RE = re.compile(r"^[a-z][a-z0-9_]{0,62}$")
+
+# dataset_id de un contrato dinámico se usa tal cual como nombre de tabla
+# (lake.curated.{dataset_id}, hive.normalized.{dataset_id}) y nombre de columna en
+# CREATE TABLE -- a diferencia de un valor de negocio cualquiera, esto no se puede
+# resolver escapando comillas: solo un identificador ya validado contra esta forma
+# puede interpolarse con seguridad en SQL de DDL.
+def _is_valid_sql_identifier(name: str) -> bool:
+    return bool(_SQL_IDENTIFIER_RE.match(name or ""))
+
+
+def create_custom_contract(
+    dataset_id: str,
+    dimension: str,
+    display_name: str,
+    columnas: List[Dict[str, Any]],
+    creado_por: int | None = None,
+) -> Dict[str, Any]:
+    """Da de alta un contrato de datos nuevo desde el panel de administración, sin
+    tocar código: valida la definición, la traduce a la misma forma de contrato que
+    usan los definidos en contracts.py (required_columns, allowed_values,
+    date_columns...) y la persiste en Postgres para que get_dataset_contract() la
+    encuentre en la siguiente subida, sin reiniciar el backend.
+
+    Deliberadamente NO admite columnas calculadas (computed_columns): son SQL de
+    Trino en crudo dentro del contrato, y aceptarlas desde un formulario abriría una
+    vía de inyección SQL real. Si una dimensión nueva las necesita, sigue siendo
+    trabajo de un desarrollador en contracts.py, igual que hoy."""
+    dataset_id = (dataset_id or "").strip().lower()
+    if not _is_valid_sql_identifier(dataset_id):
+        return {"is_valid": False, "errors": ["El identificador del dataset debe ser minúsculas, empezar por una letra y usar solo letras, números y guion bajo (3-63 caracteres)."]}
+    if dataset_id in DATASET_CONTRACTS:
+        return {"is_valid": False, "errors": [f"Ya existe un dataset con ese identificador: {dataset_id}"]}
+    if get_custom_contract(dataset_id) is not None:
+        return {"is_valid": False, "errors": [f"Ya existe un contrato personalizado con ese identificador: {dataset_id}"]}
+    if not columnas:
+        return {"is_valid": False, "errors": ["El contrato necesita al menos una columna."]}
+
+    tipos_validos = {"texto", "numero_entero", "numero_decimal", "fecha", "hora", "coordenada", "booleano"}
+    seen_names: set[str] = set()
+    column_names: List[str] = []
+    required_columns: List[str] = []
+    allowed_values: Dict[str, List[str]] = {}
+    date_columns: List[str] = []
+    time_columns: List[str] = []
+    coordinate_columns: List[str] = []
+    non_negative_integer_columns: List[str] = []
+    numeric_columns: List[str] = []
+    boolean_columns: Dict[str, Dict[str, List[str]]] = {}
+
+    for columna in columnas:
+        nombre = str(columna.get("nombre", "")).strip().lower()
+        tipo = columna.get("tipo")
+        if not _is_valid_sql_identifier(nombre):
+            return {"is_valid": False, "errors": [f"Nombre de columna no válido: '{columna.get('nombre')}' (minúsculas, empieza por letra, solo letras/números/guion bajo)."]}
+        if nombre in seen_names:
+            return {"is_valid": False, "errors": [f"Columna repetida: {nombre}"]}
+        if nombre in ("dataset_id", "row_id_tecnico"):
+            return {"is_valid": False, "errors": [f"'{nombre}' es un nombre reservado (lo añade la plataforma automáticamente)."]}
+        if tipo not in tipos_validos:
+            return {"is_valid": False, "errors": [f"Tipo no válido para '{nombre}': {tipo}"]}
+        if tipo == "coordenada" and nombre not in ("latitud", "longitud"):
+            return {"is_valid": False, "errors": ["Una columna de tipo 'coordenada' debe llamarse exactamente 'latitud' o 'longitud'."]}
+
+        seen_names.add(nombre)
+        column_names.append(nombre)
+        if columna.get("obligatoria"):
+            required_columns.append(nombre)
+        valores = [str(v).strip() for v in (columna.get("valores_permitidos") or []) if str(v).strip()]
+        if valores:
+            allowed_values[nombre] = valores
+        if tipo == "fecha":
+            date_columns.append(nombre)
+        elif tipo == "hora":
+            time_columns.append(nombre)
+        elif tipo == "coordenada":
+            coordinate_columns.append(nombre)
+        elif tipo == "numero_entero":
+            non_negative_integer_columns.append(nombre)
+        elif tipo == "numero_decimal":
+            numeric_columns.append(nombre)
+        elif tipo == "booleano":
+            boolean_columns[nombre] = {"true": ["si", "sí", "true", "1"], "false": ["no", "false", "0"]}
+
+    if coordinate_columns and sorted(coordinate_columns) != ["latitud", "longitud"]:
+        return {"is_valid": False, "errors": ["Si defines coordenadas, deben ser exactamente dos columnas: 'latitud' y 'longitud'."]}
+
+    contract = {
+        "dimension": dimension,
+        "validation_rule_version": "capa2-v1-dinamico",
+        "columns": column_names,
+        "required_columns": required_columns or column_names,
+        "required_value_columns": required_columns or column_names,
+        "allowed_values": allowed_values,
+        "date_columns": date_columns,
+        "time_columns": time_columns,
+        "coordinate_columns": coordinate_columns,
+        "non_negative_integer_columns": non_negative_integer_columns,
+        "numeric_columns": numeric_columns,
+        "boolean_columns": boolean_columns,
+        "rules": ["Contrato creado dinámicamente desde el panel de administración."],
+    }
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS contratos_personalizados (
+            dataset_id TEXT PRIMARY KEY,
+            dimension TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            contract_json JSONB NOT NULL,
+            creado_por INTEGER,
+            creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+        """
+    )
+    cur.execute(
+        "INSERT INTO contratos_personalizados (dataset_id, dimension, display_name, contract_json, creado_por) VALUES (%s, %s, %s, %s::jsonb, %s)",
+        (dataset_id, dimension, display_name, json.dumps(contract, ensure_ascii=False), creado_por),
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return {"is_valid": True, "dataset_id": dataset_id, "contract": contract}
+
+
+def list_custom_contracts() -> List[Dict[str, Any]]:
+    """Contratos dados de alta desde el panel de administración (no los definidos en
+    contracts.py). Es lo que alimenta tanto el listado de administración como el
+    selector de dataset del formulario de subida."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS contratos_personalizados (
+            dataset_id TEXT PRIMARY KEY,
+            dimension TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            contract_json JSONB NOT NULL,
+            creado_por INTEGER,
+            creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+        """
+    )
+    cur.execute("SELECT dataset_id, dimension, display_name, contract_json, creado_en FROM contratos_personalizados ORDER BY creado_en DESC")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [
+        {
+            "dataset_id": row[0], "dimension": row[1], "display_name": row[2],
+            "contract": row[3], "creado_en": row[4].isoformat() if row[4] else None,
+        }
+        for row in rows
+    ]
+
+
+def get_custom_contract(dataset_id: str) -> Dict[str, Any] | None:
+    """Busca un único contrato personalizado por su dataset_id. Se consulta bajo
+    demanda (sin caché): dar de alta un contrato nuevo debe surtir efecto en la
+    siguiente subida sin reiniciar el backend."""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT contract_json FROM contratos_personalizados WHERE dataset_id = %s", (dataset_id,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        return row[0] if row else None
+    except Exception:
+        return None
+
+
+def get_dataset_contract(dataset: str) -> Dict[str, Any] | None:
+    """Punto único de acceso a un contrato, ya sea de los definidos en contracts.py
+    (hardcodeados) o de los dados de alta dinámicamente desde el panel de
+    administración. Todo el pipeline de ingesta (Capa 0 a 5) debe resolver un
+    contrato a través de esta función, nunca leyendo DATASET_CONTRACTS directamente,
+    para que un dataset nuevo funcione en cualquier punto del pipeline sin tener que
+    tocar cada sitio que antes miraba solo el diccionario fijo."""
+    if dataset in DATASET_CONTRACTS:
+        return DATASET_CONTRACTS[dataset]
+    return get_custom_contract(dataset)
+
+
 def normalize_catalog_value(value: str) -> str:
     """Normaliza un valor de catálogo (sin tildes, minúsculas, sin espacios en los extremos).
 
@@ -3256,7 +3443,7 @@ def register_dimension_delivery(
     visibilidad: str = "compartido",
 ) -> Dict[str, Any]:
     """Registra una entrega de una dimensión en Capa 0 sin persistir sus filas."""
-    contract = DATASET_CONTRACTS.get(dataset)
+    contract = get_dataset_contract(dataset)
     if contract is None:
         return {"is_valid": False, "status": "rejected", "decision": "invalid_dataset", "errors": [f"Dataset no permitido: {dataset}"]}
 
@@ -3309,7 +3496,7 @@ def preserve_dimension_delivery(
 ) -> Dict[str, Any]:
     """Ejecuta Capa 0 y preserva el CSV original en staging sin transformarlo."""
     effective_entity = municipio_id or entity
-    contract = DATASET_CONTRACTS.get(dataset, {})
+    contract = (get_dataset_contract(dataset) or {})
     effective_dimension = contract.get("dimension", dataset)
     delivery = register_dimension_delivery(
         filename,
@@ -3456,7 +3643,7 @@ def publish_row_traceability_manifest(
         return {"enabled": False, "status": "disabled"}
 
     bucket = os.getenv("S3_BUCKET_RAW", "raw")
-    effective_dimension = dimension or DATASET_CONTRACTS.get(dataset_name, {}).get("dimension", dataset_name)
+    effective_dimension = dimension or (get_dataset_contract(dataset_name) or {}).get("dimension", dataset_name)
     key = f"_traceability/{effective_dimension}/{entity}/{dataset_name}/{filename}.rows.csv"
     manifest = build_row_traceability_manifest(content_bytes, delivery_key)
     client = boto3.client(

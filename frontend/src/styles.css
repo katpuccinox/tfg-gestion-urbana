@@ -1917,12 +1917,51 @@ td {
 }
 
 .admin-form input,
+.admin-form select,
 .admin-form textarea {
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 0.5rem 0.7rem;
   font-family: inherit;
   color: var(--ink);
+}
+
+.contrato-columnas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.contrato-columna-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.4fr auto 1.6fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contrato-columna-row input,
+.contrato-columna-row select {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.5rem 0.7rem;
+  font-family: inherit;
+  color: var(--ink);
+  width: 100%;
+}
+
+.contrato-columna-obligatoria {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .contrato-columna-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .modal-overlay {
