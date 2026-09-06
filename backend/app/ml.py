@@ -12,7 +12,6 @@ from typing import Any, Dict, List
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
@@ -24,10 +23,12 @@ CATEGORICAL_COLUMNS = ["direccion", "dia_semana", "franja_horaria", "trafico_veh
 _modelo_cache: Dict[str, Any] = {"pipeline": None, "metrics": None}
 
 
-def _nivel_congestion_por_via(rows: List[Dict[str, Any]]) -> List[str]:
-    """Misma regla que build_movilidad_trafico_layer5: el nivel de una medición se
-    calcula contra los percentiles p50/p75/p90 de su propia vía, no un umbral global
-    -- 300 veh/h es crítico en una calle residencial y normal en una avenida."""
+def _percentiles_por_via(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, float]]:
+    """Percentiles p50/p75/p90 de trafico_flujo, por vía -- misma regla que
+    build_movilidad_trafico_layer5 (300 veh/h es crítico en una calle residencial
+    y normal en una avenida). Incluye una clave "_global" para poder clasificar una
+    vía que no tuviera histórico en el periodo de referencia (p. ej. una vía que
+    solo aparece en el tramo de test de una evaluación temporal)."""
     flujos_por_via: Dict[str, List[float]] = {}
     for row in rows:
         flujos_por_via.setdefault(row["direccion"] or "sin_dato", []).append(float(row["trafico_flujo"] or 0))
@@ -39,12 +40,21 @@ def _nivel_congestion_por_via(rows: List[Dict[str, Any]]) -> List[str]:
         return {"p50": pct(0.50), "p75": pct(0.75), "p90": pct(0.90)}
 
     percentiles_por_via = {via: percentiles(valores) for via, valores in flujos_por_via.items()}
+    percentiles_por_via["_global"] = percentiles([v for valores in flujos_por_via.values() for v in valores])
+    return percentiles_por_via
 
+
+def _etiquetar(rows: List[Dict[str, Any]], percentiles_por_via: Dict[str, Dict[str, float]]) -> List[str]:
+    """Clasifica cada fila contra los percentiles ya calculados de su vía. Recibir
+    los percentiles como parámetro (en vez de recalcularlos sobre las mismas rows)
+    es lo que permite evaluar con un split temporal: al etiquetar el tramo de test
+    se usan los percentiles aprendidos SOLO del tramo de train, para no filtrar
+    información del futuro (el propio umbral) hacia la evaluación."""
     labels = []
     for row in rows:
         via = row["direccion"] or "sin_dato"
         flujo = float(row["trafico_flujo"] or 0)
-        p = percentiles_por_via[via]
+        p = percentiles_por_via.get(via, percentiles_por_via["_global"])
         if flujo >= p["p90"]:
             labels.append("Crítico")
         elif flujo >= p["p75"]:
@@ -56,32 +66,59 @@ def _nivel_congestion_por_via(rows: List[Dict[str, Any]]) -> List[str]:
     return labels
 
 
+def _construir_pipeline() -> Pipeline:
+    preprocessor = ColumnTransformer(
+        transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), [FEATURE_COLUMNS.index(c) for c in CATEGORICAL_COLUMNS])],
+        remainder="passthrough",
+    )
+    return Pipeline([
+        ("preprocess", preprocessor),
+        ("model", RandomForestClassifier(n_estimators=200, max_depth=12, random_state=42, class_weight="balanced")),
+    ])
+
+
 def train_congestion_model() -> Dict[str, Any]:
-    """Entrena (o reentrena) el clasificador y cachea el resultado en memoria.
-    ~9000 filas y un RandomForest pequeño entrenan en 1-2s, no hace falta
-    persistir a disco ni entrenar en un proceso aparte."""
-    result = run_trino_query_with_columns(f"SELECT {', '.join(FEATURE_COLUMNS + ['trafico_flujo'])} FROM lake.curated.movilidad_trafico")
+    """Entrena (o reentrena) el clasificador y cachea en memoria el que se usará
+    para servir predicciones. El accuracy se mide con un split TEMPORAL -- se
+    ordena todo el histórico por fecha_hora_inicio, se entrena con el 80% más
+    antiguo y se evalúa contra el 20% más reciente -- en vez de un split aleatorio.
+    Un split aleatorio dejaría filas de la misma vía/día/franja repartidas entre
+    train y test, y el modelo podría acertar memorizando ese patrón en vez de
+    generalizar a un periodo que no ha visto; con tráfico, que es una serie
+    temporal, eso infla el accuracy de forma artificial. El modelo que queda
+    cacheado para /predecir-ml se reentrena después con el 100% del histórico
+    (igual que se haría en producción tras validar la metodología), pero el
+    accuracy que se reporta es siempre el de la evaluación temporal honesta."""
+    result = run_trino_query_with_columns(
+        f"SELECT {', '.join(FEATURE_COLUMNS + ['trafico_flujo'])}, fecha_hora_inicio "
+        "FROM lake.curated.movilidad_trafico ORDER BY fecha_hora_inicio NULLS LAST"
+    )
     rows = [dict(zip(result["columns"], row)) for row in result["rows"]]
     if len(rows) < 50:
         metrics = {"is_valid": False, "errors": ["No hay suficientes mediciones reales para entrenar un modelo (mínimo 50)."]}
         _modelo_cache["pipeline"], _modelo_cache["metrics"] = None, metrics
         return metrics
 
-    labels = _nivel_congestion_por_via(rows)
-    X = [[row[col] for col in FEATURE_COLUMNS] for row in rows]
+    corte = int(len(rows) * 0.8)
+    train_rows, test_rows = rows[:corte], rows[corte:]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=0.2, random_state=42, stratify=labels)
+    percentiles_train = _percentiles_por_via(train_rows)
+    y_train = _etiquetar(train_rows, percentiles_train)
+    y_test = _etiquetar(test_rows, percentiles_train)
+    X_train = [[row[col] for col in FEATURE_COLUMNS] for row in train_rows]
+    X_test = [[row[col] for col in FEATURE_COLUMNS] for row in test_rows]
 
-    preprocessor = ColumnTransformer(
-        transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), [FEATURE_COLUMNS.index(c) for c in CATEGORICAL_COLUMNS])],
-        remainder="passthrough",
-    )
-    pipeline = Pipeline([
-        ("preprocess", preprocessor),
-        ("model", RandomForestClassifier(n_estimators=200, max_depth=12, random_state=42, class_weight="balanced")),
-    ])
-    pipeline.fit(X_train, y_train)
-    accuracy = accuracy_score(y_test, pipeline.predict(X_test))
+    pipeline_evaluacion = _construir_pipeline()
+    pipeline_evaluacion.fit(X_train, y_train)
+    accuracy = accuracy_score(y_test, pipeline_evaluacion.predict(X_test)) if test_rows else None
+
+    # Modelo final servido a /predecir-ml: reentrenado con el histórico completo,
+    # una vez que el accuracy de arriba ya validó la metodología sobre datos no vistos.
+    percentiles_completos = _percentiles_por_via(rows)
+    y_full = _etiquetar(rows, percentiles_completos)
+    X_full = [[row[col] for col in FEATURE_COLUMNS] for row in rows]
+    pipeline = _construir_pipeline()
+    pipeline.fit(X_full, y_full)
 
     importances = pipeline.named_steps["model"].feature_importances_
     # Agrega la importancia de cada categoría one-hot de vuelta a su columna original
@@ -102,10 +139,11 @@ def train_congestion_model() -> Dict[str, Any]:
     metrics = {
         "is_valid": True,
         "modelo": "RandomForestClassifier",
-        "filas_entrenamiento": len(X_train),
-        "filas_test": len(X_test),
-        "accuracy": round(accuracy, 3),
-        "clases": sorted(set(labels)),
+        "validacion": "split temporal: entrena con el 80% del histórico más antiguo, evalúa con el 20% más reciente (nunca visto en el entrenamiento)",
+        "filas_entrenamiento": len(train_rows),
+        "filas_test": len(test_rows),
+        "accuracy": round(accuracy, 3) if accuracy is not None else None,
+        "clases": sorted(set(y_full)),
         "importancia_features": [
             {"feature": col, "importancia": round(val, 3)}
             for col, val in sorted(importancia_por_columna.items(), key=lambda item: item[1], reverse=True)

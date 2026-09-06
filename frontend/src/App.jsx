@@ -1567,9 +1567,9 @@ export default function App() {
                   <article className="chart-card">
                     <h2>Modelo predictivo (Random Forest)</h2>
                     <p className="chart-empty">
-                      Clasificador entrenado sobre las {formatNumber(dashboard.modelo_predictivo?.filas_entrenamiento)} mediciones reales de
-                      entrenamiento (evaluado sobre {formatNumber(dashboard.modelo_predictivo?.filas_test)} de test, nunca vistas en el
-                      entrenamiento). Accuracy real: <strong>{formatNumber((dashboard.modelo_predictivo?.accuracy || 0) * 100, "%")}</strong>.
+                      Clasificador entrenado sobre las {formatNumber(dashboard.modelo_predictivo?.filas_entrenamiento)} mediciones reales más
+                      antiguas y evaluado sobre las {formatNumber(dashboard.modelo_predictivo?.filas_test)} más recientes (split temporal:
+                      el modelo nunca ve el periodo con el que se mide). Accuracy real: <strong>{formatNumber((dashboard.modelo_predictivo?.accuracy || 0) * 100, "%")}</strong>.
                     </p>
                     <BarChart
                       title="Importancia de cada variable"
