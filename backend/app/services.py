@@ -375,15 +375,51 @@ RECOMENDACION_CONGESTION = {
 }
 
 
+def build_trafico_obra_activa_mart_sql() -> str:
+    """Cruce real entre movilidad_trafico y afectaciones_urbanas: si había una obra
+    activa en esa vía en el momento exacto de cada medición de tráfico -- un rango
+    temporal por fila, expresable en SQL de Trino sin necesidad de Python."""
+    return """
+        CREATE TABLE lake.analytics.trafico_obra_activa
+        WITH (format = 'PARQUET', location = 's3://analytics/iceberg/trafico_obra_activa/') AS
+        SELECT
+            t.row_id_tecnico,
+            lower(split_part(t.dataset_id, '|', 1)) AS municipio,
+            bool_or(a.fecha_hora_inicio IS NOT NULL) AS obra_activa
+        FROM lake.curated.movilidad_trafico t
+        LEFT JOIN lake.curated.afectaciones_urbanas a
+            ON lower(a.direccion) = lower(t.direccion)
+            AND t.fecha_hora_inicio BETWEEN a.fecha_hora_inicio AND a.fecha_hora_fin
+        GROUP BY t.row_id_tecnico, lower(split_part(t.dataset_id, '|', 1))
+    """
+
+
+def build_trafico_obra_activa_mart() -> Dict[str, Any]:
+    """Materializa, por cada medición de tráfico, si coincide en vía y momento con
+    una obra activa -- antes se recalculaba en Python en cada llamada a
+    build_movilidad_trafico_layer5 (Capa 5), recorriendo afectaciones_urbanas entera
+    una vez por petición; ahora es un cruce de Capa 4, calculado una sola vez cuando
+    cambia tráfico o afectaciones."""
+    try:
+        run_trino_statement("DROP TABLE IF EXISTS lake.analytics.trafico_obra_activa")
+        run_trino_statement(build_trafico_obra_activa_mart_sql())
+        return {"is_valid": True, "analytics_table": "lake.analytics.trafico_obra_activa"}
+    except Exception as exc:
+        return {"is_valid": False, "errors": [str(exc)]}
+
+
 def build_movilidad_trafico_layer5(table: str = "movilidad_trafico", municipio_prefix: str | None = None) -> Dict[str, Any]:
     """Congestión relativa por vía, con recomendación de acción — pensada para decidir dónde
     intervenir primero, no solo para describir el tráfico.
 
     El nivel de congestión no compara contra un umbral fijo para toda la ciudad (300 veh/h
     es crítico en una calle residencial y normal en una avenida): se calcula contra los
-    percentiles p50/p75/p90 de flujo de esa misma vía. Cada medición se cruza además con
-    afectaciones_urbanas para saber si hay una obra activa en la misma vía y momento.
-    municipio_prefix acota ambas fuentes (tráfico y afectaciones) al mismo municipio.
+    percentiles p50/p75/p90 de flujo de esa misma vía -- esto sí es una regla de Capa 5,
+    genuinamente relativa al propio histórico de cada vía. La señal de "obra activa en
+    ese momento" es distinta: es un cruce real con afectaciones_urbanas, ya materializado
+    en Capa 4 por build_trafico_obra_activa_mart() y leído aquí por row_id_tecnico, no
+    recalculado en cada llamada. municipio_prefix acota la fuente de tráfico al mismo
+    municipio (el mart de obra activa ya viene acotado desde su propia construcción).
     """
     curated_table = f"lake.curated.{table}"
     where_clause = f" WHERE lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
@@ -396,29 +432,18 @@ def build_movilidad_trafico_layer5(table: str = "movilidad_trafico", municipio_p
                 "total_registros": 0, "metricas": {}, "prioridades": [],
             }
 
-        # Ventanas de obra activa por vía (enriquecimiento: si afectaciones no está disponible,
-        # la capa 5 de tráfico sigue funcionando, solo sin la señal de obra activa).
-        obras_por_via: Dict[str, List[tuple]] = {}
+        # Cruce ya materializado en Capa 4 (build_trafico_obra_activa_mart): si no existe
+        # todavía (primer arranque contra un lago sin ese mart), la capa 5 de tráfico sigue
+        # funcionando, solo sin la señal de obra activa.
+        obra_activa_por_fila: Dict[str, bool] = {}
         try:
-            afect = run_trino_query_with_columns(
-                f"SELECT direccion, fecha_hora_inicio, fecha_hora_fin FROM lake.curated.afectaciones_urbanas{where_clause}"
-            )
-            for direccion, inicio, fin in afect["rows"]:
-                if direccion and inicio and fin:
-                    obras_por_via.setdefault(direccion, []).append((inicio, fin))
+            obra_mart = run_trino_query("SELECT row_id_tecnico, obra_activa FROM lake.analytics.trafico_obra_activa")
+            obra_activa_por_fila = {row_id: bool(obra_activa) for row_id, obra_activa in obra_mart}
         except Exception:
             pass
 
-        def hay_obra_activa(direccion: str, momento: Any) -> bool:
-            if momento is None:
-                return False
-            for inicio, fin in obras_por_via.get(direccion or "", []):
-                try:
-                    if inicio <= momento <= fin:
-                        return True
-                except TypeError:
-                    continue
-            return False
+        def hay_obra_activa(row_id_tecnico: str | None) -> bool:
+            return obra_activa_por_fila.get(row_id_tecnico or "", False)
 
         flujos_por_via: Dict[str, List[float]] = {}
         for row in rows:
@@ -450,7 +475,7 @@ def build_movilidad_trafico_layer5(table: str = "movilidad_trafico", municipio_p
             direccion = row.get("direccion") or "sin_dato"
             flujo = float(row.get("trafico_flujo") or 0.0)
             nivel = nivel_congestion(direccion, flujo)
-            obra_activa = hay_obra_activa(direccion, row.get("fecha_hora_inicio"))
+            obra_activa = hay_obra_activa(row.get("row_id_tecnico"))
             recomendacion = RECOMENDACION_CONGESTION[(nivel, obra_activa)]
             es_critico = nivel in ("Alto", "Crítico")
             count_alto_critico += 1 if es_critico else 0
@@ -1422,6 +1447,7 @@ def build_afectaciones_layers() -> Dict[str, Any]:
         run_trino_statement(build_afectaciones_exploitation_sql())
         cross_marts = {
             "eq6_afectaciones_trafico": build_afectaciones_trafico_mart(),
+            "trafico_obra_activa": build_trafico_obra_activa_mart(),
             "eq2_afectaciones_its": build_eq2_afectaciones_its_mart(),
             "eq3_ocupacion_afectaciones": build_eq3_ocupacion_afectaciones_mart(),
         }
@@ -1664,6 +1690,7 @@ def build_dimension_layer4(dataset: str, contract: Dict[str, Any], normalized_ta
         cross_marts: Dict[str, Any] = {}
         if dataset in ("afectaciones_urbanas", "gestion_afectaciones_urbanas", "movilidad_trafico"):
             cross_marts["eq6_afectaciones_trafico"] = build_afectaciones_trafico_mart()
+            cross_marts["trafico_obra_activa"] = build_trafico_obra_activa_mart()
         if dataset in ("movilidad_parking", "movilidad_trafico"):
             cross_marts["eq1_parking_trafico"] = build_eq1_parking_trafico_mart()
         if dataset in ("afectaciones_urbanas", "gestion_afectaciones_urbanas", "control_gestion_its"):

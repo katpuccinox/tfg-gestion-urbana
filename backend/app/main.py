@@ -71,6 +71,7 @@ from app.services import (
     build_eq2_afectaciones_its_mart,
     build_eq3_ocupacion_afectaciones_mart,
     build_eq4_ocupacion_carga_trafico_mart,
+    build_trafico_obra_activa_mart,
     get_eq1_parking_trafico,
     get_eq2_afectaciones_its,
     get_eq3_ocupacion_afectaciones,
@@ -131,6 +132,7 @@ def initialize_authentication() -> None:
         build_eq2_afectaciones_its_mart()
         build_eq3_ocupacion_afectaciones_mart()
         build_eq4_ocupacion_carga_trafico_mart()
+        build_trafico_obra_activa_mart()
     except Exception:
         pass  # Trino puede no estar listo todavía; se rematerializan en la siguiente subida
 
