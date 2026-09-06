@@ -124,4 +124,13 @@ ANALYSIS_QUESTIONS = [
         "focus": "simulador_urbano",
         "participating_dimensions": ["afectaciones_urbanas", "movilidad_trafico", "movilidad_parking", "control_gestion_its"],
     },
+    {
+        "id": "EQ6",
+        "type": "multidimension",
+        "dimension": "afectaciones_trafico_impacto",
+        "title": "Impacto Real de Obras en el Flujo de Tráfico",
+        "description": "Mide la variación real del tráfico (flujo antes/durante/después) en la vía de cada obra o corte, cuando ambas fuentes coinciden en fecha.",
+        "focus": "impacto_trafico_obras",
+        "participating_dimensions": ["afectaciones_urbanas", "movilidad_trafico"],
+    },
 ]

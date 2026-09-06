@@ -4036,6 +4036,17 @@ def _eq4_ocupacion_carga_trafico_ollama_summary(limit: int) -> Dict[str, Any]:
     return {"is_valid": True, "summary": {"vias_analizadas": len(vias)}, "sample_rows": vias[:10]}
 
 
+def _eq6_afectaciones_trafico_impacto_ollama_summary(limit: int) -> Dict[str, Any]:
+    result = get_afectaciones_trafico_resumen(limit=limit)
+    if not result.get("is_valid", False):
+        return {"is_valid": False, "errors": result.get("errors", ["No se pudo calcular el impacto de las obras en el tráfico."])}
+    return {
+        "is_valid": True,
+        "summary": {"total_registros": result.get("total_registros", 0)},
+        "sample_rows": result.get("obras", []),
+    }
+
+
 # Cada dimensión con preguntas analíticas registra aquí cómo construir su resumen para Ollama.
 # afectaciones_urbanas conserva su lectura de negocio a medida; el resto reutiliza capa 4/5
 # ya genéricas (build_dimension_layer5, get_dimension_analytics_summary) — añadir una nueva
@@ -4050,6 +4061,7 @@ DIMENSION_OLLAMA_SUMMARY_BUILDERS: Dict[str, Any] = {
     "afectaciones_its_y_trafico": _eq2_afectaciones_its_ollama_summary,
     "ocupacion_afectaciones_y_pmr": _eq3_ocupacion_afectaciones_ollama_summary,
     "ocupacion_carga_y_trafico": _eq4_ocupacion_carga_trafico_ollama_summary,
+    "afectaciones_trafico_impacto": _eq6_afectaciones_trafico_impacto_ollama_summary,
 }
 
 FOCUS_INSTRUCTIONS = {
@@ -4065,6 +4077,7 @@ FOCUS_INSTRUCTIONS = {
     "obras_its": "Señala qué vías con afectaciones activas carecen de dispositivos ITS (puntos ciegos, dispositivos_its = 0) frente a las que sí tienen cobertura.",
     "peatonal_pmr": "Prioriza vías donde coinciden terrazas y afectaciones activas, destacando las que además tienen impacto_pmr confirmado.",
     "logistica_terrazas": "Compara la densidad de terrazas frente a las plazas de carga/descarga disponibles en cada vía, y su nivel de congestión si lo hay.",
+    "impacto_trafico_obras": "Destaca las obras con mayor variación de tráfico observada (flujo antes vs. durante) y su nivel de impacto estimado. Si no hay registros, dilo explícitamente en vez de inventar cifras.",
     "cobertura_its": "Evalúa la cobertura de dispositivos ITS por categoría y vía, señalando posibles carencias de cobertura.",
 }
 

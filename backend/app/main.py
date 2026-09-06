@@ -621,6 +621,7 @@ def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user), _
     ocupacion_layer5 = build_dimension_layer5("ocupacion_permanente_espacio_publico", municipio_prefix=municipio_prefix)
     ocupacion_superficie = get_ocupacion_superficie_por_via(municipio_prefix)
     eq1_parking_trafico = get_eq1_parking_trafico(trafico_congestion=trafico_congestion, municipio_prefix=municipio_prefix)
+    eq2_afectaciones_its = get_eq2_afectaciones_its(municipio_prefix=municipio_prefix)
     eq3_ocupacion_afectaciones = get_eq3_ocupacion_afectaciones(municipio_prefix=municipio_prefix)
     eq4_ocupacion_carga = get_eq4_ocupacion_carga_trafico(trafico_congestion=trafico_congestion, municipio_prefix=municipio_prefix)
     modelo_ml = get_model_metrics()
@@ -631,7 +632,7 @@ def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user), _
             afectaciones_resumen, afectaciones_criticidad, trafico_congestion, afectaciones_trafico,
             its_layer5, its_pmr, parking_layer5, parking_por_via, reservadas_layer5,
             carriles_bici, ocupacion_layer5, ocupacion_superficie,
-            eq1_parking_trafico, eq3_ocupacion_afectaciones, eq4_ocupacion_carga, modelo_ml,
+            eq1_parking_trafico, eq2_afectaciones_its, eq3_ocupacion_afectaciones, eq4_ocupacion_carga, modelo_ml,
         )
         if not result.get("is_valid")
     ]
@@ -717,6 +718,7 @@ def get_cuadro_mando(current_user: Dict[str, Any] = Depends(get_current_user), _
         "priority_zones": priority_zones[:8],
         "cruces": {
             "eq1_parking_trafico": eq1_parking_trafico.get("resultados", []),
+            "eq2_afectaciones_its": eq2_afectaciones_its.get("vias", []),
             "eq3_ocupacion_afectaciones": eq3_ocupacion_afectaciones.get("vias", []),
             "eq4_ocupacion_carga_trafico": eq4_ocupacion_carga.get("vias", []),
         },

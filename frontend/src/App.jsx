@@ -9,6 +9,7 @@ const DIMENSION_CHIPS = [
   { key: "afectaciones_its_y_trafico", label: "Cruce · Afectaciones × ITS" },
   { key: "ocupacion_afectaciones_y_pmr", label: "Cruce · Ocupación × Afectaciones" },
   { key: "ocupacion_carga_y_trafico", label: "Cruce · Ocupación × Carga/Descarga" },
+  { key: "afectaciones_trafico_impacto", label: "Cruce · Afectaciones × Tráfico" },
 ];
 
 const DATASET_OPTIONS = [
@@ -1418,7 +1419,7 @@ export default function App() {
                   </article>
 
                   <article className="chart-card">
-                    <h2>Impacto de obras en el tráfico (EQ2)</h2>
+                    <h2>Impacto de obras en el tráfico (EQ6)</h2>
                     {(dashboard.obras_impacto_trafico || []).length === 0 ? (
                       <p className="chart-empty">
                         Sin obras con mediciones de tráfico solapadas todavía: los datos reales de
@@ -1447,6 +1448,26 @@ export default function App() {
 
             {dashboardView === "cruces" && (
               <div className="dashboard-layout">
+                <article className="chart-card">
+                  <h2>Puntos ciegos: obras sin cobertura ITS (EQ2)</h2>
+                  <p className="chart-empty">Vías con afectaciones activas y cuántos dispositivos ITS (cámaras, PMV) hay en esa misma vía.</p>
+                  {(dashboard.cruces?.eq2_afectaciones_its || []).length === 0 ? (
+                    <p className="chart-empty">Sin vías con afectaciones registradas todavía.</p>
+                  ) : (
+                    dashboard.cruces.eq2_afectaciones_its.map((via) => (
+                      <div className="priority-row" key={via.direccion}>
+                        <div>
+                          <div className="priority-title">
+                            <strong>{via.direccion}</strong>
+                            {via.punto_ciego && <span className="risk-badge risk-critico">punto ciego</span>}
+                          </div>
+                          <p>{via.afectaciones} afectaciones ({via.cortes_trafico} cortes de tráfico) · {via.dispositivos_its} dispositivos ITS</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </article>
+
                 <article className="chart-card">
                   <h2>Ocupación y afectaciones simultáneas (EQ3)</h2>
                   <p className="chart-empty">Vías donde coinciden terrazas activas y obras/cortes -- presión sobre la red peatonal.</p>
