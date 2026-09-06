@@ -22,7 +22,6 @@ Implementado:
 - NiFi para el movimiento de staging a raw.
 - Hive Metastore y Trino para consulta SQL sobre raw y tablas Iceberg.
 - KPIs SQL, capas curated/analytics Iceberg bajo demanda y reglas descriptivas de capa 5.
-- Superset para consultar las tablas Iceberg de Trino y construir dashboards BI.
 - Suite de pruebas automatizadas del backend.
 
 Pendiente:
@@ -160,10 +159,10 @@ Configuracion esperada por defecto:
 
 Ollama debe estar disponible en el puerto `11434` del equipo anfitrión. En Docker Compose, el backend lo alcanza mediante `host.docker.internal`.
 
-Superset queda disponible en `http://localhost:9190` con usuario `admin` y contraseña `admin`. En Superset, añade una conexión Trino con esta URI:
+Para inspeccionar las tablas Iceberg con un cliente SQL externo (DBeaver, etc.), Trino queda disponible en `http://localhost:9110` con esta URI de conexión:
 
 ```text
-trino://admin@trino:8080/lake
+trino://admin@localhost:9110/lake
 ```
 
 Después de generar las capas analíticas, los datasets disponibles son `lake.curated.afectaciones_urbanas` y `lake.analytics.afectaciones_urbanas_resumen`.

@@ -66,34 +66,6 @@ services:
       - caddy_data:/data
       - caddy_config:/config
 
-  superset:
-    build:
-      context: ./superset
-      dockerfile: Dockerfile
-    container_name: proyecto-superset
-    restart: unless-stopped
-    environment:
-      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
-      SUPERSET_SECRET_KEY: proyecto-alba-superset-local-secret
-      SUPERSET_ADMIN_USERNAME: admin
-      SUPERSET_ADMIN_PASSWORD: admin
-      SUPERSET_ADMIN_FIRSTNAME: Alba
-      SUPERSET_ADMIN_LASTNAME: Sanchez
-      SUPERSET_ADMIN_EMAIL: admin@proyectoalba.local
-    depends_on:
-      - trino
-    command: >
-      /bin/bash -c "
-      superset db upgrade &&
-      (superset fab create-admin --username admin --firstname Alba --lastname Sanchez --email admin@proyectoalba.local --password admin || true) &&
-      superset init &&
-      gunicorn --bind 0.0.0.0:8088 --workers 2 --timeout 120 'superset.app:create_app()'
-      "
-    ports:
-      - "9190:8088"
-    volumes:
-      - superset_home:/app/superset_home
-
   nifi:
     image: apache/nifi:2.0.0
     container_name: proyecto-nifi
@@ -222,4 +194,3 @@ volumes:
   seaweedfs_filer_data:
   trino_data:
   hive_metastore_db_data:
-  superset_home:
