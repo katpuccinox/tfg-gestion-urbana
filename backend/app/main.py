@@ -78,6 +78,7 @@ from app.services import (
     get_eq4_ocupacion_carga_trafico,
     create_custom_contract,
     delete_ingest_delivery,
+    delete_ingest_deliveries_by_municipio,
     get_dataset_contract,
     get_ingest_delivery_detail,
     list_custom_contracts,
@@ -228,6 +229,20 @@ def admin_borrar_ingesta(delivery_id: int, admin: dict = Depends(require_admin))
     result = delete_ingest_delivery(delivery_id)
     if not result.get("is_valid"):
         raise HTTPException(status_code=400, detail=result.get("errors", ["No se pudo borrar la entrega"]))
+    return result
+
+
+@app.delete("/admin/ingestas")
+def admin_borrar_ingestas_municipio(
+    municipio_id: str,
+    dataset: str | None = None,
+    admin: dict = Depends(require_admin),
+) -> Dict[str, object]:
+    """Borra en bloque todas las entregas de un municipio (opcionalmente de un solo
+    dataset), para resetear su dato de prueba antes de una prueba end-to-end sin
+    tener que borrar entrega por entrega. Misma naturaleza que /admin/ingestas/{id}:
+    herramienta de administración para entregas de prueba, no para producción."""
+    result = delete_ingest_deliveries_by_municipio(municipio_id, dataset)
     return result
 
 

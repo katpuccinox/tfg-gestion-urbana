@@ -2955,6 +2955,47 @@ def delete_ingest_delivery(delivery_id: int) -> Dict[str, Any]:
     }
 
 
+def delete_ingest_deliveries_by_municipio(municipio_id: str, dataset: str | None = None) -> Dict[str, Any]:
+    """Borra en bloque todas las entregas de un municipio (opcionalmente filtradas a
+    un solo dataset), reutilizando delete_ingest_delivery entrega a entrega.
+
+    Pensada para resetear el dato de prueba de un municipio completo antes de una
+    prueba end-to-end (subir todos los CSV de nuevo desde cero) sin tener que borrar
+    entrega por entrega a mano desde el panel. Sigue sin tocar los marts de
+    lake.analytics.*_resumen -- misma limitación conocida que delete_ingest_delivery,
+    se corrige subiendo de nuevo (build_dimension_layer4 los reconstruye)."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    if dataset:
+        cur.execute("SELECT id FROM ingesta_entregas WHERE municipio_id = %s AND dataset = %s ORDER BY id", (municipio_id, dataset))
+    else:
+        cur.execute("SELECT id FROM ingesta_entregas WHERE municipio_id = %s ORDER BY id", (municipio_id,))
+    delivery_ids = [row[0] for row in cur.fetchall()]
+    cur.close()
+    conn.close()
+
+    borradas: list[int] = []
+    errores: list[Dict[str, Any]] = []
+    total_filas = 0
+    for delivery_id in delivery_ids:
+        result = delete_ingest_delivery(delivery_id)
+        if result.get("is_valid"):
+            borradas.append(delivery_id)
+            total_filas += result.get("curated_rows_deleted", 0)
+        else:
+            errores.append({"delivery_id": delivery_id, "errors": result.get("errors", [])})
+
+    return {
+        "is_valid": True,
+        "municipio_id": municipio_id,
+        "dataset": dataset,
+        "entregas_encontradas": len(delivery_ids),
+        "entregas_borradas": len(borradas),
+        "curated_rows_deleted": total_filas,
+        "errores": errores,
+    }
+
+
 def mark_dataset_ingested(validacion_id: str | None) -> None:
     """Transiciona el ciclo de vida de la validación a 'ingestado' una vez la entrega
     completa la Capa 4 con éxito (hasta entonces se queda en 'en_consolidacion')."""

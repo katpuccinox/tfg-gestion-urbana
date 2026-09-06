@@ -206,6 +206,7 @@ export default function App() {
   const [adminSubTab, setAdminSubTab] = useState("usuarios");
   const [adminUsuarios, setAdminUsuarios] = useState([]);
   const [adminIngestas, setAdminIngestas] = useState([]);
+  const [borrarMunicipioForm, setBorrarMunicipioForm] = useState({ municipio_id: "", dataset: "" });
   const [adminCatalogo, setAdminCatalogo] = useState([]);
   const [adminCatalogoHistorial, setAdminCatalogoHistorial] = useState([]);
   const [adminAceptaciones, setAdminAceptaciones] = useState([]);
@@ -518,6 +519,34 @@ export default function App() {
       await loadAdminPanel();
     } catch (error) {
       setAdminStatus({ message: error.message || "No se pudo borrar la entrega.", type: "error" });
+    }
+  }
+
+  async function handleBorrarIngestasMunicipio(event) {
+    event.preventDefault();
+    const municipioId = borrarMunicipioForm.municipio_id;
+    if (!municipioId) return;
+    const dataset = borrarMunicipioForm.dataset;
+    const alcance = dataset ? `el dataset "${dataset}" de ${municipioId}` : `TODAS las entregas de ${municipioId}`;
+    const confirmado = window.confirm(
+      `⚠️ Vas a borrar PERMANENTEMENTE ${alcance}.\n\n` +
+      "Esto elimina sus filas de lake.curated y todo su rastro de seguimiento, entrega a entrega. No se puede deshacer. " +
+      "Pensado para resetear dato de prueba antes de volver a subirlo, no para producción.\n\n¿Continuar?"
+    );
+    if (!confirmado) return;
+    try {
+      const params = new URLSearchParams({ municipio_id: municipioId });
+      if (dataset) params.set("dataset", dataset);
+      const result = await adminFetch(`/admin/ingestas?${params.toString()}`, { method: "DELETE" });
+      const detalleErrores = result.errores?.length ? ` (${result.errores.length} con error)` : "";
+      setAdminStatus({
+        message: `${result.entregas_borradas}/${result.entregas_encontradas} entregas de ${municipioId} borradas${detalleErrores}: ${result.curated_rows_deleted} filas eliminadas en total.`,
+        type: result.errores?.length ? "error" : "success",
+      });
+      setBorrarMunicipioForm({ municipio_id: "", dataset: "" });
+      await loadAdminPanel();
+    } catch (error) {
+      setAdminStatus({ message: error.message || "No se pudo borrar las entregas del municipio.", type: "error" });
     }
   }
 
@@ -1821,6 +1850,37 @@ export default function App() {
             {adminSubTab === "ingestas" && (
               <div className="card">
                 <div className="panel-heading"><h2>Supervisión de ingestas</h2></div>
+                {isAdmin && (
+                  <form className="admin-form" onSubmit={handleBorrarIngestasMunicipio}>
+                    <label>
+                      Municipio
+                      <select
+                        value={borrarMunicipioForm.municipio_id}
+                        onChange={(event) => setBorrarMunicipioForm((current) => ({ ...current, municipio_id: event.target.value }))}
+                      >
+                        <option value="">Selecciona un municipio</option>
+                        {[...new Set(adminIngestas.map((entrega) => entrega.municipio_id || entrega.entity).filter(Boolean))].sort().map((municipioId) => (
+                          <option key={municipioId} value={municipioId}>{municipioId}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Dataset (opcional, vacío = todos)
+                      <select
+                        value={borrarMunicipioForm.dataset}
+                        onChange={(event) => setBorrarMunicipioForm((current) => ({ ...current, dataset: event.target.value }))}
+                      >
+                        <option value="">Todos los datasets</option>
+                        {[...new Set(adminIngestas.filter((entrega) => (entrega.municipio_id || entrega.entity) === borrarMunicipioForm.municipio_id).map((entrega) => entrega.dataset))].sort().map((dataset) => (
+                          <option key={dataset} value={dataset}>{dataset}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <button className="btn danger" type="submit" disabled={!borrarMunicipioForm.municipio_id}>
+                      Borrar entregas de este municipio
+                    </button>
+                  </form>
+                )}
                 <table className="admin-table">
                   <thead>
                     <tr><th>Recibida</th><th>Municipio</th><th>Dataset</th><th>Estado</th><th>Validación</th><th></th></tr>
