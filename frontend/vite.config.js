@@ -5,12 +5,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    proxy: {
-      "/health": "http://127.0.0.1:8000",
-      "/afectaciones": "http://127.0.0.1:8000",
-      "/ingesta": "http://127.0.0.1:8000",
-      "/analysis": "http://127.0.0.1:8000",
-      "/auth": "http://127.0.0.1:8000",
-    },
+    // Misma lista de prefijos que frontend/nginx.conf reenvía al backend en
+    // producción -- si se añade una ruta ahí, hay que añadirla aquí también.
+    proxy: Object.fromEntries(
+      [
+        "auth", "health", "afectaciones", "ingesta", "analysis", "hive", "iceberg",
+        "api", "admin", "politicas", "gobierno", "catalogo", "its", "db", "db-check",
+      ].map((prefix) => [`/${prefix}`, "http://127.0.0.1:8000"]),
+    ),
   },
 });

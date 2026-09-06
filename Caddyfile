@@ -1,0 +1,20 @@
+# Reverse proxy con HTTPS automático delante del frontend.
+#
+# Local (sin tocar nada): DOMAIN no está puesto -> usa "localhost". Caddy detecta que
+# no es un dominio público y sirve con un certificado de su propia CA interna
+# (no intenta Let's Encrypt, que fallaría para "localhost").
+#
+# Despliegue con dominio real: en el ".env" del proyecto, pon
+#   DOMAIN=tu-dominio.es
+#   ACME_EMAIL=tu-email@dominio.es
+# y reinicia el servicio "caddy" (`docker compose up -d caddy`). El DNS de ese
+# dominio debe apuntar ya a la IP de este servidor antes de reiniciar: Caddy pide y
+# renueva el certificado Let's Encrypt automáticamente, sin nada más que hacer.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN:localhost} {
+	reverse_proxy frontend:80
+}

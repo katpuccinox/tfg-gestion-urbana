@@ -12,6 +12,7 @@ frontend/dist/
 # Datos sensibles / locales
 .env
 .env.*
+!.env.example
 *.local
 
 # Artefactos de build

@@ -251,6 +251,28 @@ Sus endpoints son `POST /ingesta/its/capa0` y `POST /ingesta/ocupacion/capa0`. I
 
 El registro común de Capa 0 conserva además `recepcion_id`, `fecha_hora_recepcion`, `canal_entrada`, `nombre_fichero_original`, `tamano_fichero`, `estado_recepcion`, `indicador_conflicto` y `decision_sobre_conflicto`. Cada cambio genera un evento en `ingesta_eventos_recepcion` con `evento_recepcion_id`, `recepcion_id`, `numero_intento_carga`, `fecha_hora_evento`, `actor_evento`, `resultado_evento` y `observacion_evento`.
 
+## Despliegue con dominio propio
+
+El frontend usa siempre rutas relativas y `nginx.conf` acepta cualquier dominio
+(`server_name _;`), así que pasar de `localhost` a un dominio real no requiere tocar
+ninguna ruta del código. Delante del stack hay un servicio `caddy` (HTTPS automático
+vía Let's Encrypt) que hoy sirve en local sin configurar nada.
+
+Pasos para desplegar con un dominio real:
+
+1. Copia `.env.example` a `.env` si no existe ya, y ajusta:
+   - `DOMAIN=tu-dominio.es`
+   - `ACME_EMAIL=tu-email@dominio.es`
+   - `JWT_SECRET=` una cadena larga y aleatoria (obligatorio cambiarlo antes de exponer el proyecto públicamente)
+   - `OLLAMA_BASE_URL=` si Ollama no corre en la misma máquina con Docker Desktop
+2. Apunta el registro DNS (A) de ese dominio a la IP del servidor.
+3. `docker compose up -d --build` (o solo `docker compose up -d caddy` si el resto ya estaba desplegado).
+
+Caddy obtiene y renueva el certificado HTTPS automáticamente; no hace falta gestionar
+certificados a mano. El puerto 8080 (acceso directo HTTP al frontend, usado en local)
+sigue disponible en paralelo; ciérralo por firewall si quieres forzar que todo el
+tráfico externo pase por HTTPS.
+
 ## Pruebas
 
 ```powershell
