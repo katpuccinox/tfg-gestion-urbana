@@ -506,44 +506,36 @@ def _haversine_m(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
     return 2 * EARTH_RADIUS_M * asin(sqrt(a))
 
 
-def get_eq1_parking_trafico(radio_m: float = 400, trafico_congestion: Dict[str, Any] | None = None, municipio_prefix: str | None = None) -> Dict[str, Any]:
-    """EQ1 ('efecto mariposa'): satura de aparcamiento y tráfico circundante.
-
-    Los parkings y los puntos de medida de tráfico no comparten nombre de vía (los
-    parkings están en calles concretas, los puntos MOVIMA en grandes avenidas: 0
-    coincidencias de texto comprobado contra el dato real), así que el cruce se hace
-    por proximidad geográfica real -- el punto de tráfico más cercano a cada parking,
-    dentro de un radio de `radio_m` metros.
-
-    trafico_congestion: resultado ya calculado de build_movilidad_trafico_layer5(),
-    para no repetir esa consulta (recorre las 9348 filas de tráfico) si el llamante
-    ya lo tiene, como hace get_cuadro_mando."""
-    parking_where = f" AND lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
+def build_eq1_parking_trafico_mart(radio_m: float = 400) -> Dict[str, Any]:
+    """Materializa EQ1 ('efecto mariposa'): parking y tráfico no comparten nombre de
+    vía (los parkings están en calles concretas, los puntos MOVIMA en grandes
+    avenidas: 0 coincidencias de texto comprobado contra el dato real), así que el
+    cruce se hace por proximidad geográfica real -- el punto de tráfico más cercano
+    a cada parking, dentro de un radio de `radio_m` metros. El cálculo de distancias
+    se hace en Python (no hay una forma limpia de expresar "vecino más cercano" en
+    SQL de Trino sin funciones geoespaciales) y el resultado (unas pocas decenas de
+    filas como mucho) se persiste como el resto de marts de Capa 4 -- no se repite
+    esta búsqueda en cada petición del cuadro de mando, que es justo lo que la
+    convertía en un cálculo de Capa 5 antes de esta corrección."""
     try:
         parkings = run_trino_query_with_columns(
-            f"SELECT DISTINCT direccion, nombre, latitud, longitud FROM lake.curated.movilidad_parking WHERE latitud IS NOT NULL{parking_where}"
+            "SELECT DISTINCT direccion, nombre, latitud, longitud, dataset_id FROM lake.curated.movilidad_parking WHERE latitud IS NOT NULL"
         )
         parking_rows = [dict(zip(parkings["columns"], row)) for row in parkings["rows"]]
         saturacion = run_trino_query(
-            f"SELECT direccion, round(avg(ocupacion_rate) * 100, 1), round(count_if(saturado) * 100.0 / count(*), 1) "
-            f"FROM lake.curated.movilidad_parking WHERE 1=1{parking_where} GROUP BY direccion"
+            "SELECT direccion, round(avg(ocupacion_rate) * 100, 1), round(count_if(saturado) * 100.0 / count(*), 1) "
+            "FROM lake.curated.movilidad_parking GROUP BY direccion"
         )
         saturacion_por_via = {r[0]: {"ocupacion_media_pct": r[1], "pct_saturacion": r[2]} for r in saturacion}
 
-        if trafico_congestion is None:
-            trafico_congestion = build_movilidad_trafico_layer5(municipio_prefix=municipio_prefix)
-        if not trafico_congestion.get("is_valid"):
-            return {"is_valid": False, "errors": trafico_congestion.get("errors", [])}
-        trafico_where = f" AND lower(split_part(dataset_id, '|', 1)) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
         trafico_puntos = run_trino_query_with_columns(
-            f"SELECT DISTINCT direccion, latitud, longitud FROM lake.curated.movilidad_trafico WHERE latitud IS NOT NULL{trafico_where}"
+            "SELECT DISTINCT direccion, latitud, longitud FROM lake.curated.movilidad_trafico WHERE latitud IS NOT NULL"
         )
         trafico_coords: Dict[str, tuple] = {}
         for row in trafico_puntos["rows"]:
             direccion, lat, lon = row
             if direccion not in trafico_coords:
                 trafico_coords[direccion] = (lat, lon)
-        congestion_por_via = {p["direccion"]: p["pct_tiempo_alto_critico"] for p in trafico_congestion["prioridades"]}
 
         resultados = []
         for parking in parking_rows:
@@ -558,55 +550,176 @@ def get_eq1_parking_trafico(radio_m: float = 400, trafico_congestion: Dict[str, 
             if mejor_via is None or mejor_distancia > radio_m:
                 continue
             sat = saturacion_por_via.get(parking["direccion"], {})
+            municipio = str(parking.get("dataset_id") or "").split("|", 1)[0].lower()
             resultados.append({
-                "parking": parking.get("nombre") or parking["direccion"],
-                "direccion": parking["direccion"],
-                "ocupacion_media_pct": sat.get("ocupacion_media_pct", 0.0),
-                "pct_saturacion": sat.get("pct_saturacion", 0.0),
-                "via_trafico_cercana": mejor_via,
+                "parking": (parking.get("nombre") or parking["direccion"]).replace("'", "''"),
+                "direccion": parking["direccion"].replace("'", "''"),
+                "municipio": municipio.replace("'", "''"),
+                "ocupacion_media_pct": float(sat.get("ocupacion_media_pct") or 0.0),
+                "pct_saturacion": float(sat.get("pct_saturacion") or 0.0),
+                "via_trafico_cercana": mejor_via.replace("'", "''"),
                 "distancia_m": round(mejor_distancia),
-                "pct_congestion_via": congestion_por_via.get(mejor_via, 0.0),
             })
+
+        run_trino_statement("DROP TABLE IF EXISTS lake.analytics.eq1_parking_trafico")
+        run_trino_statement(
+            """
+            CREATE TABLE lake.analytics.eq1_parking_trafico (
+                parking varchar, direccion varchar, municipio varchar,
+                ocupacion_media_pct double, pct_saturacion double,
+                via_trafico_cercana varchar, distancia_m bigint
+            )
+            WITH (format = 'PARQUET', location = 's3://analytics/iceberg/eq1_parking_trafico/')
+            """
+        )
+        if resultados:
+            values = ", ".join(
+                f"('{r['parking']}', '{r['direccion']}', '{r['municipio']}', "
+                f"{r['ocupacion_media_pct']}, {r['pct_saturacion']}, '{r['via_trafico_cercana']}', {r['distancia_m']})"
+                for r in resultados
+            )
+            run_trino_statement(f"INSERT INTO lake.analytics.eq1_parking_trafico VALUES {values}")
+        return {"is_valid": True, "analytics_table": "lake.analytics.eq1_parking_trafico", "filas": len(resultados)}
+    except Exception as exc:
+        return {"is_valid": False, "errors": [str(exc)]}
+
+
+def build_eq2_afectaciones_its_mart_sql() -> str:
+    return """
+        CREATE TABLE lake.analytics.eq2_afectaciones_its
+        WITH (format = 'PARQUET', location = 's3://analytics/iceberg/eq2_afectaciones_its/') AS
+        SELECT
+            a.direccion,
+            lower(split_part(a.dataset_id, '|', 1)) AS municipio,
+            count(DISTINCT a.id) AS afectaciones,
+            count(DISTINCT CASE WHEN a.tipo_afectacion = 'corte_trafico' THEN a.id END) AS cortes_trafico,
+            count(DISTINCT i.id) AS dispositivos_its,
+            count(DISTINCT i.id) = 0 AS punto_ciego
+        FROM lake.curated.afectaciones_urbanas a
+        LEFT JOIN lake.curated.control_gestion_its i ON lower(a.direccion) = lower(i.direccion)
+        GROUP BY a.direccion, lower(split_part(a.dataset_id, '|', 1))
+    """
+
+
+def build_eq2_afectaciones_its_mart() -> Dict[str, Any]:
+    """Materializa EQ2: vías con obras/cortes activos cruzadas con su cobertura real
+    de dispositivos ITS -- LEFT JOIN a propósito, para que las vías con afectaciones
+    pero SIN ningún dispositivo ITS (puntos ciegos) queden con dispositivos_its = 0
+    en vez de desaparecer de la tabla."""
+    try:
+        run_trino_statement("DROP TABLE IF EXISTS lake.analytics.eq2_afectaciones_its")
+        run_trino_statement(build_eq2_afectaciones_its_mart_sql())
+        return {"is_valid": True, "analytics_table": "lake.analytics.eq2_afectaciones_its"}
+    except Exception as exc:
+        return {"is_valid": False, "errors": [str(exc)]}
+
+
+def build_eq3_ocupacion_afectaciones_mart_sql() -> str:
+    return """
+        CREATE TABLE lake.analytics.eq3_ocupacion_afectaciones
+        WITH (format = 'PARQUET', location = 's3://analytics/iceberg/eq3_ocupacion_afectaciones/') AS
+        SELECT
+            o.direccion,
+            lower(split_part(o.dataset_id, '|', 1)) AS municipio,
+            count(DISTINCT o.id) AS terrazas,
+            coalesce(sum(o.ocupacion_superficie), 0) AS superficie_m2,
+            count(DISTINCT a.id) AS afectaciones,
+            bool_or(a.impacto_pmr) AS impacto_pmr
+        FROM lake.curated.ocupacion_permanente_espacio_publico o
+        JOIN lake.curated.afectaciones_urbanas a ON lower(a.direccion) = lower(o.direccion)
+        GROUP BY o.direccion, lower(split_part(o.dataset_id, '|', 1))
+    """
+
+
+def build_eq3_ocupacion_afectaciones_mart() -> Dict[str, Any]:
+    """Materializa EQ3: vías donde coinciden ocupación permanente (terrazas) y
+    afectaciones urbanas (obras/cortes), con marca de si alguna de esas afectaciones
+    tiene impacto PMR -- presión sobre la red peatonal y accesibilidad."""
+    try:
+        run_trino_statement("DROP TABLE IF EXISTS lake.analytics.eq3_ocupacion_afectaciones")
+        run_trino_statement(build_eq3_ocupacion_afectaciones_mart_sql())
+        return {"is_valid": True, "analytics_table": "lake.analytics.eq3_ocupacion_afectaciones"}
+    except Exception as exc:
+        return {"is_valid": False, "errors": [str(exc)]}
+
+
+def build_eq4_ocupacion_carga_trafico_mart_sql() -> str:
+    return """
+        CREATE TABLE lake.analytics.eq4_ocupacion_carga_trafico
+        WITH (format = 'PARQUET', location = 's3://analytics/iceberg/eq4_ocupacion_carga_trafico/') AS
+        SELECT
+            o.direccion,
+            lower(split_part(o.dataset_id, '|', 1)) AS municipio,
+            count(DISTINCT o.id) AS terrazas,
+            coalesce(sum(o.ocupacion_superficie), 0) AS superficie_m2,
+            count(DISTINCT r.id) AS plazas_carga_descarga
+        FROM lake.curated.ocupacion_permanente_espacio_publico o
+        JOIN lake.curated.movilidad_plazas_reservadas r
+            ON lower(r.direccion) = lower(o.direccion) AND r.tipo_plaza = 'carga_descarga'
+        GROUP BY o.direccion, lower(split_part(o.dataset_id, '|', 1))
+    """
+
+
+def build_eq4_ocupacion_carga_trafico_mart() -> Dict[str, Any]:
+    """Materializa EQ4: vías con alta densidad de terrazas y pocas plazas de
+    carga/descarga -- indicio de presión logística (dobles filas, retenciones) donde
+    el espacio está más disputado entre terrazas y reparto."""
+    try:
+        run_trino_statement("DROP TABLE IF EXISTS lake.analytics.eq4_ocupacion_carga_trafico")
+        run_trino_statement(build_eq4_ocupacion_carga_trafico_mart_sql())
+        return {"is_valid": True, "analytics_table": "lake.analytics.eq4_ocupacion_carga_trafico"}
+    except Exception as exc:
+        return {"is_valid": False, "errors": [str(exc)]}
+
+
+def get_eq1_parking_trafico(trafico_congestion: Dict[str, Any] | None = None, municipio_prefix: str | None = None) -> Dict[str, Any]:
+    """EQ1: lee el mart ya materializado por build_eq1_parking_trafico_mart() (Capa 4)
+    y le adjunta el nivel de congestión de la vía de tráfico más cercana -- eso sí es
+    una regla de Capa 5 (percentiles propios de cada vía, build_movilidad_trafico_layer5),
+    calculada aparte y cruzada aquí en Python contra las pocas filas del mart, no
+    recalculada a base de recorrer el histórico de tráfico en cada petición.
+
+    trafico_congestion: resultado ya calculado de build_movilidad_trafico_layer5(), para
+    no repetirlo si el llamante ya lo tiene (get_cuadro_mando)."""
+    table = "lake.analytics.eq1_parking_trafico"
+    where_clause = f" WHERE lower(municipio) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
+    try:
+        rows = run_trino_query(
+            f"SELECT parking, direccion, ocupacion_media_pct, pct_saturacion, via_trafico_cercana, distancia_m "
+            f"FROM {table}{where_clause}"
+        )
+        if trafico_congestion is None:
+            trafico_congestion = build_movilidad_trafico_layer5(municipio_prefix=municipio_prefix)
+        congestion_por_via = {}
+        if trafico_congestion.get("is_valid"):
+            congestion_por_via = {p["direccion"]: p["pct_tiempo_alto_critico"] for p in trafico_congestion["prioridades"]}
+        resultados = [
+            {
+                "parking": r[0], "direccion": r[1], "ocupacion_media_pct": r[2], "pct_saturacion": r[3],
+                "via_trafico_cercana": r[4], "distancia_m": r[5],
+                "pct_congestion_via": congestion_por_via.get(r[4], 0.0),
+            }
+            for r in rows
+        ]
         resultados.sort(key=lambda item: (item["pct_saturacion"], item["pct_congestion_via"]), reverse=True)
-        return {"is_valid": True, "radio_m": radio_m, "total_parkings": len(parking_rows), "con_trafico_cercano": len(resultados), "resultados": resultados}
+        return {"is_valid": True, "con_trafico_cercano": len(resultados), "resultados": resultados}
     except Exception as exc:
         return {"is_valid": False, "errors": [str(exc)]}
 
 
 def get_eq3_ocupacion_afectaciones(limit: int = 10, municipio_prefix: str | None = None) -> Dict[str, Any]:
-    """EQ3: vías donde coinciden ocupación permanente (terrazas) y afectaciones
-    urbanas (obras/cortes), con marca de si alguna de esas afectaciones tiene
-    impacto PMR -- presión sobre la red peatonal y accesibilidad."""
-    municipio_filter = ""
-    if municipio_prefix:
-        escaped = _sql_escape(municipio_prefix)
-        municipio_filter = (
-            f" AND lower(split_part(o.dataset_id, '|', 1)) = lower('{escaped}')"
-            f" AND lower(split_part(a.dataset_id, '|', 1)) = lower('{escaped}')"
-        )
+    """EQ3: lee el mart ya materializado por build_eq3_ocupacion_afectaciones_mart() (Capa 4)."""
+    table = "lake.analytics.eq3_ocupacion_afectaciones"
+    where_clause = f" WHERE lower(municipio) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
     try:
         rows = run_trino_query(
-            """
-            SELECT o.direccion,
-                   count(DISTINCT o.id) AS terrazas,
-                   coalesce(sum(o.ocupacion_superficie), 0) AS superficie_m2,
-                   count(DISTINCT a.id) AS afectaciones,
-                   bool_or(a.impacto_pmr) AS alguna_pmr
-            FROM lake.curated.ocupacion_permanente_espacio_publico o
-            JOIN lake.curated.afectaciones_urbanas a ON lower(a.direccion) = lower(o.direccion)
-            WHERE 1=1%s
-            GROUP BY o.direccion
-            ORDER BY afectaciones DESC, terrazas DESC
-            LIMIT %d
-            """ % (municipio_filter, limit)
+            f"SELECT direccion, terrazas, superficie_m2, afectaciones, impacto_pmr FROM {table}{where_clause} "
+            f"ORDER BY afectaciones DESC, terrazas DESC LIMIT {limit}"
         )
         return {
             "is_valid": True,
             "vias": [
-                {
-                    "direccion": r[0], "terrazas": r[1], "superficie_m2": round(r[2], 1),
-                    "afectaciones": r[3], "impacto_pmr": bool(r[4]),
-                }
+                {"direccion": r[0], "terrazas": r[1], "superficie_m2": round(r[2], 1), "afectaciones": r[3], "impacto_pmr": bool(r[4])}
                 for r in rows
             ],
         }
@@ -615,40 +728,18 @@ def get_eq3_ocupacion_afectaciones(limit: int = 10, municipio_prefix: str | None
 
 
 def get_eq2_afectaciones_its(limit: int = 10, municipio_prefix: str | None = None) -> Dict[str, Any]:
-    """EQ2: vías con obras/cortes activos (afectaciones_urbanas) cruzadas con la
-    cobertura real de dispositivos ITS (control_gestion_its) en esa misma vía --
-    LEFT JOIN a propósito, para que las vías con afectaciones pero SIN ningún
-    dispositivo ITS (puntos ciegos, sin cámara ni panel PMV para desviar tráfico)
-    aparezcan con dispositivos_its = 0 en vez de desaparecer del resultado."""
-    municipio_filter_a = ""
-    municipio_filter_i = ""
-    if municipio_prefix:
-        escaped = _sql_escape(municipio_prefix)
-        municipio_filter_a = f" AND lower(split_part(a.dataset_id, '|', 1)) = lower('{escaped}')"
-        municipio_filter_i = f" AND lower(split_part(i.dataset_id, '|', 1)) = lower('{escaped}')"
+    """EQ2: lee el mart ya materializado por build_eq2_afectaciones_its_mart() (Capa 4)."""
+    table = "lake.analytics.eq2_afectaciones_its"
+    where_clause = f" WHERE lower(municipio) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
     try:
         rows = run_trino_query(
-            """
-            SELECT a.direccion,
-                   count(DISTINCT a.id) AS afectaciones,
-                   count(DISTINCT CASE WHEN a.tipo_afectacion = 'corte_trafico' THEN a.id END) AS cortes_trafico,
-                   count(DISTINCT i.id) AS dispositivos_its
-            FROM lake.curated.afectaciones_urbanas a
-            LEFT JOIN lake.curated.control_gestion_its i
-                ON lower(a.direccion) = lower(i.direccion)%s
-            WHERE 1=1%s
-            GROUP BY a.direccion
-            ORDER BY dispositivos_its ASC, afectaciones DESC
-            LIMIT %d
-            """ % (municipio_filter_i, municipio_filter_a, limit)
+            f"SELECT direccion, afectaciones, cortes_trafico, dispositivos_its, punto_ciego FROM {table}{where_clause} "
+            f"ORDER BY dispositivos_its ASC, afectaciones DESC LIMIT {limit}"
         )
         return {
             "is_valid": True,
             "vias": [
-                {
-                    "direccion": r[0], "afectaciones": r[1], "cortes_trafico": r[2],
-                    "dispositivos_its": r[3], "punto_ciego": r[3] == 0,
-                }
+                {"direccion": r[0], "afectaciones": r[1], "cortes_trafico": r[2], "dispositivos_its": r[3], "punto_ciego": bool(r[4])}
                 for r in rows
             ],
         }
@@ -657,32 +748,15 @@ def get_eq2_afectaciones_its(limit: int = 10, municipio_prefix: str | None = Non
 
 
 def get_eq4_ocupacion_carga_trafico(limit: int = 10, trafico_congestion: Dict[str, Any] | None = None, municipio_prefix: str | None = None) -> Dict[str, Any]:
-    """EQ4: vías con alta densidad de terrazas y pocas plazas de carga/descarga,
-    cruzadas con su nivel de congestión de tráfico si hay dato -- indicio de
-    presión logística (dobles filas, retenciones) donde el espacio está más
-    disputado entre terrazas y reparto."""
-    municipio_filter = ""
-    if municipio_prefix:
-        escaped = _sql_escape(municipio_prefix)
-        municipio_filter = (
-            f" AND lower(split_part(o.dataset_id, '|', 1)) = lower('{escaped}')"
-            f" AND lower(split_part(r.dataset_id, '|', 1)) = lower('{escaped}')"
-        )
+    """EQ4: lee el mart ya materializado por build_eq4_ocupacion_carga_trafico_mart()
+    (Capa 4) y le adjunta el nivel de congestión de tráfico de cada vía -- regla de
+    Capa 5 (build_movilidad_trafico_layer5), cruzada aquí en Python."""
+    table = "lake.analytics.eq4_ocupacion_carga_trafico"
+    where_clause = f" WHERE lower(municipio) = lower('{_sql_escape(municipio_prefix)}')" if municipio_prefix else ""
     try:
         rows = run_trino_query(
-            """
-            SELECT o.direccion,
-                   count(DISTINCT o.id) AS terrazas,
-                   coalesce(sum(o.ocupacion_superficie), 0) AS superficie_m2,
-                   count(DISTINCT r.id) AS plazas_carga_descarga
-            FROM lake.curated.ocupacion_permanente_espacio_publico o
-            JOIN lake.curated.movilidad_plazas_reservadas r
-                ON lower(r.direccion) = lower(o.direccion) AND r.tipo_plaza = 'carga_descarga'
-            WHERE 1=1%s
-            GROUP BY o.direccion
-            ORDER BY terrazas DESC, plazas_carga_descarga ASC
-            LIMIT %d
-            """ % (municipio_filter, limit)
+            f"SELECT direccion, terrazas, superficie_m2, plazas_carga_descarga FROM {table}{where_clause} "
+            f"ORDER BY terrazas DESC, plazas_carga_descarga ASC LIMIT {limit}"
         )
         if trafico_congestion is None:
             trafico_congestion = build_movilidad_trafico_layer5(municipio_prefix=municipio_prefix)
@@ -1346,12 +1420,16 @@ def build_afectaciones_layers() -> Dict[str, Any]:
         run_trino_statement("DROP TABLE IF EXISTS lake.analytics.afectaciones_urbanas_resumen")
         run_trino_statement(build_afectaciones_curated_sql())
         run_trino_statement(build_afectaciones_exploitation_sql())
-        cross_mart = build_afectaciones_trafico_mart()
+        cross_marts = {
+            "eq6_afectaciones_trafico": build_afectaciones_trafico_mart(),
+            "eq2_afectaciones_its": build_eq2_afectaciones_its_mart(),
+            "eq3_ocupacion_afectaciones": build_eq3_ocupacion_afectaciones_mart(),
+        }
         return {
             "is_valid": True,
             "curated_table": "lake.curated.afectaciones_urbanas",
             "analytics_table": "lake.analytics.afectaciones_urbanas_resumen",
-            "cross_mart": cross_mart,
+            "cross_marts": cross_marts,
         }
     except Exception as exc:
         return {"is_valid": False, "errors": [str(exc)]}
@@ -1578,12 +1656,23 @@ def build_dimension_layer4(dataset: str, contract: Dict[str, Any], normalized_ta
         run_trino_statement(f"DROP TABLE IF EXISTS {analytics_table}")
         run_trino_statement(analytics_sql)
 
-        cross_mart = None
+        # Cruces multidimensión (EQ1-EQ6): se rematerializan solo cuando cambia una de
+        # las dimensiones que participan en cada uno -- son cruces nombrados entre
+        # dimensiones concretas, no hay una noción genérica de "cruzar X con Y", así
+        # que no hay forma de derivar esta lista del contrato de la dimensión que se
+        # acaba de subir.
+        cross_marts: Dict[str, Any] = {}
         if dataset in ("afectaciones_urbanas", "gestion_afectaciones_urbanas", "movilidad_trafico"):
-            # Específico de negocio: cruce nombrado entre estas dos dimensiones concretas,
-            # no hay una noción genérica de "cruzar dimensión X con Y".
-            cross_mart = build_afectaciones_trafico_mart()
-        return {"is_valid": True, "curated_table": curated_table, "analytics_table": analytics_table}
+            cross_marts["eq6_afectaciones_trafico"] = build_afectaciones_trafico_mart()
+        if dataset in ("movilidad_parking", "movilidad_trafico"):
+            cross_marts["eq1_parking_trafico"] = build_eq1_parking_trafico_mart()
+        if dataset in ("afectaciones_urbanas", "gestion_afectaciones_urbanas", "control_gestion_its"):
+            cross_marts["eq2_afectaciones_its"] = build_eq2_afectaciones_its_mart()
+        if dataset in ("ocupacion_permanente_espacio_publico", "afectaciones_urbanas", "gestion_afectaciones_urbanas"):
+            cross_marts["eq3_ocupacion_afectaciones"] = build_eq3_ocupacion_afectaciones_mart()
+        if dataset in ("ocupacion_permanente_espacio_publico", "movilidad_plazas_reservadas"):
+            cross_marts["eq4_ocupacion_carga_trafico"] = build_eq4_ocupacion_carga_trafico_mart()
+        return {"is_valid": True, "curated_table": curated_table, "analytics_table": analytics_table, "cross_marts": cross_marts}
     except Exception as exc:
         return {"is_valid": False, "errors": [str(exc)]}
 
@@ -4282,8 +4371,6 @@ def _eq1_parking_trafico_ollama_summary(limit: int) -> Dict[str, Any]:
     return {
         "is_valid": True,
         "summary": {
-            "radio_m": result.get("radio_m"),
-            "total_parkings": result.get("total_parkings", 0),
             "con_trafico_cercano": result.get("con_trafico_cercano", 0),
         },
         # Cada fila ya es un caso real y concreto (un parking con su vía de tráfico

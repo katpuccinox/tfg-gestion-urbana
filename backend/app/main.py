@@ -67,6 +67,10 @@ from app.services import (
     get_its_pmr_coverage,
     get_lake_root,
     get_catalog_entry_csv,
+    build_eq1_parking_trafico_mart,
+    build_eq2_afectaciones_its_mart,
+    build_eq3_ocupacion_afectaciones_mart,
+    build_eq4_ocupacion_carga_trafico_mart,
     get_eq1_parking_trafico,
     get_eq2_afectaciones_its,
     get_eq3_ocupacion_afectaciones,
@@ -118,6 +122,17 @@ def initialize_authentication() -> None:
         train_congestion_model()
     except Exception:
         pass  # se reintenta on-demand la primera vez que se pida /api/ml/movilidad/modelo
+    try:
+        # Los marts de los cruces EQ1-EQ4 normalmente se rematerializan al subir una
+        # entrega de una de sus dimensiones (build_dimension_layer4); en el primer
+        # arranque contra un lago ya poblado (o si Trino no estaba listo la última
+        # vez) puede que aún no existan, así que se aseguran aquí también.
+        build_eq1_parking_trafico_mart()
+        build_eq2_afectaciones_its_mart()
+        build_eq3_ocupacion_afectaciones_mart()
+        build_eq4_ocupacion_carga_trafico_mart()
+    except Exception:
+        pass  # Trino puede no estar listo todavía; se rematerializan en la siguiente subida
 
 
 @app.post("/auth/login")
