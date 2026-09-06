@@ -35,6 +35,10 @@ services:
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
       OLLAMA_TIMEOUT_SECONDS: ${OLLAMA_TIMEOUT_SECONDS:-600}
       JWT_SECRET: ${JWT_SECRET:-cambia-esta-clave-larga-en-produccion-2026}
+      OM_API: http://openmetadata:8585/api/v1
+      OM_USER: admin@openmetadata.org
+      OM_PASSWORD: admin
+      OM_ENABLED: "true"
     depends_on:
       - postgres
       - nifi
@@ -180,6 +184,80 @@ services:
     volumes:
       - ./infra/trino/catalog:/etc/trino/catalog:ro
 
+  # ── MySQL (requerido por OpenMetadata) ────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: proyecto-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: openmetadata_root
+      MYSQL_DATABASE: openmetadata_db
+      MYSQL_USER: openmetadata_user
+      MYSQL_PASSWORD: openmetadata_pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-popenmetadata_root"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  # ── Elasticsearch (requerido por OpenMetadata) ────────────────────
+  elasticsearch:
+    image: elasticsearch:7.16.3
+    container_name: proyecto-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  # ── OpenMetadata (gobierno del dato: catálogo técnico, dominios, tags) ──
+  # Acceso: http://localhost:9140   usuario: admin@openmetadata.org / admin
+  # (usuario auto-provisionado por OpenMetadata con AUTHENTICATION_PROVIDER=basic
+  # y sin SMTP configurado -- son las credenciales reales del primer arranque,
+  # verificadas contra el contenedor, no un valor de la documentación oficial)
+  openmetadata:
+    image: openmetadata/server:1.3.4
+    container_name: proyecto-openmetadata
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9140:8585"
+    environment:
+      OPENMETADATA_CLUSTER_NAME: "local"
+      DB_DRIVER_CLASS: "com.mysql.cj.jdbc.Driver"
+      DB_SCHEME: "mysql"
+      DB_USE_SSL: "false"
+      DB_USER: "openmetadata_user"
+      DB_USER_PASSWORD: "openmetadata_pass"
+      DB_HOST: "mysql"
+      DB_PORT: "3306"
+      OM_DATABASE: "openmetadata_db"
+      PIPELINE_SERVICE_CLIENT_ENABLED: "false"
+      AUTHENTICATION_PROVIDER: "basic"
+      ELASTICSEARCH_HOST: "elasticsearch"
+      ELASTICSEARCH_PORT: "9200"
+      ELASTICSEARCH_SCHEME: "http"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8585/api/v1/system/status"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
+      start_period: 120s
+
 volumes:
   postgres_data:
   caddy_data:
@@ -194,3 +272,5 @@ volumes:
   seaweedfs_filer_data:
   trino_data:
   hive_metastore_db_data:
+  mysql_data:
+  es_data:

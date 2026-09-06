@@ -921,12 +921,24 @@ td {
 
 .panel-heading {
   margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .panel-heading h2 {
   margin: 0.2rem 0 0;
   font-family: "Space Grotesk", sans-serif;
   font-size: 1.25rem;
+}
+
+.panel-heading-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .eyebrow {

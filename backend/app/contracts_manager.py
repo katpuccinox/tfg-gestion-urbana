@@ -29,7 +29,41 @@ CANONICAL_DOMAINS = {
     "afectaciones_urbanas": "Afectaciones Urbanas",
     "ocupacion_permanente_espacio_publico": "Ocupación Permanente",
     "control_gestion_its": "Control y Gestión ITS",
+    "cruces": "Cruces Multidimensión",
 }
+
+# Marts de Capa 4 que cruzan más de una dimensión (build_dimension_layer4 y las
+# funciones build_eq*_mart de services.py) -- no pertenecen a una sola dimensión,
+# así que se agrupan bajo el dominio "cruces" en vez de heredar el de una tabla curada.
+CROSS_MART_TABLES = {
+    "trafico_obra_activa",
+    "eq1_parking_trafico",
+    "eq2_afectaciones_its",
+    "eq3_ocupacion_afectaciones",
+    "eq4_ocupacion_carga_trafico",
+    "afectaciones_trafico",
+}
+
+OM_SERVICE_NAME = "espacio-datos-trino"
+
+_TRINO_TYPE_TO_OM = {
+    "varchar": "VARCHAR",
+    "char": "CHAR",
+    "bigint": "BIGINT",
+    "integer": "INT",
+    "double": "DOUBLE",
+    "real": "FLOAT",
+    "boolean": "BOOLEAN",
+    "date": "DATE",
+    "decimal": "DECIMAL",
+}
+
+
+def _om_data_type(trino_type: str) -> str:
+    base = trino_type.split("(")[0].strip().lower()
+    if base.startswith("timestamp"):
+        return "TIMESTAMP"
+    return _TRINO_TYPE_TO_OM.get(base, "VARCHAR")
 
 
 def get_postgres_conn():
@@ -153,8 +187,8 @@ class ContractsManager:
     def __init__(self, contracts=None):
         self.contracts = contracts or CONTRACTS
         self.om_api = os.getenv("OM_API", "http://localhost:9140/api/v1").rstrip("/")
-        self.om_user = os.getenv("OM_USER", "admin@open-metadata.org")
-        self.om_password = os.getenv("OM_PASSWORD", "Admin1234!")
+        self.om_user = os.getenv("OM_USER", "admin@openmetadata.org")
+        self.om_password = os.getenv("OM_PASSWORD", "admin")
         self.om_enabled = os.getenv("OM_ENABLED", "true").lower() == "true"
 
     def _contract_payload(self, contract_id: str, contract: Dict[str, Any]) -> Dict[str, Any]:
@@ -244,7 +278,43 @@ class ContractsManager:
         if response.status_code not in (200, 201, 409):
             response.raise_for_status()
 
+    def _ensure_classification(self, token: str) -> None:
+        headers = self._headers(token)
+        response = requests.get(f"{self.om_api}/classifications/name/Validation", headers=headers, timeout=10)
+        if response.ok:
+            return
+        if response.status_code != 404:
+            response.raise_for_status()
+        response = requests.post(
+            f"{self.om_api}/classifications",
+            headers=headers,
+            json={"name": "Validation", "description": "Valores permitidos declarados en los contratos técnicos."},
+            timeout=10,
+        )
+        if response.status_code not in (200, 201, 409):
+            response.raise_for_status()
+
+    def _ensure_parent_tag(self, token: str) -> None:
+        headers = self._headers(token)
+        response = requests.get(f"{self.om_api}/tags/name/Validation.Allowed", headers=headers, timeout=10)
+        if response.ok:
+            return
+        if response.status_code != 404:
+            response.raise_for_status()
+        response = requests.post(
+            f"{self.om_api}/tags",
+            headers=headers,
+            json={"name": "Allowed", "classification": "Validation", "description": "Valores permitidos, agrupados por columna."},
+            timeout=10,
+        )
+        if response.status_code not in (200, 201, 409):
+            response.raise_for_status()
+
     def _ensure_tag(self, token: str, value: str) -> None:
+        # Un tag hijo (Validation.Allowed.<valor>) exige que la clasificación y el
+        # tag padre ya existan -- OpenMetadata no los crea implícitamente.
+        self._ensure_classification(token)
+        self._ensure_parent_tag(token)
         headers = self._headers(token)
         tag_fqn = f"Validation.Allowed.{value}"
         response = requests.get(f"{self.om_api}/tags/name/{tag_fqn}", headers=headers, timeout=10)
@@ -261,12 +331,122 @@ class ContractsManager:
         if response.status_code not in (200, 201, 409):
             response.raise_for_status()
 
+    def _domain_for_table(self, table_name: str) -> str | None:
+        """Deriva el dominio de gobierno de una tabla física a partir de qué
+        contrato resuelve a ese nombre de tabla curada (o de los cruces
+        multidimensión conocidos, que no pertenecen a una sola dimensión)."""
+        if table_name in CROSS_MART_TABLES:
+            return "cruces"
+        from app.services import resolve_curated_table_name
+        base = table_name[: -len("_resumen")] if table_name.endswith("_resumen") else table_name
+        for contract_id, contract in self.contracts.items():
+            if resolve_curated_table_name(contract_id) == base:
+                return contract.get("dimension", base)
+        return None
+
+    def _describe_columns(self, qualified_table: str) -> list:
+        """Columnas y tipos REALES de una tabla física de Trino (no los declarados
+        a mano en el contrato) -- así el catálogo técnico refleja el esquema tal
+        cual quedó materializado en Iceberg, tipos inferidos incluidos."""
+        from app.services import run_trino_query
+        try:
+            rows = run_trino_query(f"DESCRIBE {qualified_table}")
+        except Exception:
+            return []
+        columns = []
+        for row in rows:
+            name, trino_type = row[0], row[1]
+            column = {"name": name, "dataType": _om_data_type(trino_type)}
+            if column["dataType"] in ("VARCHAR", "CHAR"):
+                column["dataLength"] = 255
+            columns.append(column)
+        return columns
+
+    def _ensure_database_service(self, token: str) -> None:
+        headers = self._headers(token)
+        response = requests.get(f"{self.om_api}/services/databaseServices/name/{OM_SERVICE_NAME}", headers=headers, timeout=10)
+        if response.ok:
+            return
+        if response.status_code != 404:
+            response.raise_for_status()
+        body = {
+            "name": OM_SERVICE_NAME,
+            "serviceType": "Trino",
+            "description": "Motor de consulta SQL real del espacio de datos (Trino sobre Iceberg/Hive).",
+            "connection": {
+                "config": {
+                    "type": "Trino",
+                    "hostPort": "trino:8080",
+                    "username": "admin",
+                    "catalog": "lake",
+                }
+            },
+        }
+        response = requests.post(f"{self.om_api}/services/databaseServices", headers=headers, json=body, timeout=10)
+        if response.status_code not in (200, 201, 409):
+            response.raise_for_status()
+
+    def _upsert_lake_table(self, token: str, schema_name: str, table_name: str) -> bool:
+        headers = self._headers(token)
+        columns = self._describe_columns(f"lake.{schema_name}.{table_name}")
+        if not columns:
+            return False
+        requests.put(f"{self.om_api}/databases", headers=headers, json={"name": "lake", "service": OM_SERVICE_NAME}, timeout=10).raise_for_status()
+        requests.put(
+            f"{self.om_api}/databaseSchemas", headers=headers,
+            json={"name": schema_name, "database": f"{OM_SERVICE_NAME}.lake"}, timeout=10,
+        ).raise_for_status()
+        body: Dict[str, Any] = {
+            "name": table_name,
+            "databaseSchema": f"{OM_SERVICE_NAME}.lake.{schema_name}",
+            "columns": columns,
+            "tableType": "Regular",
+        }
+        domain = self._domain_for_table(table_name)
+        if domain:
+            body["domain"] = domain
+        requests.put(f"{self.om_api}/tables", headers=headers, json=body, timeout=10).raise_for_status()
+        return True
+
+    def _provision_lake_tables(self, token: str) -> Dict[str, Any]:
+        """Registra en OpenMetadata las tablas FÍSICAS reales de lake.curated y
+        lake.analytics (columnas y tipos reales, vía DESCRIBE en Trino) -- a
+        diferencia de los contratos abstractos de más abajo, esto incluye también
+        los cruces multidimensión materializados en Capa 4 (EQ1-4/6, obra activa)
+        y cualquier contrato personalizado creado desde el panel, porque se
+        descubren consultando el catálogo real en vez de una lista fija."""
+        from app.services import run_trino_query
+        self._ensure_database_service(token)
+        registradas: list = []
+        errores: list = []
+        for schema_name in ("curated", "analytics"):
+            try:
+                rows = run_trino_query(f"SELECT table_name FROM lake.information_schema.tables WHERE table_schema = '{schema_name}'")
+            except Exception as exc:
+                errores.append({"schema": schema_name, "error": str(exc)})
+                continue
+            for (table_name,) in rows:
+                try:
+                    if self._upsert_lake_table(token, schema_name, table_name):
+                        registradas.append(f"{schema_name}.{table_name}")
+                except Exception as exc:
+                    errores.append({"table": f"{schema_name}.{table_name}", "error": str(exc)})
+        return {"tables": registradas, "errores": errores}
+
+    def provision_lake_tables_to_openmetadata(self) -> Dict[str, Any]:
+        """Punto de entrada independiente (p. ej. para un botón "resincronizar
+        tablas" que no necesite tocar contratos/dominios)."""
+        if not self.om_enabled:
+            return {"enabled": False, "status": "disabled", "tables": []}
+        token = self._login()
+        result = self._provision_lake_tables(token)
+        return {"enabled": True, "status": "synchronized" if not result["errores"] else "partial", **result}
+
     def provision_to_openmetadata(self) -> Dict[str, Any]:
         if not self.om_enabled:
             return {"enabled": False, "status": "disabled", "domains": [], "tables": []}
         token = self._login()
         domains = set()
-        tables = []
         for contract_id, contract in self.contracts.items():
             dimension = contract.get("dimension", contract_id)
             if dimension not in domains:
@@ -276,8 +456,16 @@ class ContractsManager:
             for column in payload["columns"]:
                 for value in column["allowed"]:
                     self._ensure_tag(token, value)
-            tables.append(contract_id)
-        return {"enabled": True, "status": "synchronized", "domains": sorted(domains), "tables": tables}
+        self._ensure_domain(token, "cruces", CANONICAL_DOMAINS["cruces"])
+        domains.add("cruces")
+        lake_result = self._provision_lake_tables(token)
+        return {
+            "enabled": True,
+            "status": "synchronized" if not lake_result["errores"] else "partial",
+            "domains": sorted(domains),
+            "tables": lake_result["tables"],
+            "errores": lake_result["errores"],
+        }
 
     def synchronize(self, triggered_by: int | None = None) -> Dict[str, Any]:
         postgres_result = self.save_contracts_to_postgres()

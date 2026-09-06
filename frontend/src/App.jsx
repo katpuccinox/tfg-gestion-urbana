@@ -552,8 +552,14 @@ export default function App() {
 
   async function handleResincronizarCatalogo() {
     try {
-      await adminFetch("/gobierno/contratos/sincronizar", { method: "POST" });
-      setAdminStatus({ message: "Catálogo resincronizado.", type: "success" });
+      const result = await adminFetch("/gobierno/contratos/sincronizar", { method: "POST" });
+      const om = result.openmetadata || {};
+      const mensaje = !om.enabled
+        ? "Catálogo resincronizado en Postgres. OpenMetadata está deshabilitado (OM_ENABLED=false)."
+        : om.status === "synchronized"
+          ? `Catálogo resincronizado y publicado en OpenMetadata: ${om.domains?.length || 0} dominios, ${om.tables?.length || 0} tablas físicas registradas.`
+          : `Catálogo resincronizado en Postgres, pero OpenMetadata no respondió del todo (${(om.errores || []).length} error(es); revisa que el contenedor "openmetadata" esté arriba).`;
+      setAdminStatus({ message: mensaje, type: om.status === "synchronized" || !om.enabled ? "success" : "error" });
       await loadAdminPanel();
     } catch (error) {
       setAdminStatus({ message: error.message || "No se pudo resincronizar el catálogo.", type: "error" });
@@ -1905,10 +1911,20 @@ export default function App() {
               <div className="card">
                 <div className="panel-heading">
                   <h2>Catálogo de contratos</h2>
-                  <button className="btn" type="button" onClick={handleResincronizarCatalogo}>
-                    Resincronizar catálogo
-                  </button>
+                  <div className="panel-heading-actions">
+                    <a className="btn alt" href="http://localhost:9140" target="_blank" rel="noreferrer">
+                      Abrir catálogo técnico (OpenMetadata)
+                    </a>
+                    <button className="btn" type="button" onClick={handleResincronizarCatalogo}>
+                      Resincronizar catálogo
+                    </button>
+                  </div>
                 </div>
+                <p className="chart-empty">
+                  Al resincronizar se publican en OpenMetadata los dominios de gobierno, los valores permitidos de
+                  cada columna y las tablas físicas reales de lake.curated y lake.analytics (columnas y tipos
+                  introspeccionados vía Trino, cruces multidimensión incluidos).
+                </p>
                 <table className="admin-table">
                   <thead>
                     <tr><th>Dataset</th><th>Dimensión</th><th>Estado</th><th>Actualizado</th><th></th></tr>
