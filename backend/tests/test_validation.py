@@ -240,10 +240,15 @@ def test_layer0_accepts_known_dataset_without_validating_its_schema(monkeypatch)
 
 
 def test_layer2_rejects_schema_that_layer0_can_receive():
-    response = TestClient(app).post(
-        "/hive/bronze/validar?dataset=movilidad_trafico",
-        files={"file": ("movilidad.csv", b"id,nombre\n1,Sensor\n", "text/csv")},
-    )
+    app.dependency_overrides[require_write_access] = lambda: FAKE_EDITOR_USER
+    app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
+    try:
+        response = TestClient(app).post(
+            "/hive/bronze/validar?dataset=movilidad_trafico",
+            files={"file": ("movilidad.csv", b"id,nombre\n1,Sensor\n", "text/csv")},
+        )
+    finally:
+        app.dependency_overrides.clear()
 
     assert response.status_code == 200
     body = response.json()
@@ -303,10 +308,15 @@ def test_layer3_flattens_embedded_line_breaks_for_hive_csv_rows():
 
 
 def test_layer3_does_not_normalize_a_dataset_rejected_by_layer2():
-    response = TestClient(app).post(
-        "/iceberg/silver/normalizar?dataset=movilidad_trafico",
-        files={"file": ("movilidad.csv", b"id,nombre\n1,Sensor\n", "text/csv")},
-    )
+    app.dependency_overrides[require_write_access] = lambda: FAKE_EDITOR_USER
+    app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
+    try:
+        response = TestClient(app).post(
+            "/iceberg/silver/normalizar?dataset=movilidad_trafico",
+            files={"file": ("movilidad.csv", b"id,nombre\n1,Sensor\n", "text/csv")},
+        )
+    finally:
+        app.dependency_overrides.clear()
 
     assert response.status_code == 200
     body = response.json()
@@ -476,10 +486,15 @@ def test_bronze_endpoint_preserves_accepted_csv(monkeypatch):
     monkeypatch.setattr(services_module, "update_delivery_status", lambda delivery_id, status: None)
     monkeypatch.setenv("S3_ENDPOINT", "http://s3.test")
 
-    response = TestClient(app).post(
-        "/hive/bronze/preservar?dataset=movilidad_trafico",
-        files={"file": ("movilidad.csv", content, "text/csv")},
-    )
+    app.dependency_overrides[require_write_access] = lambda: FAKE_EDITOR_USER
+    app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
+    try:
+        response = TestClient(app).post(
+            "/hive/bronze/preservar?dataset=movilidad_trafico",
+            files={"file": ("movilidad.csv", content, "text/csv")},
+        )
+    finally:
+        app.dependency_overrides.clear()
 
     assert response.status_code == 200
     body = response.json()
@@ -1497,7 +1512,12 @@ def test_afectaciones_layers_endpoint_builds_both_layers(monkeypatch):
     monkeypatch.setattr(services_module, "run_trino_statement", lambda sql: statements.append(sql))
 
     client = TestClient(app)
-    response = client.post("/iceberg/gold/afectaciones/construir")
+    app.dependency_overrides[require_write_access] = lambda: FAKE_EDITOR_USER
+    app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
+    try:
+        response = client.post("/iceberg/gold/afectaciones/construir")
+    finally:
+        app.dependency_overrides.clear()
 
     assert response.status_code == 200
     assert response.json()["is_valid"] is True
@@ -1516,10 +1536,15 @@ def test_lake_move_endpoint_exposes_transition_state(monkeypatch, tmp_path):
     (staging_dir / "afectaciones.csv").write_bytes(b"id,nombre\n1,Obra\n")
 
     client = TestClient(app)
-    response = client.post(
-        "/ingesta/lake/mover",
-        params={"filename": "afectaciones.csv", "dataset": "afectaciones_urbanas"},
-    )
+    app.dependency_overrides[require_write_access] = lambda: FAKE_EDITOR_USER
+    app.dependency_overrides[require_policy_accepted] = lambda: FAKE_EDITOR_USER
+    try:
+        response = client.post(
+            "/ingesta/lake/mover",
+            params={"filename": "afectaciones.csv", "dataset": "afectaciones_urbanas"},
+        )
+    finally:
+        app.dependency_overrides.clear()
 
     assert response.status_code == 200
     body = response.json()
