@@ -37,6 +37,13 @@ class RegisterRequest(BaseModel):
     role: str = ROLE_EDITOR
 
 
+class RegisterConsumerRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+    organizacion: str
+
+
 class UpdateUserRequest(BaseModel):
     role: str | None = None
     activo: bool | None = None
@@ -141,6 +148,26 @@ def register_user(request: RegisterRequest) -> dict[str, Any]:
     finally:
         connection.close()
     return {"id": user[0], "name": user[1], "email": user[2], "municipio_id": user[3], "role": user[4], "activo": user[5]}
+
+
+def register_consumer(request: RegisterConsumerRequest) -> dict[str, Any]:
+    """Alta pública de una cuenta de solo consulta de datos abiertos. A diferencia
+    de register_user() (que exige admin y deja elegir el rol), esta vía no pasa
+    por ningún guard de autorización, así que el rol se fija siempre a
+    ROLE_CONSUMIDOR: RegisterConsumerRequest ni siquiera tiene un campo `role`,
+    por lo que quien se registra no puede pedir editor_municipio/lector_municipio/
+    admin_estatal aunque lo intente."""
+    if not request.organizacion.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Indica el nombre de tu organización")
+    return register_user(
+        RegisterRequest(
+            name=request.name,
+            email=request.email,
+            password=request.password,
+            municipio_id=request.organizacion,
+            role=ROLE_CONSUMIDOR,
+        )
+    )
 
 
 def authenticate_user(request: LoginRequest) -> dict[str, Any]:

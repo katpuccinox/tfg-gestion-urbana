@@ -1802,6 +1802,21 @@ td {
   text-align: center;
 }
 
+.auth-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary);
+  font-size: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.auth-link:hover {
+  opacity: 0.8;
+}
+
 .auth-success {
   margin: 1rem 0 0;
   color: #1b8a3b;

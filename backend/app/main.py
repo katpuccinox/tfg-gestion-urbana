@@ -20,6 +20,7 @@ from app.analysis_questions import ANALYSIS_QUESTIONS
 from app.ml import get_model_metrics, predict_congestion_ml, train_congestion_model
 from app.auth import (
     LoginRequest,
+    RegisterConsumerRequest,
     RegisterRequest,
     UpdateUserRequest,
     ROLE_ADMIN,
@@ -31,6 +32,7 @@ from app.auth import (
     init_auth_table,
     delete_user,
     list_users,
+    register_consumer,
     register_user,
     require_admin,
     require_audit_access,
@@ -168,6 +170,14 @@ def login(request: LoginRequest) -> Dict[str, object]:
 def register(request: RegisterRequest, admin: dict = Depends(require_admin)) -> Dict[str, object]:
     # Solo un administrador autenticado puede dar de alta cuentas municipales.
     return {"user": register_user(request)}
+
+
+@app.post("/auth/registro-consumidor")
+def registro_consumidor(request: RegisterConsumerRequest) -> Dict[str, object]:
+    # Alta pública, sin admin: el rol siempre es "consumidor" (solo lectura de
+    # datos compartidos), nunca un rol con identidad municipal o de escritura.
+    user = register_consumer(request)
+    return {"user": user, "token": create_token(user["id"], user["email"], user["role"])}
 
 
 @app.get("/auth/me")

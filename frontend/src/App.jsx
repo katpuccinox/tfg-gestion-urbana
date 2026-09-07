@@ -198,6 +198,9 @@ export default function App() {
   const [authForm, setAuthForm] = useState({ email: "", password: "" });
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [authMode, setAuthMode] = useState("login");
+  const [consumerForm, setConsumerForm] = useState({ name: "", email: "", password: "", organizacion: "" });
+  const [consumerError, setConsumerError] = useState("");
   const [layer4Summary, setLayer4Summary] = useState({
     is_valid: true,
     kpis: { total_afectaciones: 0 },
@@ -792,6 +795,43 @@ export default function App() {
     }
   }
 
+  async function handleConsumerRegisterSubmit(event) {
+    event.preventDefault();
+    setConsumerError("");
+    setSubmitting(true);
+
+    try {
+      const { name, email, password, organizacion } = consumerForm;
+      if (!name.trim() || !email.trim() || !password || !organizacion.trim()) {
+        throw new Error("Rellena todos los campos.");
+      }
+
+      const response = await fetch("/auth/registro-consumidor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), password, organizacion: organizacion.trim() }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.detail || "No se pudo completar el registro.");
+      }
+
+      localStorage.setItem("municipal_token", data.token);
+      localStorage.setItem("municipal_user", JSON.stringify(data.user));
+      sessionStorage.setItem("municipal_token", data.token);
+
+      setToken(data.token);
+      setUser(data.user);
+      setConsumerForm({ name: "", email: "", password: "", organizacion: "" });
+      setConsumerError("");
+      setStatus("Cuenta de consulta creada correctamente.", false);
+    } catch (error) {
+      setConsumerError(error instanceof Error ? error.message : "No se pudo completar el registro.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function handleLogout(message) {
     localStorage.removeItem("municipal_token");
     localStorage.removeItem("municipal_user");
@@ -800,6 +840,9 @@ export default function App() {
     setUser(null);
     setAuthForm({ email: "", password: "" });
     setAuthError(message || "");
+    setAuthMode("login");
+    setConsumerForm({ name: "", email: "", password: "", organizacion: "" });
+    setConsumerError("");
     setStatus("Comprobando backend...", false);
     setRows([]);
     setQuestions([]);
@@ -1096,40 +1139,110 @@ export default function App() {
         </div>
 
         <div className="auth-panel">
-          <h2>Bienvenido</h2>
-          <p className="auth-subtitle">Accede con tu correo y contraseña para ver tu municipio.</p>
+          {authMode === "login" ? (
+            <>
+              <h2>Bienvenido</h2>
+              <p className="auth-subtitle">Accede con tu correo y contraseña para ver tu municipio.</p>
 
-          <form onSubmit={handleAuthSubmit}>
-            <label>
-              Email
-              <input
-                type="email"
-                value={authForm.email}
-                onChange={(event) => setAuthForm((current) => ({ ...current, email: event.target.value }))}
-                placeholder="usuario@ayuntamiento.es"
-              />
-            </label>
+              <form onSubmit={handleAuthSubmit}>
+                <label>
+                  Email
+                  <input
+                    type="email"
+                    value={authForm.email}
+                    onChange={(event) => setAuthForm((current) => ({ ...current, email: event.target.value }))}
+                    placeholder="usuario@ayuntamiento.es"
+                  />
+                </label>
 
-            <label>
-              Contraseña
-              <input
-                type="password"
-                value={authForm.password}
-                onChange={(event) => setAuthForm((current) => ({ ...current, password: event.target.value }))}
-                placeholder="••••••••"
-              />
-            </label>
+                <label>
+                  Contraseña
+                  <input
+                    type="password"
+                    value={authForm.password}
+                    onChange={(event) => setAuthForm((current) => ({ ...current, password: event.target.value }))}
+                    placeholder="••••••••"
+                  />
+                </label>
 
-            {authError && <p className="auth-error">{authError}</p>}
+                {authError && <p className="auth-error">{authError}</p>}
 
-            <button type="submit" className="auth-submit" disabled={submitting}>
-              <span>{submitting ? "…" : "→"}</span>
-              {submitting ? "Accediendo..." : "Entrar"}
-            </button>
-          </form>
+                <button type="submit" className="auth-submit" disabled={submitting}>
+                  <span>{submitting ? "…" : "→"}</span>
+                  {submitting ? "Accediendo..." : "Entrar"}
+                </button>
+              </form>
 
-          <p className="auth-footnote">¿Necesitas una cuenta? Contacta con el administrador del espacio de datos.</p>
-          <p className="auth-footnote"><a href="/catalogo/publico" target="_blank" rel="noreferrer">Consulta el catálogo abierto de datasets</a> sin necesidad de cuenta.</p>
+              <p className="auth-footnote">¿Eres un ayuntamiento? Contacta con el administrador del espacio de datos para que te dé de alta.</p>
+              <p className="auth-footnote">
+                ¿Solo quieres consultar los datos abiertos?{" "}
+                <button type="button" className="auth-link" onClick={() => { setAuthMode("registro-consumidor"); setAuthError(""); }}>
+                  Regístrate como consumidor
+                </button>
+              </p>
+              <p className="auth-footnote"><a href="/catalogo/publico" target="_blank" rel="noreferrer">Consulta el catálogo abierto de datasets</a> sin necesidad de cuenta.</p>
+            </>
+          ) : (
+            <>
+              <h2>Cuenta de consulta</h2>
+              <p className="auth-subtitle">Acceso de solo lectura a los datasets que los ayuntamientos marcan como compartidos. No hace falta representar a ningún municipio.</p>
+
+              <form onSubmit={handleConsumerRegisterSubmit}>
+                <label>
+                  Nombre
+                  <input
+                    type="text"
+                    value={consumerForm.name}
+                    onChange={(event) => setConsumerForm((current) => ({ ...current, name: event.target.value }))}
+                    placeholder="Nombre y apellidos"
+                  />
+                </label>
+
+                <label>
+                  Organización
+                  <input
+                    type="text"
+                    value={consumerForm.organizacion}
+                    onChange={(event) => setConsumerForm((current) => ({ ...current, organizacion: event.target.value }))}
+                    placeholder="Empresa, universidad, medio de comunicación..."
+                  />
+                </label>
+
+                <label>
+                  Email
+                  <input
+                    type="email"
+                    value={consumerForm.email}
+                    onChange={(event) => setConsumerForm((current) => ({ ...current, email: event.target.value }))}
+                    placeholder="tu@correo.com"
+                  />
+                </label>
+
+                <label>
+                  Contraseña
+                  <input
+                    type="password"
+                    value={consumerForm.password}
+                    onChange={(event) => setConsumerForm((current) => ({ ...current, password: event.target.value }))}
+                    placeholder="••••••••"
+                  />
+                </label>
+
+                {consumerError && <p className="auth-error">{consumerError}</p>}
+
+                <button type="submit" className="auth-submit" disabled={submitting}>
+                  <span>{submitting ? "…" : "→"}</span>
+                  {submitting ? "Creando cuenta..." : "Crear cuenta"}
+                </button>
+              </form>
+
+              <p className="auth-footnote">
+                <button type="button" className="auth-link" onClick={() => { setAuthMode("login"); setConsumerError(""); }}>
+                  ← Volver a iniciar sesión
+                </button>
+              </p>
+            </>
+          )}
         </div>
       </section>
     );
