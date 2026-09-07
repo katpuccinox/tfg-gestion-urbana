@@ -58,6 +58,12 @@ function safeParse(value, fallback = null) {
   }
 }
 
+function defaultTabForRole(role) {
+  if (role === "auditor") return "administracion";
+  if (role === "consumidor") return "catalogo-datos";
+  return "dimensiones";
+}
+
 function normalizeMunicipio(value) {
   return String(value || "")
     .normalize("NFKD")
@@ -168,7 +174,7 @@ function CityMap({ points }) {
 export default function App() {
   const [user, setUser] = useState(() => safeParse(localStorage.getItem("municipal_user"), null));
   const [token, setToken] = useState(() => localStorage.getItem("municipal_token") || sessionStorage.getItem("municipal_token") || "");
-  const [activeTab, setActiveTab] = useState("dimensiones");
+  const [activeTab, setActiveTab] = useState(() => defaultTabForRole(safeParse(localStorage.getItem("municipal_user"), null)?.role));
   const [dashboardView, setDashboardView] = useState("global");
   const [dashboard, setDashboard] = useState({
     kpis: {},
@@ -239,7 +245,14 @@ export default function App() {
     })),
   ];
   const isAdmin = user?.role === "admin_estatal";
-  const canSeeAdminPanel = isAdmin || user?.role === "auditor";
+  const isAuditor = user?.role === "auditor";
+  const canSeeAdminPanel = isAdmin || isAuditor;
+  // El auditor solo necesita su panel de Administración (Ingestas/Políticas);
+  // Dimensiones, Análisis y Cuadro de mando son de explotación municipal, no
+  // de auditoría. El consumidor no representa a ningún municipio, así que
+  // tampoco le sirven esos tres tabs: su caso de uso es el catálogo compartido.
+  const canSeeOperationalTabs = !isAuditor && user?.role !== "consumidor";
+  const canSeeCatalogTab = !isAuditor;
   const userMunicipio = user?.municipio_id || "";
   const visibleRows = rows.filter((row) => {
     const rowMunicipio = [row.municipio_id, row.municipio, row.ayuntamiento, row.entidad, row.municipio_nombre]
@@ -785,6 +798,7 @@ export default function App() {
 
       setToken(newToken);
       setUser(authenticatedUser);
+      setActiveTab(defaultTabForRole(authenticatedUser?.role));
       setAuthForm({ email: "", password: "" });
       setAuthError("");
       setStatus("Sesión iniciada correctamente.", false);
@@ -822,6 +836,7 @@ export default function App() {
 
       setToken(data.token);
       setUser(data.user);
+      setActiveTab(defaultTabForRole(data.user?.role));
       setConsumerForm({ name: "", email: "", password: "", organizacion: "" });
       setConsumerError("");
       setStatus("Cuenta de consulta creada correctamente.", false);
@@ -1251,11 +1266,16 @@ export default function App() {
   return (
     <>
       <header className="topbar">
-        <button className="menu-btn" type="button">☰</button>
-        <button className={`tab-btn ${activeTab === "dimensiones" ? "active" : ""}`} type="button" onClick={() => setActiveTab("dimensiones")}>Dimensiones</button>
-        <button className={`tab-btn ${activeTab === "analisis" ? "active" : ""}`} type="button" onClick={() => setActiveTab("analisis")}>Análisis</button>
-        <button className={`tab-btn ${activeTab === "cuadro-mando" ? "active" : ""}`} type="button" onClick={() => setActiveTab("cuadro-mando")}>Cuadro de mando</button>
-        <button className={`tab-btn ${activeTab === "catalogo-datos" ? "active" : ""}`} type="button" onClick={() => setActiveTab("catalogo-datos")}>Catálogo de datos</button>
+        {canSeeOperationalTabs && (
+          <>
+            <button className={`tab-btn ${activeTab === "dimensiones" ? "active" : ""}`} type="button" onClick={() => setActiveTab("dimensiones")}>Dimensiones</button>
+            <button className={`tab-btn ${activeTab === "analisis" ? "active" : ""}`} type="button" onClick={() => setActiveTab("analisis")}>Análisis</button>
+            <button className={`tab-btn ${activeTab === "cuadro-mando" ? "active" : ""}`} type="button" onClick={() => setActiveTab("cuadro-mando")}>Cuadro de mando</button>
+          </>
+        )}
+        {canSeeCatalogTab && (
+          <button className={`tab-btn ${activeTab === "catalogo-datos" ? "active" : ""}`} type="button" onClick={() => setActiveTab("catalogo-datos")}>Catálogo de datos</button>
+        )}
         {canSeeAdminPanel && (
           <button className={`tab-btn ${activeTab === "administracion" ? "active" : ""}`} type="button" onClick={() => setActiveTab("administracion")}>Administración</button>
         )}
@@ -1274,7 +1294,7 @@ export default function App() {
       )}
 
       <main className="page">
-        {activeTab === "dimensiones" && (
+        {activeTab === "dimensiones" && canSeeOperationalTabs && (
           <section>
             <div className="hero">
               <h1>Centro de Inteligencia Urbana</h1>
@@ -1318,7 +1338,7 @@ export default function App() {
               </article>
             </div>
 
-            {!canUpload && (
+            {!canUpload && user?.role !== "consumidor" && (
               <div className="card mt-16">
                 <div className="panel-heading"><h2>Carga de datos por dimensión</h2></div>
                 <p className="chart-empty">Tu rol ({user?.role}) tiene acceso de solo lectura. Solo editor_municipio y admin_estatal pueden subir archivos.</p>
@@ -1472,7 +1492,7 @@ export default function App() {
           </section>
         )}
 
-        {activeTab === "analisis" && (
+        {activeTab === "analisis" && canSeeOperationalTabs && (
           <section>
             <div className="hero">
               <h1>Análisis Inteligente</h1>
@@ -1543,7 +1563,7 @@ export default function App() {
           </section>
         )}
 
-        {activeTab === "cuadro-mando" && (
+        {activeTab === "cuadro-mando" && canSeeOperationalTabs && (
           <section>
             <div className="hero dashboard-hero">
               <div>
@@ -1855,7 +1875,7 @@ export default function App() {
           </section>
         )}
 
-        {activeTab === "catalogo-datos" && (
+        {activeTab === "catalogo-datos" && canSeeCatalogTab && (
           <section>
             <div className="hero">
               <div>
@@ -1889,7 +1909,7 @@ export default function App() {
                 </tbody>
               </table>
               <p className="chart-empty" style={{ marginTop: "0.8rem" }}>
-                El CSV descargado es el dato ya validado y tipado (Capa 4), no el fichero original subido. Su uso está sujeto a las condiciones de uso vigentes del espacio de datos.
+                Su uso está sujeto a las condiciones de uso vigentes del espacio de datos.
               </p>
             </div>
           </section>

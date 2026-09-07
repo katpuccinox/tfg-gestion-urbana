@@ -33,16 +33,6 @@ body {
   z-index: 10;
 }
 
-.menu-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: white;
-  color: #607798;
-  font-size: 1.2rem;
-}
-
 .tab-btn {
   border: 1px solid transparent;
   background: transparent;
