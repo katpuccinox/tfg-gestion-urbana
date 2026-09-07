@@ -1095,14 +1095,7 @@ td {
   font: 700 1.05rem "Space Grotesk", sans-serif;
 }
 
-.bar-list { display: grid; gap: 0.75rem; }
-.bar-label { display: flex; justify-content: space-between; gap: 0.75rem; font-size: 0.84rem; }
-.bar-label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #45607e; }
-.bar-label strong { flex: 0 0 auto; font-family: "Space Grotesk", sans-serif; }
-.bar-track { height: 9px; overflow: hidden; border-radius: 2px; background: #e8eff8; }
-.bar-fill { height: 100%; min-width: 4px; border-radius: 2px; background: #0f4dbf; }
-.chart-card:nth-child(2) .bar-fill { background: #d97706; }
-.chart-card:nth-child(3) .bar-fill { background: #059669; }
+.chart-canvas-wrap { position: relative; height: 220px; }
 .chart-empty { color: var(--muted); }
 
 .prediccion-form { display: grid; gap: 0.65rem; margin-bottom: 1rem; }

@@ -1,0 +1,48 @@
+Bloque 1 — Acceso y política de uso
+Abre http://localhost:8080 en una ventana de incógnito (para partir sin sesión ni cookies).
+📸 01_login_vacio.png — pantalla de login antes de escribir nada.
+Escribe un email/contraseña incorrectos y dale a entrar.
+📸 02_login_error.png — mensaje de error. Comprueba: ¿el mensaje es claro? ¿dice "credenciales inválidas" o expone detalles internos?
+Ahora entra con malaga@demo.local / malaga123 (editor). Si es la primera vez que este usuario entra tras la versión actual, debería salirte el modal de condiciones de uso antes de dejarte pasar.
+📸 03_politica_uso.png — modal de aceptación de condiciones. Comprueba: ¿se puede cerrar sin aceptar? ¿el texto es legible?
+Bloque 2 — Rol editor municipal (Málaga)
+Ya logueado como malaga@demo.local:
+
+📸 04_editor_home.png — vista inicial / pestaña "Dimensiones".
+Ve pasando por cada pestaña del menú superior y captura una de cada:
+📸 05_dimensiones.png
+📸 06_analisis.png
+📸 07_cuadro_mando.png — Comprueba: ¿los gráficos cargan datos o quedan vacíos/en blanco? ¿hay algún error en consola (F12)?
+📸 08_catalogo_datos.png — Comprueba: ¿solo aparecen entregas de Málaga + las marcadas "compartido" de otros municipios?
+Sube un CSV de prueba (puedes usar cualquier CSV pequeño que tengas, o decírmelo y te preparo uno de ejemplo válido).
+📸 09_formulario_subida.png — formulario antes de enviar (marca visibilidad "compartido" o "privado").
+📸 10_resultado_subida_ok.png — resultado tras subir un fichero válido.
+📸 11_resultado_subida_error.png — sube ahora un CSV con columnas incompletas o mal formateado y captura el mensaje de error/incidencias. Comprueba: ¿el error indica qué columnas faltan de forma entendible para un usuario no técnico?
+Bloque 3 — Rol lector (solo lectura)
+Cierra sesión, entra con lector.malaga@demo.local / lector123.
+📸 12_lector_sin_subida.png — pestaña de ingesta/subida. Comprueba: debe verse el aviso de "solo lectura", no el formulario de subida.
+Intenta forzar la subida (si hay algún botón oculto en el DOM) — no debería ser posible.
+Bloque 4 — Rol consumidor
+Cierra sesión, entra con consumidor@demo.local / consumidor123.
+📸 13_consumidor_catalogo.png — catálogo de datos. Comprueba: solo deben verse entregas compartido, nunca privado, y de todos los municipios a la vez (no solo uno).
+📸 14_consumidor_cuadro_mando.png — cuadro de mando en vista agregada global.
+Bloque 5 — Rol auditor
+Cierra sesión, entra con auditor@demo.local / auditor123.
+📸 15_auditor_admin_panel.png — pestaña Administración. Comprueba: solo deben verse las subsecciones Ingestas y Políticas, no Usuarios/Catálogo/Contratos.
+📸 16_auditor_ingestas.png — tabla de ingestas (sin el formulario de borrado masivo).
+📸 17_auditor_politicas.png — tabla de aceptaciones (sin botón de publicar nueva versión).
+Bloque 6 — Rol administrador (el más completo)
+Cierra sesión, entra con admin@plataforma.local / admin123.
+📸 18_admin_panel_completo.png — pestaña Administración con las 5 subsecciones visibles.
+📸 19_admin_usuarios.png — listado de usuarios. Prueba a crear uno nuevo y capturar:
+📸 20_admin_crear_usuario.png
+📸 21_admin_catalogo_contratos.png — gestión del catálogo de contratos técnicos.
+📸 22_admin_ingestas_borrado.png — tabla de ingestas con el formulario de borrado masivo visible (no lo ejecutes salvo que quieras probarlo de verdad).
+📸 23_admin_politicas_publicar.png — formulario para publicar nueva versión de política.
+📸 24_admin_cuadro_mando_global.png — cuadro de mando con datos de todos los municipios a la vez.
+Bloque 7 — Análisis y modelo ML (aquí es donde más merece la pena mirar con lupa)
+Como admin o editor, ve a la pestaña Análisis / predicción de congestión (/api/ml/movilidad/predecir-ml).
+📸 25_prediccion_ml.png — formulario de predicción con un resultado.
+Comprueba: ¿la predicción tiene sentido (valores dentro de rango razonable)? ¿se explica qué significa el resultado o es un número pelado?
+Revisa las vistas cruzadas EQ1-EQ4 (parking-tráfico, afectaciones-ITS, ocupación-afectaciones, ocupación-carga-tráfico).
+📸 26_eq1_parking_trafico.png, 27_eq2_afectaciones_its.png, etc. Comprueba: ¿hay algún mart vacío porque Córdoba nunca se promovió a Iceberg (lo que vimos en docs/estructura_lake.md)? Sería un buen ejemplo real de bug a documentar.

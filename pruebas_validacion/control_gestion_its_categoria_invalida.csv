@@ -1,0 +1,3 @@
+id,categoria,nombre,descripcion,direccion,latitud,longitud,titularidad,accesibilidad_pmr
+ITS-9001,semaforo,Dispositivo válido,Fila correcta para contraste,Calle Larios,36.7213,-4.4214,municipal,si
+ITS-9002,dron_vigilancia,Dispositivo con categoría fuera de catálogo,No pertenece a la lista permitida de categorías ITS,Calle Larios,36.7213,-4.4214,municipal,no

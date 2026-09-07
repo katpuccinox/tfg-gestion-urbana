@@ -1,0 +1,3 @@
+id,nombre,latitud,longitud,direccion,fecha,hora,ocupacion_total,ocupacion_libres
+PARK-9001,Medición válida,36.7213,-4.4214,Plaza de la Merced,2026-03-01,08:00,50,12
+PARK-9002,Medición con libres mayor que total,36.7213,-4.4214,Plaza de la Merced,2026-03-01,09:00,50,80

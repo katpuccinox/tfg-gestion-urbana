@@ -1,0 +1,34 @@
+{
+  "is_valid": false,
+  "errors": [
+    "Fila 3: La fecha y hora de fin debe ser posterior al inicio"
+  ],
+  "incidencias": [
+    {
+      "codigo_regla": "CSV_TEMPORAL_COHERENCE",
+      "descripcion_regla": "La fecha/hora de fin no es posterior a la de inicio.",
+      "tipo_regla": "bloqueante",
+      "campo_afectado": null,
+      "row_number_origen": 3,
+      "row_id_tecnico": "2ddd08c4f586113d69cb993035a210113cb3b353f4c06ffd0c36fd23470d15ad",
+      "descripcion_incidencia": "Fila 3: La fecha y hora de fin debe ser posterior al inicio",
+      "severidad": "critica",
+      "accion_requerida": "corregir_y_reenviar"
+    }
+  ],
+  "row_count": 2,
+  "validation_status": "rejected",
+  "validation_metadata": {
+    "validacion_id": "52db14894b544baea242b879474066c6",
+    "fecha_hora_validacion": "2026-09-07T14:01:05.688947+00:00",
+    "regla_validacion_version": "capa2-v1",
+    "resultado_validacion": "rechazado",
+    "numero_registros_evaluados": 2,
+    "numero_registros_con_error": 1,
+    "numero_registros_con_incidencia": 0,
+    "numero_registros_validos": 0,
+    "fecha_inicio_ventana_consolidacion": null,
+    "fecha_fin_ventana_consolidacion": null,
+    "estado_ciclo_vida_dataset": "en_consolidacion"
+  }
+}

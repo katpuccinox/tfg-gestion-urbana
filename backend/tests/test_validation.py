@@ -1459,11 +1459,13 @@ def test_preserve_dimension_delivery_uses_dataset_dimension_and_entity(monkeypat
         period="2026-08",
     )
 
+    # El municipio se normaliza (minúsculas, sin tildes) antes de construir la clave S3,
+    # para que "MALAGA"/"Malaga"/"malaga" no generen tres prefijos distintos en el lake.
     assert result["status"] == "preserved"
-    assert captured["published"] == ("movilidad_trafico", "movilidad", "MALAGA", "trafico.csv")
-    assert captured["traceability"] == ("movilidad_trafico", "movilidad", "MALAGA", "trafico.csv")
-    assert result["lake"]["s3"]["uri"] == "s3://raw/movilidad/MALAGA/movilidad_trafico/trafico.csv"
-    assert result["lake"]["staging_path"].endswith("staging\\movilidad\\MALAGA\\movilidad_trafico\\trafico.csv") or result["lake"]["staging_path"].endswith("staging/movilidad/MALAGA/movilidad_trafico/trafico.csv")
+    assert captured["published"] == ("movilidad_trafico", "movilidad", "malaga", "trafico.csv")
+    assert captured["traceability"] == ("movilidad_trafico", "movilidad", "malaga", "trafico.csv")
+    assert result["lake"]["s3"]["uri"] == "s3://raw/movilidad/malaga/movilidad_trafico/trafico.csv"
+    assert result["lake"]["staging_path"].endswith("staging\\movilidad\\malaga\\movilidad_trafico\\trafico.csv") or result["lake"]["staging_path"].endswith("staging/movilidad/malaga/movilidad_trafico/trafico.csv")
 
 
 def test_afectaciones_curated_sql_types_and_filters_temporal_invalid_rows():

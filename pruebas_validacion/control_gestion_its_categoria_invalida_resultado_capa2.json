@@ -1,0 +1,34 @@
+{
+  "is_valid": false,
+  "errors": [
+    "Fila 3: el valor 'dron_vigilancia' para 'categoria' no está permitido"
+  ],
+  "incidencias": [
+    {
+      "codigo_regla": "CSV_CATALOG_VALUE",
+      "descripcion_regla": "El valor de un campo categórico no pertenece al catálogo permitido.",
+      "tipo_regla": "bloqueante",
+      "campo_afectado": "dron_vigilancia",
+      "row_number_origen": 3,
+      "row_id_tecnico": "3f5e9a66ba39cf7d056d7c62d17aaa25516c9e9364e1785aefc0616dd13d8480",
+      "descripcion_incidencia": "Fila 3: el valor 'dron_vigilancia' para 'categoria' no está permitido",
+      "severidad": "critica",
+      "accion_requerida": "corregir_y_reenviar"
+    }
+  ],
+  "row_count": 2,
+  "validation_status": "rejected",
+  "validation_metadata": {
+    "validacion_id": "6a0c557e1929440498a189ec9e857883",
+    "fecha_hora_validacion": "2026-09-07T14:01:05.696729+00:00",
+    "regla_validacion_version": "capa2-v1",
+    "resultado_validacion": "rechazado",
+    "numero_registros_evaluados": 2,
+    "numero_registros_con_error": 1,
+    "numero_registros_con_incidencia": 0,
+    "numero_registros_validos": 0,
+    "fecha_inicio_ventana_consolidacion": null,
+    "fecha_fin_ventana_consolidacion": null,
+    "estado_ciclo_vida_dataset": "en_consolidacion"
+  }
+}

@@ -17,3 +17,9 @@ frontend/dist/
 
 # Artefactos de build
 *.log
+
+# Herramientas locales descargadas
+mc.exe
+
+# Exports derivados del lake (regenerables con scripts/exportar_evolucion_malaga.py)
+evolucion_malaga/

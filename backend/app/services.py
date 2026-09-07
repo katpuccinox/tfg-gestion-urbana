@@ -991,8 +991,10 @@ def get_afectaciones_layer4_summary(table: str = "afectaciones_urbanas", municip
         por_tipo_afectacion_rows = run_trino_query(
             f"SELECT tipo_afectacion, sum(total_afectaciones) AS total FROM {source} GROUP BY tipo_afectacion ORDER BY total DESC"
         )
+        # Orden cronológico (0h-23h), no por recuento: esta serie alimenta un gráfico de
+        # línea por hora del día, y ordenar por count la dejaba visualmente desordenada.
         por_hora_rows = run_trino_query(
-            f"SELECT hora_inicio, sum(total_afectaciones) AS total FROM {source} GROUP BY hora_inicio ORDER BY total DESC LIMIT 12"
+            f"SELECT hora_inicio, sum(total_afectaciones) AS total FROM {source} GROUP BY hora_inicio ORDER BY hora_inicio ASC"
         )
 
         return {
@@ -1037,7 +1039,8 @@ def _get_afectaciones_summary_from_curated(table: str, municipio_prefix: str) ->
 
         top_vias_rows = run_trino_query(f"SELECT direccion, count(*) FROM {source} {where_clause} GROUP BY direccion ORDER BY 2 DESC LIMIT 10")
         por_tipo_rows = run_trino_query(f"SELECT tipo_afectacion, count(*) FROM {source} {where_clause} GROUP BY tipo_afectacion ORDER BY 2 DESC")
-        por_hora_rows = run_trino_query(f"SELECT hour(hora_inicio), count(*) FROM {source} {where_clause} GROUP BY hour(hora_inicio) ORDER BY 2 DESC LIMIT 12")
+        # Orden cronológico (0h-23h), igual que en get_afectaciones_layer4_summary.
+        por_hora_rows = run_trino_query(f"SELECT hour(hora_inicio), count(*) FROM {source} {where_clause} GROUP BY hour(hora_inicio) ORDER BY 1 ASC")
 
         return {
             "is_valid": True,
@@ -2425,7 +2428,7 @@ def run_automatic_dimension_pipeline(
     contract = get_dataset_contract(dataset)
     if contract is None:
         return {"is_valid": False, "status": "rejected", "errors": ["Dataset no permitido"], "pipeline": []}
-    effective_entity = municipio_id or entity
+    effective_entity = normalize_catalog_value(municipio_id or entity) or "municipio_demo"
     preservation = preserve_dimension_delivery(
         filename,
         content_bytes,
@@ -3358,6 +3361,9 @@ def register_delivery(
     "privado" la deja visible solo para su propio municipio y para admin/auditor."""
     if visibilidad not in ("compartido", "privado"):
         visibilidad = "compartido"
+    entity = normalize_catalog_value(entity) or "municipio_demo"
+    if municipio_id:
+        municipio_id = normalize_catalog_value(municipio_id) or None
     identity_period = compute_identity_period(anio, period)
     logical_key = build_delivery_key(entity, dimension, dataset, identity_period, schema_version)
     content_sha256 = hashlib.sha256(content_bytes).hexdigest()
@@ -3665,7 +3671,7 @@ def preserve_dimension_delivery(
     visibilidad: str = "compartido",
 ) -> Dict[str, Any]:
     """Ejecuta Capa 0 y preserva el CSV original en staging sin transformarlo."""
-    effective_entity = municipio_id or entity
+    effective_entity = normalize_catalog_value(municipio_id or entity) or "municipio_demo"
     contract = (get_dataset_contract(dataset) or {})
     effective_dimension = contract.get("dimension", dataset)
     delivery = register_dimension_delivery(

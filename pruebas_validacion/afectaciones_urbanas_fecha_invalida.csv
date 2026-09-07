@@ -1,0 +1,3 @@
+id,nombre,descripcion,direccion,latitud,longitud,fecha_inicio,hora_inicio,fecha_fin,hora_fin,tipo_intervencion,tipo_afectacion,titularidad,impacto_pmr,notas
+AFEC-9001,Obra de control válida,Fila correcta para contraste,Calle Larios,36.7213,-4.4214,2026-03-01,08:00,2026-03-05,18:00,obra,corte_trafico,municipal,no,Fila válida de referencia.
+AFEC-9002,Obra con fecha de fin anterior al inicio,"Viola la regla de coherencia temporal obligatoria para afectaciones",Calle Larios,36.7213,-4.4214,2026-03-10,08:00,2026-03-05,18:00,obra,corte_trafico,municipal,no,fecha_fin (2026-03-05) es anterior a fecha_inicio (2026-03-10): incumple la regla obligatoria de coherencia temporal.

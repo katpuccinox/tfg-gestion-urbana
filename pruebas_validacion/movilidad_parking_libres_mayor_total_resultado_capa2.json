@@ -1,0 +1,34 @@
+{
+  "is_valid": false,
+  "errors": [
+    "Fila 3: 'ocupacion_libres' no puede ser mayor que 'ocupacion_total'"
+  ],
+  "incidencias": [
+    {
+      "codigo_regla": "CSV_FIELD_RELATION",
+      "descripcion_regla": "Dos campos relacionados incumplen la relación de negocio esperada (p. ej. libres > total).",
+      "tipo_regla": "bloqueante",
+      "campo_afectado": "ocupacion_libres",
+      "row_number_origen": 3,
+      "row_id_tecnico": "3d2716e12cd4d3ec681bc1c71ac0e983acd39c567a6796bf3d1d1a69651df7d9",
+      "descripcion_incidencia": "Fila 3: 'ocupacion_libres' no puede ser mayor que 'ocupacion_total'",
+      "severidad": "critica",
+      "accion_requerida": "corregir_y_reenviar"
+    }
+  ],
+  "row_count": 2,
+  "validation_status": "rejected",
+  "validation_metadata": {
+    "validacion_id": "bea1b1dd928448688e845a3568a0b9d5",
+    "fecha_hora_validacion": "2026-09-07T14:01:05.694367+00:00",
+    "regla_validacion_version": "capa2-v1",
+    "resultado_validacion": "rechazado",
+    "numero_registros_evaluados": 2,
+    "numero_registros_con_error": 1,
+    "numero_registros_con_incidencia": 0,
+    "numero_registros_validos": 0,
+    "fecha_inicio_ventana_consolidacion": null,
+    "fecha_fin_ventana_consolidacion": null,
+    "estado_ciclo_vida_dataset": "en_consolidacion"
+  }
+}

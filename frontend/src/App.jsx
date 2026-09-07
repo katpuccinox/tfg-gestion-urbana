@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import Chart from "chart.js/auto";
 
 const MALAGA_CENTER = [36.7213, -4.4214];
 const RISK_COLORS = { critico: "#b91c1c", alto: "#d97706", medio: "#0f4dbf", bajo: "#15803d" };
+// Mismos tonos que ya usan los acentos de KpiCard (styles.css .accent-*), para que
+// los gráficos combinen con el resto del cuadro de mando en vez de traer paleta propia.
+const CHART_PALETTE = ["#2563eb", "#d97706", "#059669", "#dc2626", "#7c3aed", "#0891b2"];
 
 const DIMENSION_CHIPS = [
   { key: "afectaciones_urbanas", label: "Afectaciones Urbanas" },
@@ -49,6 +53,24 @@ function riskClassFromNivel(nivel) {
   return "risk-bajo";
 }
 
+// La capa curated guarda "direccion" en minúsculas (convención para que los
+// cruces SQL entre dimensiones casen por dirección sin envolver cada JOIN en
+// lower()). Aquí solo se formatea para mostrar, el dato de origen no cambia.
+const DIRECCION_MINUSCULAS = new Set(["de", "del", "la", "el", "los", "las", "y", "en", "a"]);
+
+function formatDireccion(direccion) {
+  if (!direccion) return direccion;
+  return direccion
+    .split(" ")
+    .map((word, index) => {
+      if (!word) return word;
+      const lower = word.toLowerCase();
+      if (index > 0 && DIRECCION_MINUSCULAS.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(" ");
+}
+
 function safeParse(value, fallback = null) {
   if (!value) return fallback;
   try {
@@ -92,23 +114,65 @@ function AnswerText({ text }) {
   return <>{lines.map((line, index) => renderLiteBold(line, index))}</>;
 }
 
-function BarChart({ title, items, labelKey, suffix = "" }) {
-  const maximum = Math.max(...items.map((item) => Number(item.count || 0)), 1);
+function ChartCanvas({ type, labels, datasets, suffix = "" }) {
+  const canvasRef = useRef(null);
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return undefined;
+    chartRef.current = new Chart(canvasRef.current, {
+      type,
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: type === "bar" ? "y" : "x",
+        plugins: {
+          legend: { display: datasets.length > 1 },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label ? `${ctx.dataset.label}: ` : ""}${formatNumber(ctx.parsed[type === "bar" ? "x" : "y"], suffix)}` } },
+        },
+        scales: {
+          x: { beginAtZero: true, grid: type === "bar" ? { display: false } : undefined },
+          y: { beginAtZero: true, grid: type === "bar" ? undefined : { display: false } },
+        },
+      },
+    });
+    return () => chartRef.current?.destroy();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type]);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    chart.data.labels = labels;
+    chart.data.datasets = datasets;
+    chart.update();
+  }, [labels, datasets]);
+
+  return (
+    <div className="chart-canvas-wrap">
+      <canvas ref={canvasRef} />
+    </div>
+  );
+}
+
+function BarChart({ title, items, labelKey, suffix = "", formatLabel = (label) => label, chartType = "bar", limit = 8 }) {
+  const top = items.slice(0, limit);
+  const labels = top.map((item) => formatLabel(item[labelKey]) || "Sin dato");
+  const values = top.map((item) => Number(item.count || 0));
+  const datasets = [{
+    label: title,
+    data: values,
+    backgroundColor: chartType === "line" ? "transparent" : top.map((_, index) => CHART_PALETTE[index % CHART_PALETTE.length]),
+    borderColor: CHART_PALETTE[0],
+    fill: false,
+    tension: 0.3,
+  }];
   return (
     <article className="chart-card">
       <h2>{title}</h2>
       {items.length === 0 ? <p className="chart-empty">No hay datos disponibles todavía.</p> : (
-        <div className="bar-list">
-          {items.slice(0, 8).map((item) => {
-            const value = Number(item.count || 0);
-            return (
-              <div className="bar-row" key={`${item[labelKey]}-${value}`}>
-                <div className="bar-label"><span>{item[labelKey] || "Sin dato"}</span><strong>{formatNumber(value, suffix)}</strong></div>
-                <div className="bar-track"><div className="bar-fill" style={{ width: `${(value / maximum) * 100}%` }} /></div>
-              </div>
-            );
-          })}
-        </div>
+        <ChartCanvas type={chartType} labels={labels} datasets={datasets} suffix={suffix} />
       )}
     </article>
   );
@@ -161,7 +225,7 @@ function CityMap({ points }) {
         fillColor: RISK_COLORS[point.nivel] || RISK_COLORS.bajo,
         fillOpacity: 0.9,
       })
-        .bindPopup(`<strong>${point.via}</strong><br />${(point.reasons || []).join("<br />")}`)
+        .bindPopup(`<strong>${formatDireccion(point.via)}</strong><br />${(point.reasons || []).join("<br />")}`)
         .addTo(layer);
     });
 
@@ -1593,7 +1657,7 @@ export default function App() {
                   <div className="panel-heading"><span className="eyebrow">PRIORIZACIÓN OPERATIVA</span><h2>Zonas que requieren seguimiento</h2></div>
                   {(dashboard.priority_zones || []).length === 0 ? <p className="chart-empty">Aún no hay datos cruzados suficientes.</p> : dashboard.priority_zones.map((zone) => (
                     <div className="priority-row" key={zone.via}>
-                      <div><div className="priority-title"><strong>{zone.via}</strong><span className={`risk-badge risk-${zone.nivel}`}>{zone.nivel}</span></div><p>{zone.reasons?.join(" · ")}</p></div>
+                      <div><div className="priority-title"><strong>{formatDireccion(zone.via)}</strong><span className={`risk-badge risk-${zone.nivel}`}>{zone.nivel}</span></div><p>{zone.reasons?.join(" · ")}</p></div>
                       <strong className="priority-score">{formatNumber(zone.score, "%")}</strong>
                     </div>
                   ))}
@@ -1637,7 +1701,7 @@ export default function App() {
                     <div className="priority-row" key={zone.direccion}>
                       <div>
                         <div className="priority-title">
-                          <strong>{zone.direccion}</strong>
+                          <strong>{formatDireccion(zone.direccion)}</strong>
                           <span className={`risk-badge ${riskClassFromPct(zone.pct_tiempo_alto_critico)}`}>
                             {formatNumber(zone.pct_tiempo_alto_critico, "%")} tiempo alto/crítico
                           </span>
@@ -1671,7 +1735,7 @@ export default function App() {
                         />
                         <datalist id="direcciones-trafico">
                           {(dashboard.mobility?.trafico_por_via || []).map((item) => (
-                            <option key={item.via} value={item.via} />
+                            <option key={item.via} value={formatDireccion(item.via)} />
                           ))}
                         </datalist>
                       </label>
@@ -1713,7 +1777,7 @@ export default function App() {
                     {prediccion.data && (
                       <div className="prediccion-result">
                         <div className="priority-title">
-                          <strong>{prediccion.data.direccion}</strong>
+                          <strong>{formatDireccion(prediccion.data.direccion)}</strong>
                           <span className={`risk-badge ${riskClassFromNivel(prediccion.data.nivel_congestion)}`}>{prediccion.data.nivel_congestion}</span>
                         </div>
                         <p>
@@ -1732,7 +1796,7 @@ export default function App() {
                     {prediccionMl.data && (
                       <div className="prediccion-result">
                         <div className="priority-title">
-                          <strong>{prediccionMl.data.direccion}</strong>
+                          <strong>{formatDireccion(prediccionMl.data.direccion)}</strong>
                           <span className={`risk-badge ${riskClassFromNivel(prediccionMl.data.nivel_congestion_ml)}`}>{prediccionMl.data.nivel_congestion_ml}</span>
                         </div>
                         <p>Confianza del modelo: {formatNumber(prediccionMl.data.confianza * 100, "%")}</p>
@@ -1770,7 +1834,7 @@ export default function App() {
                               <strong>{item.parking}</strong>
                               <span className="risk-badge risk-alto">{formatNumber(item.pct_saturacion, "%")} saturado</span>
                             </div>
-                            <p>Vía de tráfico más cercana: {item.via_trafico_cercana} ({formatNumber(item.distancia_m)} m) · {formatNumber(item.pct_congestion_via, "%")} tiempo en alto/crítico</p>
+                            <p>Vía de tráfico más cercana: {formatDireccion(item.via_trafico_cercana)} ({formatNumber(item.distancia_m)} m) · {formatNumber(item.pct_congestion_via, "%")} tiempo en alto/crítico</p>
                           </div>
                         </div>
                       ))
@@ -1793,7 +1857,7 @@ export default function App() {
                               <strong>{obra.nombre}</strong>
                               <span className={`risk-badge ${riskClassFromNivel(obra.impacto_estimado)}`}>{obra.impacto_estimado}</span>
                             </div>
-                            <p>{obra.direccion} · {obra.tipo_intervencion}</p>
+                            <p>{formatDireccion(obra.direccion)} · {obra.tipo_intervencion}</p>
                             <p>Flujo antes: {formatNumber(obra.flujo_antes)} veh/h · durante: {formatNumber(obra.flujo_durante)} veh/h</p>
                           </div>
                           <strong className="priority-score">{formatNumber(obra.variacion_trafico_pct, "%")}</strong>
@@ -1817,7 +1881,7 @@ export default function App() {
                       <div className="priority-row" key={via.direccion}>
                         <div>
                           <div className="priority-title">
-                            <strong>{via.direccion}</strong>
+                            <strong>{formatDireccion(via.direccion)}</strong>
                             {via.punto_ciego && <span className="risk-badge risk-critico">punto ciego</span>}
                           </div>
                           <p>{via.afectaciones} afectaciones ({via.cortes_trafico} cortes de tráfico) · {via.dispositivos_its} dispositivos ITS</p>
@@ -1837,7 +1901,7 @@ export default function App() {
                       <div className="priority-row" key={via.direccion}>
                         <div>
                           <div className="priority-title">
-                            <strong>{via.direccion}</strong>
+                            <strong>{formatDireccion(via.direccion)}</strong>
                             {via.impacto_pmr && <span className="risk-badge risk-critico">impacto PMR</span>}
                           </div>
                           <p>{via.terrazas} terrazas ({formatNumber(via.superficie_m2, " m²")}) · {via.afectaciones} afectaciones activas</p>
@@ -1856,7 +1920,7 @@ export default function App() {
                     dashboard.cruces.eq4_ocupacion_carga_trafico.map((via) => (
                       <div className="priority-row" key={via.direccion}>
                         <div>
-                          <div className="priority-title"><strong>{via.direccion}</strong></div>
+                          <div className="priority-title"><strong>{formatDireccion(via.direccion)}</strong></div>
                           <p>
                             {via.terrazas} terrazas ({formatNumber(via.superficie_m2, " m²")}) · {via.plazas_carga_descarga} plazas de carga/descarga
                             {via.pct_congestion != null ? ` · ${formatNumber(via.pct_congestion, "%")} tiempo en alto/crítico` : ""}
@@ -1869,9 +1933,9 @@ export default function App() {
               </div>
             )}
 
-            {dashboardView === "afectaciones" &&<div className="dashboard-charts"><BarChart title="Vías con más afectaciones" items={dashboard.summary?.top_vias || []} labelKey="via" /><BarChart title="Afectaciones por tipo" items={dashboard.summary?.por_tipo_afectacion || []} labelKey="tipo_afectacion" /><BarChart title="Actividad por hora" items={dashboard.summary?.por_hora || []} labelKey="hora" /></div>}
+            {dashboardView === "afectaciones" &&<div className="dashboard-charts"><BarChart title="Vías con más afectaciones" items={dashboard.summary?.top_vias || []} labelKey="via" formatLabel={formatDireccion} /><BarChart title="Afectaciones por tipo" items={dashboard.summary?.por_tipo_afectacion || []} labelKey="tipo_afectacion" /><BarChart title="Actividad por hora" items={dashboard.summary?.por_hora || []} labelKey="hora" formatLabel={(hora) => `${hora}h`} chartType="line" limit={24} /></div>}
             {dashboardView === "its" && <div className="dashboard-charts"><BarChart title="ITS por categoría" items={dashboard.its?.por_categoria || []} labelKey="categoria" /></div>}
-            {dashboardView === "ocupacion" && <div className="dashboard-charts"><BarChart title="Ocupación por tipo" items={dashboard.occupancy?.por_tipo || []} labelKey="tipo_ocupacion" /><BarChart title="Superficie por vía" items={dashboard.occupancy?.superficie_por_via || []} labelKey="via" suffix=" m2" /></div>}
+            {dashboardView === "ocupacion" && <div className="dashboard-charts"><BarChart title="Ocupación por tipo" items={dashboard.occupancy?.por_tipo || []} labelKey="tipo_ocupacion" /><BarChart title="Superficie por vía" items={dashboard.occupancy?.superficie_por_via || []} labelKey="via" suffix=" m2" formatLabel={formatDireccion} /></div>}
           </section>
         )}
 
