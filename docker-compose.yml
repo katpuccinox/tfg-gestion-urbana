@@ -33,7 +33,7 @@ services:
       NIFI_PASS: admin
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
-      OLLAMA_TIMEOUT_SECONDS: ${OLLAMA_TIMEOUT_SECONDS:-600}
+      OLLAMA_TIMEOUT_SECONDS: ${OLLAMA_TIMEOUT_SECONDS:-90}
       JWT_SECRET: ${JWT_SECRET:-cambia-esta-clave-larga-en-produccion-2026}
       OM_API: http://openmetadata:8585/api/v1
       OM_USER: admin@openmetadata.org

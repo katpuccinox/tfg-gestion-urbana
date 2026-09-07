@@ -4544,6 +4544,21 @@ FOCUS_INSTRUCTIONS = {
 }
 
 
+# Campos que existen en las filas reales pero no aportan nada a una interpretación
+# operativa y sí aportan ruido: "notas" en los datos de demostración lleva texto de
+# procedencia del dato sintético (p. ej. "Basado en dato abierto de cortes de tráfico
+# de Málaga") que confundió a Ollama y le hizo inventarse una API de datos abiertos
+# inexistente. "external_id" tampoco interpreta nada, solo consume tokens.
+_OLLAMA_NOISY_ROW_FIELDS = {"notas", "external_id"}
+
+
+def _sanitize_sample_rows_for_ollama(rows: list) -> list:
+    return [
+        {k: v for k, v in row.items() if k not in _OLLAMA_NOISY_ROW_FIELDS} if isinstance(row, dict) else row
+        for row in rows
+    ]
+
+
 def build_ollama_analysis_context(
     dataset: str = "afectaciones_urbanas",
     limit: int = 200,
@@ -4568,6 +4583,8 @@ def build_ollama_analysis_context(
     if not built.get("is_valid", False):
         return {"is_valid": False, "errors": built.get("errors", ["No se pudo construir el contexto analítico."]), "payload": None}
 
+    sample_rows = _sanitize_sample_rows_for_ollama(built.get("sample_rows", []))
+
     focus_instruction = FOCUS_INSTRUCTIONS.get(selected_question.get("focus"), "Enfoca la respuesta en implicaciones operativas.")
     return {
         "is_valid": True,
@@ -4581,20 +4598,45 @@ def build_ollama_analysis_context(
                 "'summary' trae datos YA "
                 "AGREGADOS (recuentos, porcentajes, rankings de vías) sobre la ciudad: interpreta esos "
                 "valores para el ayuntamiento. No describas el formato ni los nombres de los campos del "
-                "JSON, no expliques cómo consultar una API y no escribas código: eso no es lo que se pide. "
+                "JSON, no expliques cómo consultar una API ni menciones ninguna URL, endpoint o petición "
+                "HTTP, y no escribas código ni comandos: eso no es lo que se pide, aunque el payload te "
+                "recuerde a datos de una API. No hagas preguntas de vuelta, no pidas aclaraciones ni "
+                "ofrezcas opciones para elegir: interpreta directamente los datos que ya tienes, ahora. "
                 "Responde en español, en un máximo de 120 palabras, con tres secciones cortas: "
                 "Resumen ejecutivo (1-2 frases), Punto crítico más relevante (1 frase) y 3 recomendaciones "
                 f"operativas (una frase corta cada una). {focus_instruction} Usa únicamente los datos del "
                 "payload. No inventes hechos ni desconozcas el contexto proporcionado. Sé conciso: no "
-                "seguirás escribiendo una vez completadas las tres secciones."
+                "seguirás escribiendo una vez completadas las tres secciones.\n\n"
+                "Ejemplo del formato esperado (cópialo solo en estilo y estructura, nunca sus datos ni "
+                "sus nombres de vía, que son inventados): "
+                "'Resumen ejecutivo: la vía Gran Vía concentra el 32% de las afectaciones activas, seguida "
+                "de Alameda Principal. Punto crítico: 4 vías superan las 10 afectaciones simultáneas sin "
+                "cobertura ITS. Recomendaciones: 1) Priorizar la revisión de Gran Vía y Alameda Principal. "
+                "2) Instalar dispositivos ITS en las vías sin cobertura. 3) Revisar la duración media de "
+                "las afectaciones activas.'"
             ),
             "summary": built["summary"],
-            "sample_rows": built.get("sample_rows", []),
+            "sample_rows": sample_rows,
         },
     }
 
 
 OLLAMA_RESPONSE_CACHE: Dict[str, Dict[str, Any]] = {}
+
+# Señales de que el modelo se ha desviado a "explicar cómo consultar una API"
+# en vez de interpretar los datos agregados (alucinación observada con
+# llama3.2 pese a que la instrucción lo prohíbe explícitamente). Se rechaza
+# la respuesta entera antes de mostrarla o cachearla: mejor un error claro
+# que un texto convincente pero inventado.
+OLLAMA_HALLUCINATION_MARKERS = (
+    "http://", "https://", "```", "GET /", "POST /", "curl ", "endpoint",
+    "api de datos abiertos", "api rest", "realizar una solicitud",
+)
+
+
+def _looks_like_api_hallucination(text: str) -> bool:
+    lowered = text.lower()
+    return any(marker.lower() in lowered for marker in OLLAMA_HALLUCINATION_MARKERS)
 
 
 def call_ollama_analysis(context_payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -4620,7 +4662,10 @@ def call_ollama_analysis(context_payload: Dict[str, Any]) -> Dict[str, Any]:
         "model": model,
         "prompt": prompt,
         "stream": False,
-        "options": {"num_predict": 400, "temperature": 0.2},
+        # num_predict acotado: limita tanto el peor caso de latencia como la
+        # longitud de una posible alucinación, sin recortar las ~120 palabras
+        # que pide la instrucción.
+        "options": {"num_predict": 260, "temperature": 0.2},
     }).encode("utf-8")
     request = urllib.request.Request(
         f"{base_url}/api/generate",
@@ -4630,12 +4675,22 @@ def call_ollama_analysis(context_payload: Dict[str, Any]) -> Dict[str, Any]:
     )
 
     try:
-        timeout = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "300"))
+        # 90s, no 5 minutos: si el modelo local no responde en ese tiempo, mejor
+        # fallar con un mensaje claro que dejar a alguien esperando delante de
+        # la pantalla sin saber si la petición sigue viva.
+        timeout = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "90"))
         with urllib.request.urlopen(request, timeout=timeout) as response:
             result = json.loads(response.read().decode("utf-8"))
         generated_text = result.get("response")
         if not generated_text:
             return {"is_valid": False, "errors": ["Ollama no devolvió texto en la respuesta."], "response": None}
+        if _looks_like_api_hallucination(generated_text):
+            return {
+                "is_valid": False,
+                "errors": ["El modelo se desvió del contexto de datos (parece describir una API en vez de interpretarlos). Reintenta."],
+                "model": model,
+                "response": None,
+            }
         success = {"is_valid": True, "errors": [], "model": model, "response": generated_text}
         OLLAMA_RESPONSE_CACHE[cache_key] = success
         return success

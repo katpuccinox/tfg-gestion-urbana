@@ -1285,7 +1285,7 @@ export default function App() {
             <span className="user-info-name">👤 {user?.name}</span>
             <span className="user-municipio-tag">{user?.municipio_id}</span>
           </div>
-          <button className="btn-logout" type="button" onClick={handleLogout}>Cerrar sesión</button>
+          <button className="btn-logout" type="button" onClick={() => handleLogout()}>Cerrar sesión</button>
         </div>
       </header>
 
